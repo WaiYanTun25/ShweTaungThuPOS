@@ -3,7 +3,8 @@
 use App\Http\Controllers\Api\{
     BranchController,
     AuthenticationController,
-    CategoryController
+    CategoryController,
+    ItemController
 };
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\RoleController;
@@ -43,7 +44,10 @@ Route::group(["middleware" => ['auth:sanctum']] , function () {
     Route::apiResource('categories', CategoryController::class);
 
     Route::apiResource('subcategories', CategoryController::class);
+
+    Route::apiResource('items', ItemController::class);
 });
+
 
 
 

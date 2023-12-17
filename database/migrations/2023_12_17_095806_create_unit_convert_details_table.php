@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
+        Schema::create('unit_convert_details', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('prefix');
-            $table->softDeletes();
-            $table->timestamp('created_at');
+            $table->integer('unit_convert_id');
+            $table->integer('from_unit_id');
+            $table->integer('from_qty');
+            $table->integer('to_unit_id');
+            $table->integer('to_qty');
+            // $table->timestamps();
         });
     }
 
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categories');
+        Schema::dropIfExists('unit_convert_details');
     }
 };

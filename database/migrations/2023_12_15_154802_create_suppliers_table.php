@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('township');
             $table->string('city');
             $table->timestamp('join-date');
-            $table->timestamp('deleted_at');
-            $table->timestamps();
+            $table->softDeletes();
+            // $table->timestamps();
         });
     }
 

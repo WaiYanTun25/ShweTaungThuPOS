@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('item_prices', function (Blueprint $table) {
+        Schema::create('transfer_details', function (Blueprint $table) {
             $table->id();
+            $table->string('voucher_no');
             $table->integer('item_id');
             $table->integer('unit_id');
-            $table->integer('rate');
-            $table->integer('vip_price');
-            $table->integer('retail_price');
-            $table->integer('wholesale_price');
-            $table->timestamps();
+            $table->integer('quantity');
+            $table->text('remark');
         });
     }
 
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('item_prices');
+        Schema::dropIfExists('transfer_details');
     }
 };

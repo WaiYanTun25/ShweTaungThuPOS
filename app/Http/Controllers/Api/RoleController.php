@@ -5,17 +5,32 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
+use App\Models\User;
 
 class RoleController extends ApiBaseController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $getRoles = Role::select('id', 'name')->get();
+        $getRoles = Role::select('id', 'name')->with('permissions:id,name');
+
+        $search = $request->query('search');
+        if ($search) {
+            $getRoles->where('name', 'like', "%$search%")
+                     ->orWhere('phone_number', 'like', "%$search%")
+                     ->orWhere('address', 'like', "%$search%");
+        }
+
+        $order = $request->query('order', 'asc'); // default to asc if not provided
+        $column = $request->query('column', 'created_at');
+
+        $getRoles->orderBy($column, $order);
+        $getRoles = $getRoles->latest('created_at')->get();
         
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $getRoles);
     }

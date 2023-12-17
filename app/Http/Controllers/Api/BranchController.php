@@ -17,11 +17,27 @@ class BranchController extends ApiBaseController
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $braches = Branch::select(['id', 'name', 'phone_number', 'total_employee', 'address'])->latest('created_at')->get();
-        
-        return $this->sendSuccessResponse('success', Response::HTTP_OK, $braches);
+        $branches = Branch::select(['id', 'name', 'phone_number', 'total_employee', 'address']);
+
+        $search = $request->query('search');
+        if ($search) {
+            $branches->where('name', 'like', "%$search%")
+                     ->orWhere('phone_number', 'like', "%$search%")
+                     ->orWhere('address', 'like', "%$search%");
+        }
+    
+        // Handle order and column
+        $order = $request->query('order', 'asc'); // default to asc if not provided
+        $column = $request->query('column', 'created_at'); // default to created_at if not provided
+    
+        $branches->orderBy($column, $order);
+    
+        // Get the final result
+        $branches = $branches->latest('created_at')->get();
+
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $branches);
     }
 
     /**

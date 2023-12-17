@@ -17,9 +17,7 @@ return new class extends Migration
             $table->integer('category_id');
             $table->integer('supplier_id');
             $table->string('item_name');
-            $table->integer('standard_cost');
-            $table->integer('reorder_level');
-            $table->integer('reorder_period');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
