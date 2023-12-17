@@ -12,6 +12,11 @@ use stdClass;
 
 class AuthenticationController extends ApiBaseController
 {
+    public function __construct()
+    {
+        $this->middleware('permission:auth:register')->only('registerUser');
+    }
+
     public function loginUser (Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -33,14 +38,14 @@ class AuthenticationController extends ApiBaseController
         if(Hash::check($request->password, $user->password)){
             $permissions = $user->getPermissionsViaRoles();
 
+            $token = $user->createToken('Shwe Taung Thu',[$permissions])->plainTextToken;
+
             $permissions->transform(function ($permission) {
                 return [
                     'id' => $permission->id,
                     'name' => $permission->name,
                 ];
             });
-
-            $token = $user->createToken('Shwe Taung Thu')->plainTextToken;
 
             $userData = new stdClass;
             $userData->name = $user->name;

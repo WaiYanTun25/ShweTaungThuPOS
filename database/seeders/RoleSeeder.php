@@ -24,6 +24,12 @@ class RoleSeeder extends Seeder
             if ($role == "Admin") {
                 $createRole->syncPermissions($permissions);
             }
+            if ($role == "Cashier")
+            {
+                $itemPermissionsList = ['item:get', 'item:create', 'item:edit', 'item:detail', 'item:delete'];
+                $cashier_permissions = Permission::whereIn('name', $itemPermissionsList)->get();
+                $createRole->syncPermissions($cashier_permissions);
+            }
         }
     }
 }

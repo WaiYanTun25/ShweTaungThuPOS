@@ -20,7 +20,7 @@ class AdminUserSeeder extends Seeder
         $user->branch_id = 0;
         $user->password = Hash::make('password');
         $user->save();
-
+        
         $user->assignRole('Admin');
     }
 }

@@ -8,6 +8,9 @@ use Throwable;
 // exception lists
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Auth\Access\AuthorizationException;
+use Symfony\Component\Finder\Exception\AccessDeniedException;
+use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 use stdClass;
 
 class Handler extends ExceptionHandler
@@ -28,6 +31,17 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
+
+        $this->renderable(function (\Spatie\Permission\Exceptions\UnauthorizedException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'result' => 0,
+                    'message' => 'You do not have the required authorization.',
+                    'data' => new stdClass
+                ], 403);
+            }
+        });
+        
         $this->renderable(function (NotFoundHttpException $e, $request) {
             if ($request->is('api/*')) {
                 return response()->json([
@@ -38,6 +52,17 @@ class Handler extends ExceptionHandler
             }
         });
 
+        $this->renderable(function (NotFoundHttpException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'result' => 0,
+                    'message' => 'Record not found.',
+                    'data' => new stdClass
+                ], 404);
+            }
+        });
+        
+
         $this->renderable(function (AuthenticationException $e, $request) {
             if ($request->is('api/*')) {
                 return response()->json([
@@ -47,5 +72,17 @@ class Handler extends ExceptionHandler
                 ], 401);
             }
         });
+        
+        $this->renderable(function (AuthorizationException  $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'result' => 0,
+                    'message' => 'Unauthorized.',
+                    'data' => new stdClass
+                ], 403);
+            }
+        });
+
+        
     }
 }

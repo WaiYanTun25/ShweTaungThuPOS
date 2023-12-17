@@ -15,6 +15,14 @@ class BranchController extends ApiBaseController
 {
     use BranchTrait;
 
+    public function __construct()
+    {
+        $this->middleware('permission:branch:get')->only('index');
+        $this->middleware('permission:branch:create')->only('store');
+        $this->middleware('permission:branch:detail')->only('show');
+        $this->middleware('permission:branch:edit')->only('update');
+        $this->middleware('permission:branch:delete')->only('delete');
+    }
     /**
      * Display a listing of the resource.
      */

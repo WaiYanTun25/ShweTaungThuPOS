@@ -35,9 +35,8 @@ Route::get('/testing', [TestController::class, 'testing']);
 
 Route::group(["middleware" => ['auth:sanctum']] , function () {
 
-    Route::middleware(('can:get-roles,create-role,edit-role,delete-role'))->group(function() {
-        Route::apiResource('roles', RoleController::class);
-    });
+
+    Route::apiResource('roles', RoleController::class);
 
     Route::apiResource('branches', BranchController::class);
 

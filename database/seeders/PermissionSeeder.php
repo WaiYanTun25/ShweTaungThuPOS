@@ -13,16 +13,22 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        $permissions = ['branches', 'edit branches', 'show branches', 'create branches', 'delete branches'];
-        $rolePermissionsList = ['get-roles', 'create-role', 'edit-role', 'delete-role'];
-        $allPermissions = array_merge($permissions, $rolePermissionsList);
+        $branchPermissionList = ['branch:get', 'branch:create', 'branch:edit','branch:detail','branch:delete'];
+        $categoryPermissionList = ['category:get', 'category:create', 'category:edit','category:detail','category:delete'];
+        $supplierPermissionList = ['supplier:get', 'supplier:create', 'supplier:edit','supplier:detail','supplier:delete'];
+        $customerPermissionList = ['customer:get', 'customer:create', 'customer:edit','customer:detail','customer:delete'];
+        $rolePermissionsList = ['role:get', 'role:create', 'role:edit','role:detail', 'role:delete'];
+        $itemPermissionsList = ['item:get', 'item:create', 'item:edit', 'item:detail', 'item:delete'];
+        $registerPermissions = ['auth:register'];
 
-        foreach($allPermissions as $permission) 
+        $allPermissions = array_merge($categoryPermissionList, $supplierPermissionList,$customerPermissionList, $registerPermissions, $branchPermissionList, $rolePermissionsList, $itemPermissionsList);
+
+        foreach($allPermissions as $permission)
         {
-            $createPermission = new Permission();
-            $createPermission->name = $permission;
-            $createPermission->save();
+            Permission::create([
+                'name' => $permission,
+                // 'guard_name' => 'sanctum',
+            ]);
         }
-        
     }
 }
