@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\BranchRequest;
 use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -43,23 +44,12 @@ class BranchController extends ApiBaseController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(BranchRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            "name" => 'required',
-            "phone_number" => "required",
-            "address" => 'required'
-        ]); 
-
-        if($validator->fails())
-        {
-            return $this->sendErrorResponse('error', Response::HTTP_UNPROCESSABLE_ENTITY,$validator->errors());
-        }
-
         try{
             $createBranch = $this->createBranch($request);
-
-            return $this->sendSuccessResponse('success', Response::HTTP_CREATED, $createBranch);
+            $message = 'Branch ('.$createBranch->name.') is created successfully';
+            return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
         }catch(\Exception $e){
             info($e->getMessage());
             return $this->sendErrorResponse('Something went wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -80,25 +70,15 @@ class BranchController extends ApiBaseController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(BranchRequest $request, string $id)
     {
-        $validator = Validator::make($request->all(), [
-            "name" => 'required',
-            "phone_number" => "required",
-            "address" => 'required'
-        ]); 
-
-        if($validator->fails())
-        {
-            return $this->sendErrorResponse('error', Response::HTTP_UNPROCESSABLE_ENTITY, $validator->errors());
-        }
-
         $branch_id = $id;
         $getBranch = $this->getBranch($branch_id);
         
         $updateBranch = $this->updateBranch($getBranch, $request);
+        $message = 'Branch ('.$updateBranch->name.') is updated successfully';
 
-        return $this->sendSuccessResponse('success', Response::HTTP_CREATED, $updateBranch);
+        return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
     }
 
     /**
@@ -110,6 +90,8 @@ class BranchController extends ApiBaseController
         $getBranch = $this->getBranch($branch_id);
         $deleteBranch = $getBranch->delete();
         
-        return $this->sendSuccessResponse('success', Response::HTTP_OK, $getBranch);
+        $message = 'Branch ('.$getBranch->name.') is deleted successfully';
+
+        return $this->sendSuccessResponse($message, Response::HTTP_OK);
     }
 }
