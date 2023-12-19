@@ -123,18 +123,18 @@ class RoleController extends ApiBaseController
      */
     public function destroy(string $id)
     {
-        // $role = Role::findOrFail($id);
-        // // if($role->users)
-        // // {
-        // //     return "has role";
-        // // }
-        // // return "noone";
-        // // Get users with the 'admin' role
-        // $usersWithRoleToDelete = $role;
-        // return $usersWithRoleToDelete;
-        // if($usersWithRoleToDelete)
+        $role = Role::findOrFail($id);
+        // if($role->users)
         // {
-        //     return $this->sendCustomResponse()
+        //     return "has role";
         // }
+        // return "noone";
+        // Get users with the 'admin' role
+        $usersWithRoleToDelete = $role;
+        return $usersWithRoleToDelete;
+    //     if($usersWithRoleToDelete)
+    //     {
+    //         return $this->sendCustomResponse()
+    //     }
     }
 }

@@ -29,12 +29,14 @@ use Illuminate\Support\Facades\Route;
 // login route
 Route::post('/login', [AuthenticationController::class, 'loginUser']);
 
-Route::post('/register', [AuthenticationController::class, 'registerUser']);
+
 
 Route::get('/testing', [TestController::class, 'testing']);
 
 Route::group(["middleware" => ['auth:sanctum']] , function () {
 
+    Route::post('/register', [AuthenticationController::class, 'registerUser']);
+    Route::get('/get-current-user', [AuthenticationController::class, 'getCurrentUserRoleAndPermission']);
 
     Route::apiResource('roles', RoleController::class);
 
