@@ -17,8 +17,6 @@ return new class extends Migration
             $table->string('phone_number');
             $table->integer('total_employee')->nullable()->default(0);
             $table->text('address');
-            $table->softDeletes();
-            $table->timestamps();
         });
     }
 

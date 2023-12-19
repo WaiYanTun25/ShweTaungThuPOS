@@ -16,7 +16,6 @@ class CashierSeeder extends Seeder
     {
         $user = new User();
         $user->name = 'Test Cashier';
-        $user->email = 'cashier@gmail.com';
         $user->branch_id = 1;
         $user->password = Hash::make('password');
         $user->save();

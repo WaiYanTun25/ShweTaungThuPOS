@@ -26,8 +26,7 @@ class PermissionSeeder extends Seeder
         foreach($allPermissions as $permission)
         {
             Permission::create([
-                'name' => $permission,
-                'guard_name' => 'sanctum',
+                'name' => $permission
             ]);
         }
     }

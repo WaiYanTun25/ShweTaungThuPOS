@@ -16,11 +16,10 @@ class AdminUserSeeder extends Seeder
     {
         $user = new User();
         $user->name = 'Admin User';
-        $user->email = 'admin@gmail.com';
         $user->branch_id = 0;
         $user->password = Hash::make('password');
         $user->save();
         
-        $user->assignRole('Admin', 'sanctum');
+        $user->assignRole('Admin');
     }
 }

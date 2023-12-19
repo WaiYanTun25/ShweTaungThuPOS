@@ -11,14 +11,14 @@ use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends ApiBaseController
 {
-    public function __construct()
-    {
-        $this->middleware('permission:category:get')->only('index');
-        $this->middleware('permission:category:create')->only('store');
-        $this->middleware('permission:category:detail')->only('show');
-        $this->middleware('permission:category:edit')->only('update');
-        $this->middleware('permission:category:delete')->only('delete');
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('permission:category:get')->only('index');
+    //     $this->middleware('permission:category:create')->only('store');
+    //     $this->middleware('permission:category:detail')->only('show');
+    //     $this->middleware('permission:category:edit')->only('update');
+    //     $this->middleware('permission:category:delete')->only('delete');
+    // }
 
     /**
      * Display a listing of the resource.

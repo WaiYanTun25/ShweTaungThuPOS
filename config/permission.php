@@ -52,7 +52,7 @@ return [
          * basic default value but you may easily change it to any table you like.
          */
 
-        'model_has_permissions' => 'model_has_permissions',
+        // 'model_has_permissions' => 'model_has_permissions',
 
         /*
          * When using the "HasRoles" trait from this package, we need to know which
@@ -95,6 +95,7 @@ return [
 
         'team_foreign_key' => 'team_id',
     ],
+    'default_guard' => 'web',
 
     /*
      * When set to true, the method for checking permissions will be registered on the gate.

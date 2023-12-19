@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('prefix');
-            $table->softDeletes();
-            $table->timestamp('created_at');
         });
     }
 

@@ -25,7 +25,7 @@ class AuthenticationController extends ApiBaseController
     public function loginUser (Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required | email:rfc,dns',
+            'name' => 'required',
             'password' => 'required'
         ]);
 
@@ -34,17 +34,17 @@ class AuthenticationController extends ApiBaseController
             return $this->sendErrorResponse("Error", Response::HTTP_INTERNAL_SERVER_ERROR, $validator->errors());
         }
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('name', $request->name)->first();
 
         if(empty($user)){
-            return $this->sendErrorResponse("Wrong Email", Response::HTTP_BAD_REQUEST);
+            return $this->sendErrorResponse("Wrong username", Response::HTTP_BAD_REQUEST);
         }
 
         if(Hash::check($request->password, $user->password)){
             $permissions = $user->getPermissionsViaRoles();
-
+            
             $token = $user->createToken('Shwe Taung Thu',[$permissions])->plainTextToken;
-
+           
             return $this->getUserRoleAndPermission($user->id, $token);
         }else{
             return $this->sendErrorResponse("Wrong Password",  Response::HTTP_BAD_REQUEST);
@@ -54,8 +54,7 @@ class AuthenticationController extends ApiBaseController
     public function registerUser(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'email' => 'required | email:rfc,dns | unique:users',
+            'name' => 'required | unique:users',
             'password' => 'required|confirmed|min:6',
             'role_id' => 'required',
             'branch_id' => 'nullable'
@@ -67,14 +66,12 @@ class AuthenticationController extends ApiBaseController
         }
 
         $name = $request->name;
-        $email = $request->email;
         $password = $request->password;
         $branchId = $request->branch_id ?? 0;
         $roleId = $request->role_id;
 
         $createUser = new User();
         $createUser->name = $name;
-        $createUser->email = $email;
         $createUser->password = Hash::make($password);
         $createUser->branch_id = $branchId;
         $createUser->save();

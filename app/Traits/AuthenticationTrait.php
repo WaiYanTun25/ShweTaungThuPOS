@@ -11,7 +11,7 @@ trait AuthenticationTrait
 {
    public function getUserRoleAndPermission($id, $token = null)
    {
-    $user = User::select('id', 'name' , 'email', 'branch_id')->find($id);
+    $user = User::select('id', 'name' , 'branch_id')->find($id);
 
     $permissions = $user->getPermissionsViaRoles();
 
@@ -31,7 +31,6 @@ trait AuthenticationTrait
 
     $userData = new stdClass;
     $userData->name = $user->name;
-    $userData->email = $user->email;
     $userData->branch = $user->branch_id ? $user->branch_id : 0;
     if($token) 
     {

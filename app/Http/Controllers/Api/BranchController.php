@@ -15,14 +15,14 @@ class BranchController extends ApiBaseController
 {
     use BranchTrait;
 
-    public function __construct()
-    {
-        $this->middleware('permission:branch:get')->only('index');
-        $this->middleware('permission:branch:create')->only('store');
-        $this->middleware('permission:branch:detail')->only('show');
-        $this->middleware('permission:branch:edit')->only('update');
-        $this->middleware('permission:branch:delete')->only('delete');
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('permission:branch:get')->only('index');
+    //     $this->middleware('permission:branch:create')->only('store');
+    //     $this->middleware('permission:branch:detail')->only('show');
+    //     $this->middleware('permission:branch:edit')->only('update');
+    //     $this->middleware('permission:branch:delete')->only('delete');
+    // }
     /**
      * Display a listing of the resource.
      */
@@ -38,13 +38,13 @@ class BranchController extends ApiBaseController
         }
     
         // Handle order and column
-        $order = $request->query('order', 'asc'); // default to asc if not provided
-        $column = $request->query('column', 'created_at'); // default to created_at if not provided
+        $order = $request->query('order', 'desc'); // default to asc if not provided
+        $column = $request->query('column', 'id'); // default to id if not provided
     
         $branches->orderBy($column, $order);
     
         // Get the final result
-        $branches = $branches->latest('created_at')->get();
+        $branches = $branches->get();
 
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $branches);
     }
