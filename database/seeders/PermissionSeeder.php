@@ -27,7 +27,7 @@ class PermissionSeeder extends Seeder
         {
             Permission::create([
                 'name' => $permission,
-                // 'guard_name' => 'sanctum',
+                'guard_name' => 'sanctum',
             ]);
         }
     }
