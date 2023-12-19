@@ -19,7 +19,7 @@ class AuthenticationController extends ApiBaseController
 
     public function __construct()
     {
-        $this->middleware('permission:auth:register')->only('registerUser');
+        // $this->middleware('permission:auth:register')->only('registerUser');
     }
 
     public function loginUser (Request $request)
