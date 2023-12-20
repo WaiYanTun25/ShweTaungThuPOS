@@ -125,17 +125,18 @@ class RoleController extends ApiBaseController
     public function destroy(string $id)
     {
         $role = Role::findOrFail($id);
-        // if($role->users)
-        // {
-        //     return "has role";
-        // }
-        // return "noone";
-        // Get users with the 'admin' role
-        $usersWithRoleToDelete = $role;
-        return $usersWithRoleToDelete;
-    //     if($usersWithRoleToDelete)
-    //     {
-    //         return $this->sendCustomResponse()
-    //     }
+        try{
+            if(count($role->users) > 0)
+            {
+                return $this->sendErrorResponse('There are related data with '.$role->name, Response::HTTP_CONFLICT);
+            }
+            $role->delete();
+
+            $message = 'Role ('.$role->name.') is deleted successfully';
+            return $this->sendSuccessResponse($message, Response::HTTP_OK);
+        }catch(Exception $e){
+            info($e->getMessage());
+            return $this->sendErrorResponse('Something went wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

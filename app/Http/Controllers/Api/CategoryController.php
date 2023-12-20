@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
+use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
@@ -25,21 +26,21 @@ class CategoryController extends ApiBaseController
      */
     public function index(Request $request)
     {
-        $getCategories = Category::select('id', 'name', 'prefix','created_at');
+        $getCategories = Category::select('id', 'name', 'prefix');
 
         $search = $request->query('search');
         if ($search) {
             $getCategories->where('name', 'like', "%$search%");
         }
          // Handle order and column
-         $order = $request->query('order', 'asc'); // default to asc if not provided
-         $column = $request->query('column', 'created_at'); // default to created_at if not provided
+         $order = $request->query('order', 'desc'); // default to asc if not provided
+         $column = $request->query('column', 'id'); // default to id if not provided
      
          $getCategories->orderBy($column, $order);
      
          // Get the final result
-         $getCategories = $getCategories->latest('created_at')->get();
-        return $this->sendSuccessResponse('success', Response::HTTP_OK, $getCategories);
+        $categories = $getCategories->get();
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $categories);
     }
 
     /**
@@ -97,7 +98,12 @@ class CategoryController extends ApiBaseController
     public function destroy(string $id)
     {
         $category = Category::findOrFail($id);
-        $deleteCategory = $category->delete();
+        $checkCategoryExist = Item::where('category_id', $id)->first();
+        if($checkCategoryExist)
+        {
+            return $this->sendErrorResponse('There are related data with '.$category->name, Response::HTTP_CONFLICT);
+        }
+        $category->delete();
 
         $message = 'Category ('. $category->name .') is deleted successfully';
 

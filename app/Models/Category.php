@@ -8,15 +8,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
 {
-    use HasFactory , SoftDeletes;
+    use HasFactory;
     public $timestamps = false;
-
-    public static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_at = $model->freshTimestamp();
-        });
-    }
 }
