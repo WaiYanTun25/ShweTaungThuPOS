@@ -11,6 +11,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Exception;
+use stdClass;
 
 class ItemController extends ApiBaseController
 {
@@ -105,7 +106,10 @@ class ItemController extends ApiBaseController
      */
     public function show(string $id)
     {
-        //
+        $getItems = Item::with('supplier')->select('id' , 'item_code', 'category_id', 'supplier_id', 'item_name');
+
+        $item = $getItems->find($id);
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $item ? $item : new stdClass);
     }
 
     /**

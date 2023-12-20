@@ -4,7 +4,8 @@ use App\Http\Controllers\Api\{
     BranchController,
     AuthenticationController,
     CategoryController,
-    ItemController
+    ItemController,
+    SupplierController
 };
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\RoleController;
@@ -38,14 +39,12 @@ Route::group(["middleware" => ['auth:sanctum']] , function () {
     Route::get('/get-current-user', [AuthenticationController::class, 'getCurrentUserRoleAndPermission']);
 
     Route::apiResource('roles', RoleController::class);
-
     Route::apiResource('branches', BranchController::class);
-
     Route::apiResource('categories', CategoryController::class);
-
-    Route::apiResource('subcategories', CategoryController::class);
-
+    // Route::apiResource('subcategories', CategoryController::class);
     Route::apiResource('items', ItemController::class);
+
+    Route::apiResource('suppliers', SupplierController::class);
 });
 
 

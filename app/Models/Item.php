@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Item extends Model
 {
     use HasFactory;
+    public $timestamps = false;
 
     protected static function boot()
     {
@@ -35,5 +36,10 @@ class Item extends Model
     public function ItemUnitDetails()
     {
         return $this->hasmany(ItemUnitDetail::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
     }
 }

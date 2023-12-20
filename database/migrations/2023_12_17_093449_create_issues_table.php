@@ -18,7 +18,6 @@ return new class extends Migration
             $table->integer('to_branch_id');
             $table->integer('total_quantiy');
             $table->timestamp('transaction_date');
-            $table->softDeletes();
             // $table->timestamps();
         });
     }
