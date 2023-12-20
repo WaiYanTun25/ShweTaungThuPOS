@@ -33,10 +33,20 @@ class RoleRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name' => 'required | unique:roles',
-            'permission_ids' => 'required | array'
-
+        $rules = [
+            'permission_ids' => 'required|array',
         ];
+
+        // If it's a POST request (create), add the 'required' and 'unique:roles' rules for the 'name' field
+        if ($this->isMethod('post')) {
+            $rules['name'] = 'required|unique:roles';
+        }
+
+        // If it's a PUT or PATCH request (update), only add the 'required' rule for the 'name' field
+        if ($this->isMethod('put') || $this->isMethod('patch')) {
+            $rules['name'] = 'required';
+        }
+
+        return $rules;
     }
 }

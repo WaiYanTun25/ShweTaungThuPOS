@@ -10,19 +10,20 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 
 use App\Traits\BranchTrait;
+use Illuminate\Support\Facades\Auth;
 
 class BranchController extends ApiBaseController
 {
     use BranchTrait;
 
-    // public function __construct()
-    // {
-    //     $this->middleware('permission:branch:get')->only('index');
-    //     $this->middleware('permission:branch:create')->only('store');
-    //     $this->middleware('permission:branch:detail')->only('show');
-    //     $this->middleware('permission:branch:edit')->only('update');
-    //     $this->middleware('permission:branch:delete')->only('delete');
-    // }
+    public function __construct()
+    {
+        $this->middleware('permission:branch:get')->only('index');
+        $this->middleware('permission:branch:create')->only('store');
+        $this->middleware('permission:branch:detail')->only('show');
+        $this->middleware('permission:branch:edit')->only('update');
+        $this->middleware('permission:branch:delete')->only('delete');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -38,7 +39,7 @@ class BranchController extends ApiBaseController
         }
     
         // Handle order and column
-        $order = $request->query('order', 'desc'); // default to asc if not provided
+        $order = $request->query('order', 'desc '); // default to asc if not provided
         $column = $request->query('column', 'id'); // default to id if not provided
     
         $branches->orderBy($column, $order);

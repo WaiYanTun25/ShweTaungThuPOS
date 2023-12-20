@@ -16,14 +16,14 @@ use Laravel\Sanctum\PersonalAccessToken;
 
 class RoleController extends ApiBaseController
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('permission:role:get')->only('index');
-    //     $this->middleware('permission:role:create')->only('store');
-    //     $this->middleware('permission:role:detail')->only('show');
-    //     $this->middleware('permission:role:edit')->only('update');
-    //     $this->middleware('permission:role:delete')->only('delete');
-    // }
+    public function __construct()
+    {
+        $this->middleware('permission:role:get')->only('index');
+        $this->middleware('permission:role:create')->only('store');
+        $this->middleware('permission:role:detail')->only('show');
+        $this->middleware('permission:role:edit')->only('update');
+        $this->middleware('permission:role:delete')->only('delete');
+    }
 
     /**
      * Display a listing of the resource.
@@ -38,10 +38,10 @@ class RoleController extends ApiBaseController
         }
 
         $order = $request->query('order', 'asc'); // default to asc if not provided
-        $column = $request->query('column', 'created_at');
+        $column = $request->query('column', 'id');
 
         $getRoles->orderBy($column, $order);
-        $getRoles = $getRoles->latest('created_at')->get();
+        $getRoles = $getRoles->get();
         
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $getRoles);
     }
@@ -98,14 +98,15 @@ class RoleController extends ApiBaseController
              // Sync the permissions for the role
             $role->syncPermissions($request->permission_ids);
 
-            foreach ($users as $user) {
-                // Retrieve the user's existing tokens
-                $tokens = $user->tokens;
+            // this is commented for update the role's permission of user
+            // foreach ($users as $user) {
+            //     // Retrieve the user's existing tokens
+            //     $tokens = $user->tokens;
                 
-                foreach ($tokens as $token) {
-                    $token->delete();
-                }
-            }
+            //     foreach ($tokens as $token) {
+            //         $token->delete();
+            //     }
+            // }
            
             DB::commit();
             $message = 'Role ('. $role->name .') is updated successfully';
