@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\{
     BranchController,
     AuthenticationController,
     CategoryController,
+    CustomerController,
     ItemController,
     SupplierController
 };
@@ -45,6 +46,7 @@ Route::group(["middleware" => ['auth:sanctum']] , function () {
     Route::apiResource('items', ItemController::class);
 
     Route::apiResource('suppliers', SupplierController::class);
+    Route::apiResource('customers', CustomerController::class);
 });
 
 

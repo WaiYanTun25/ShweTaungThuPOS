@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Models\Branch;
+use App\Models\User;
 
 trait BranchTrait
 {
@@ -30,5 +31,19 @@ trait BranchTrait
         $branch->save();
 
         return $branch;
+    }
+
+    public function checkBranchHasRelatedData($branchId)
+    {
+        $user = User::where('branch_id', $branchId)->first();
+        // issues
+        // damage
+        // reciesve
+        // inventory
+        if($user)
+        {
+            return true;
+        }
+        
     }
 }

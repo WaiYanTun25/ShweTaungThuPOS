@@ -13,8 +13,12 @@ use Illuminate\Support\Facades\Validator;
 use Exception;
 use stdClass;
 
+use App\Traits\ItemTrait;
+
 class ItemController extends ApiBaseController
 {
+    use ItemTrait;
+
     public function __construct()
     {
         $this->middleware('permission:item:get')->only('index');
@@ -106,7 +110,7 @@ class ItemController extends ApiBaseController
      */
     public function show(string $id)
     {
-        $getItems = Item::with('supplier')->select('id' , 'item_code', 'category_id', 'supplier_id', 'item_name');
+        $getItems = Item::with(['supplier', 'category'])->select('id' , 'item_code', 'category_id', 'supplier_id', 'item_name');
 
         $item = $getItems->find($id);
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $item ? $item : new stdClass);
@@ -172,6 +176,9 @@ class ItemController extends ApiBaseController
         $item = Item::findOrFail($id);
         try{
             DB::beginTransaction();
+            if($this->checkItemHasRelatedData($id)) {
+                return $this->sendErrorResponse('There are related data with '.$item->item_name, Response::HTTP_CONFLICT);
+            }
             $item->ItemUnitDetails()->delete();
             $item->delete();
             DB::commit();

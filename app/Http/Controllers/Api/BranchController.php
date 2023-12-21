@@ -97,6 +97,9 @@ class BranchController extends ApiBaseController
     {
         $branch_id = $id;
         $getBranch = $this->getBranch($branch_id);
+        if($this->checkBranchHasRelatedData($branch_id)){
+            return $this->sendErrorResponse('There are related data with '.$getBranch->name, Response::HTTP_CONFLICT);
+        }
         $deleteBranch = $getBranch->delete();
         
         $message = 'Branch ('.$getBranch->name.') is deleted successfully';
