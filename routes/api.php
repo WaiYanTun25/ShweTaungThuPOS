@@ -5,8 +5,10 @@ use App\Http\Controllers\Api\{
     AuthenticationController,
     CategoryController,
     CustomerController,
+    IssueController,
     ItemController,
-    SupplierController
+    SupplierController,
+    UnitController
 };
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\RoleController;
@@ -43,10 +45,16 @@ Route::group(["middleware" => ['auth:sanctum']] , function () {
     Route::apiResource('branches', BranchController::class);
     Route::apiResource('categories', CategoryController::class);
     // Route::apiResource('subcategories', CategoryController::class);
-    Route::apiResource('items', ItemController::class);
-
+  
     Route::apiResource('suppliers', SupplierController::class);
     Route::apiResource('customers', CustomerController::class);
+
+    // item, unit
+    Route::apiResource('units', UnitController::class);
+    Route::apiResource('items', ItemController::class);
+
+    // issue , receive, damage
+    Route::apiResource('issues', IssueController::class);
 });
 
 
