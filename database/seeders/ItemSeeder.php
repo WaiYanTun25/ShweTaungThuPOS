@@ -107,7 +107,7 @@ class ItemSeeder extends Seeder
                 $itemUnitDetail = new ItemUnitDetail();
                 $itemUnitDetail->item_id = $item->id;
                 $itemUnitDetail->rate = $detail['rate'];
-                $itemUnitDetail->unit_id = $detail['rate'];
+                $itemUnitDetail->unit_id = $detail['unit_id'];
                 $itemUnitDetail->vip_price = $detail['vip_price'];
                 $itemUnitDetail->retail_price = $detail['retail_price'];
                 $itemUnitDetail->wholesale_price = $detail['wholesale_price'];

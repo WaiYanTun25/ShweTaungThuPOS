@@ -15,13 +15,13 @@ class Inventory extends Model
     {
         parent::boot();
 
-        static::addGlobalScope(new BranchScope());
+        // static::addGlobalScope(new BranchScope());
     }
 
-    // public function user()
-    // {
-    //     return $this->belongsTo(User::class, 'branch_id', 'branch_id');
-    // }
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'branch_id', 'branch_id');
+    }
 }
 
 // $user = $this;

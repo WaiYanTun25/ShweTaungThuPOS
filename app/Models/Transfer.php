@@ -41,8 +41,8 @@ class Transfer extends Model
         $branchId = $this->from_branch_id;
         $uniqueId = uniqid();
         $timestamp = now()->timestamp;
-
-        return "I-{$branchId}-" . substr($uniqueId, 0, 4) . substr($timestamp, 0, 4);
+        return substr(base_convert(sha1(uniqid(mt_rand())), 16, 36), 0, 12);
+        return "I-{$branchId}-" . substr($uniqueId, 0, -4) . substr($timestamp, 0, -4);
     }
 
     public function transfer_details()
