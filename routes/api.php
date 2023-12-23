@@ -5,9 +5,9 @@ use App\Http\Controllers\Api\{
     AuthenticationController,
     CategoryController,
     CustomerController,
-    IssueController,
     ItemController,
     SupplierController,
+    TransferController,
     UnitController
 };
 use App\Http\Controllers\Api\TestController;
@@ -54,7 +54,7 @@ Route::group(["middleware" => ['auth:sanctum']] , function () {
     Route::apiResource('items', ItemController::class);
 
     // issue , receive, damage
-    Route::apiResource('issues', IssueController::class);
+    Route::apiResource('transfers', TransferController::class);
 });
 
 

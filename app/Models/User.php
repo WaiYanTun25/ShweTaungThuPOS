@@ -47,4 +47,9 @@ class User extends Authenticatable
     // {
     //     return null;
     // }
+
+    // public function inventories()
+    // {
+    //     return $this->hasMany(Inventory::class, 'branch_id', 'branch_id');
+    // }
 }

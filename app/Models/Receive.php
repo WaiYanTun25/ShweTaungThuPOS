@@ -8,4 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class Receive extends Model
 {
     use HasFactory;
+    protected $table = "transfers";
 }
