@@ -5,25 +5,23 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class TransferResourceCollection extends ResourceCollection
+class DamageResourceCollection extends ResourceCollection
 {
     /**
      * Transform the resource collection into an array.
      *
      * @return array<int|string, mixed>
      */
-    public function toArray($request)
+    public function toArray(Request $request): array
     {
         return [
             'data' => $this->collection->map(function ($transfer) {
                 return [
                     'id' => $transfer->id,
                     'voucher_no' => $transfer->voucher_no,
-                    'from_branch_id' => $transfer->from_branch_id,
-                    'to_branch_id' => $transfer->to_branch_id,
+                    'branch_id' => $transfer->branch_id,
                     'total_quantity' => $transfer->total_quantity,
                     'transaction_date' => $transfer->transaction_date,
-                    'status' => $transfer->status,
                     'transfer_details' => TransferDetailResource::collection($transfer->transfer_details),
                 ];
             }),

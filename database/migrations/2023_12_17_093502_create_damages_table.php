@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('voucher_no');
             $table->integer('branch_id');
             $table->timestamp('transaction_date');
-            $table->integer('total_qty');
+            $table->integer('total_quantity');
             // $table->timestamps();
         });
     }

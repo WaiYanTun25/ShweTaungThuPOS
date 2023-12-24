@@ -132,7 +132,7 @@ class ItemSeeder extends Seeder
                 'branch_id' => 1,
                 'item_id' => 1,
                 'unit_id' => 2,
-                'quantity' => 10
+                'quantity' => 100
             ],
             [
                 'branch_id' => 1,
@@ -144,19 +144,19 @@ class ItemSeeder extends Seeder
                 'branch_id' => 1,
                 'item_id' => 2,
                 'unit_id' => 1,
-                'quantity' => 50
+                'quantity' => 100
             ],
             [
                 'branch_id' => 1,
                 'item_id' => 2,
                 'unit_id' => 2,
-                'quantity' => 30
+                'quantity' => 100
             ],
             [
                 'branch_id' => 2,
                 'item_id' => 1,
                 'unit_id' => 2,
-                'quantity' => 10
+                'quantity' => 100
             ],
             [
                 'branch_id' => 2,
@@ -168,13 +168,13 @@ class ItemSeeder extends Seeder
                 'branch_id' => 2,
                 'item_id' => 2,
                 'unit_id' => 1,
-                'quantity' => 50
+                'quantity' => 100
             ],
             [
                 'branch_id' => 2,
                 'item_id' => 2,
                 'unit_id' => 2,
-                'quantity' => 30
+                'quantity' => 100
             ],
         ];
 

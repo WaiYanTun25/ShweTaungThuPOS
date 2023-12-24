@@ -2,15 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Damage;
 use App\Models\Inventory;
-use App\Models\Transfer;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Response;
-use Illuminate\Validation\Rule;
 
-class TransferRequest extends FormRequest
+
+class DamageRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -21,6 +20,7 @@ class TransferRequest extends FormRequest
             ], 422)
         );
     }
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -37,6 +37,7 @@ class TransferRequest extends FormRequest
     public function rules(): array
     {
         $rules =  [  
+            'branch_id' => 'required|integer',
             'item_detail.*.item_id' => 'required|integer',
             'item_detail.*.unit_id' => 'required|integer',
             'item_detail.*.quantity' => 'required|integer|min:1',
@@ -46,21 +47,8 @@ class TransferRequest extends FormRequest
                 'array',
                 'min:1',
                 function ($attribute, $value, $fail) {
-                    if($this->isMethod('post'))
-                    {
-                        $fromBranchId = request('from_branch_id');
-                    }else{
-                        $transfer = Transfer::find($this->route('transfer'));
-                        if (!$transfer->status) {
-                            throw new HttpResponseException(
-                                response()->json([
-                                    'message' => 'Record not found.',
-                                    'errors' => [], // You can provide additional error details if needed
-                                ], Response::HTTP_UNPROCESSABLE_ENTITY)
-                            );
-                        }
-                        $fromBranchId = $transfer->from_branch_id;
-                    }
+                    $branchId = request('branch_id');
+                    
                     foreach ($value as $item) {
                         // Check if 'quantity' key is present in the item array
                         if (array_key_exists('quantity', $item)) {
@@ -74,7 +62,7 @@ class TransferRequest extends FormRequest
         
                             $itemExists = Inventory::where('item_id', $item['item_id'])
                                 ->where('unit_id', $item['unit_id'])
-                                ->where('branch_id', $fromBranchId)
+                                ->where('branch_id', $branchId)
                                 ->where('quantity', '>=', $quantity)
                                 ->exists();
         
@@ -86,14 +74,6 @@ class TransferRequest extends FormRequest
                 },
             ],
         ];
-
-        if($this->isMethod('post'))
-        {
-            info('here');
-            $rules['from_branch_id'] = 'required|integer';
-            $rules['to_branch_id'] = 'required|integer';
-            
-        }
 
         if($this->isMethod('put') || $this->isMethod('patch'))
         {

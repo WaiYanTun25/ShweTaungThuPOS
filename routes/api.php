@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\{
     AuthenticationController,
     CategoryController,
     CustomerController,
+    DamageController,
     ItemController,
     ReceiveController,
     SupplierController,
@@ -57,6 +58,7 @@ Route::group(["middleware" => ['auth:sanctum']] , function () {
     // issue , receive, damage
     Route::apiResource('transfers', TransferController::class);
     Route::apiResource('receives', ReceiveController::class);
+    Route::apiResource('damages', DamageController::class);
 });
 
 
