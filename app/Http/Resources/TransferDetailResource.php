@@ -24,7 +24,7 @@ class TransferDetailResource extends JsonResource
             'item_name' => $this->item->item_name,
             'unit_id' => $this->unit_id,
             'unit_name' => $this->unit->name,
-            // 'quantity' => $this->quantity,
+            'quantity' => $this->quantity,
             // 'remark' => $this->remark,
         ];
     }

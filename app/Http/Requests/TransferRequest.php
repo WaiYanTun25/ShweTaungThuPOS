@@ -53,7 +53,6 @@ class TransferRequest extends FormRequest
                         $requestId = $this->route('issue');
                         $issueData = Issue::find($requestId);  
                     }
-                    
                     foreach ($value as $item) {
                         // Check if 'quantity' key is present in the item array
                         if (array_key_exists('quantity', $item)) {
@@ -67,6 +66,7 @@ class TransferRequest extends FormRequest
         
                             if($this->isMethod('put') || $this->isMethod('patch'))
                             {
+                                $checkIssue = Issue::findOrFail($requestId);
                                 $detail = TransferDetail::where('item_id', $item['item_id'])->where('unit_id', $item['unit_id'])->where('voucher_no', $issueData->voucher_no )->first();
                                 if($detail){
                                     $totalQuantity =  $quantity - $detail->quantity;

@@ -101,14 +101,13 @@ class DamageController extends ApiBaseController
     public function update(Request $request, string $id)
     {
         $updateDamage = Damage::with('transfer_details')->findOrFail($id);
-
         try {
             DB::beginTransaction();
             $updateDamage->total_quantity = collect($request->item_detail)->sum('quantity');
             $updateDamage->save();
             // array_sum(array_column($request->item_detail, 'quantity'))
             //create Transaction Detail 
-            $createdTransferDetail = $this->updatedDamageDetail($request->item_detail, $updateDamage->voucher_no, $updateDamage->branch_id);
+            $createdTransferDetail = $this->updatedDamageDetail($request->item_details, $updateDamage->voucher_no, $updateDamage->branch_id);
 
             DB::commit();
             $message = 'Damage voucher (' . $updateDamage->voucher_no . ') is updated successfully';
