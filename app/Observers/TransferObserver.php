@@ -3,10 +3,11 @@
 namespace App\Observers;
 
 use App\Models\Inventory;
-use App\Models\Transfer;
+use App\Models\Issue;
 use App\Models\TransferDetail;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TransferObserver
 {
@@ -16,15 +17,15 @@ class TransferObserver
     {
         $this->request = $request;
     }
-    public function creating(Transfer $transfer): void
+    public function creating(Issue $issue): void
     {
         try{
             // info($this->request->item_detail);
-            foreach($this->request->item_detail as $detail)
+            foreach($this->request->item_details as $detail)
             {
                 $deductFromInventory = Inventory::where('item_id', $detail['item_id'])
                 ->where('unit_id', $detail['unit_id'])
-                ->where('branch_id', $this->request->from_branch_id)
+                ->where('branch_id', Auth::user()->branch_id)
                 ->first();
                 // $deductQuantity = min($deductFromInventory->quantity, $detail['quantity']);
                 if($deductFromInventory)
@@ -43,7 +44,7 @@ class TransferObserver
     /**
      * Handle the Issue "created" event.
      */
-    public function created(Transfer $transfer): void
+    public function created(Issue $transfer): void
     {
 
     }
@@ -51,11 +52,11 @@ class TransferObserver
     /**
      * Handle the Issue "updating" event.
      */
-    public function updating(Transfer $transfer): void
+    public function updating(Issue $transfer): void
     {
         try{
             $fromBranchId = $transfer->from_branch_id;
-            foreach($this->request->item_detail as $detail)
+            foreach($this->request->item_details as $detail)
             {
                 $deductFromInventory = Inventory::where('item_id', $detail['item_id'])
                 ->where('unit_id', $detail['unit_id'])
@@ -80,7 +81,7 @@ class TransferObserver
     /**
      * Handle the Issue "updated" event.
      */
-    public function updated(Transfer $transfer): void
+    public function updated(Issue $transfer): void
     {
         //
     }
@@ -88,7 +89,7 @@ class TransferObserver
      /**
      * Handle the Issue "deleting" event.
      */
-    public function deleting(Transfer $transfer): void
+    public function deleting(Issue $transfer): void
     {
         //
     }
@@ -96,7 +97,7 @@ class TransferObserver
     /**
      * Handle the Issue "deleted" event.
      */
-    public function deleted(Transfer $transfer): void
+    public function deleted(Issue $transfer): void
     {
         //
     }
@@ -104,7 +105,7 @@ class TransferObserver
     /**
      * Handle the Issue "restored" event.
      */
-    public function restored(Transfer $transfer): void
+    public function restored(Issue $transfer): void
     {
         //
     }
@@ -112,7 +113,7 @@ class TransferObserver
     /**
      * Handle the Issue "force deleted" event.
      */
-    public function forceDeleted(Transfer $transfer): void
+    public function forceDeleted(Issue $transfer): void
     {
         //
     }

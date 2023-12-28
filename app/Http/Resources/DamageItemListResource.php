@@ -2,10 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Branch;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class DamageResourceCollection extends ResourceCollection
+class DamageItemListResource extends ResourceCollection
 {
     /**
      * Transform the resource collection into an array.
@@ -15,14 +17,18 @@ class DamageResourceCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return [
-            'data' => $this->collection->map(function ($transfer) {
+            'damage_item_list' => $this->collection->map(function ($transferDetail) {
                 return [
-                    'id' => $transfer->id,
-                    'voucher_no' => $transfer->voucher_no,
-                    'branch_id' => $transfer->branch_id,
-                    'total_quantity' => $transfer->total_quantity,
-                    'transaction_date' => $transfer->transaction_date,
-                    'transfer_details' => TransferDetailResource::collection($transfer->transfer_details),
+                    'id' => $transferDetail->id,
+                    // 'type' => "Damage", // issue or recieve depend on comming rows
+                    'item_code' => $transferDetail->item->item_code,
+                    'item_name' => $transferDetail->item->item_name ?? "",
+                    'category_name' => $transferDetail->item->category->name,
+                    // 'voucher_no' => $transferDetail->voucher_no,
+                    'branch_name' => $transferDetail->damage->branch->name,
+                    'quantity' => $transferDetail->quantity,
+                    'transaction_date' => Carbon::parse($transferDetail->damage->transaction_date)->format('d/m/y'),
+                    'remark' => $transferDetail->damage->remark,
                 ];
             }),
             'links' => [
@@ -42,5 +48,10 @@ class DamageResourceCollection extends ResourceCollection
                 'total' => $this->total(),
             ],
         ];
+    }
+
+    public function getBranchName($branchId)
+    {
+        return Branch::find($branchId);   
     }
 }

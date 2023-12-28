@@ -3,11 +3,13 @@
 namespace App\Http\Requests;
 
 use App\Models\Inventory;
-use App\Models\Transfer;
+use App\Models\Issue;
+use App\Models\TransferDetail;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class TransferRequest extends FormRequest
@@ -37,30 +39,21 @@ class TransferRequest extends FormRequest
     public function rules(): array
     {
         $rules =  [  
-            'item_detail.*.item_id' => 'required|integer',
-            'item_detail.*.unit_id' => 'required|integer',
-            'item_detail.*.quantity' => 'required|integer|min:1',
-            'item_detail.*.remark' => 'required|string|max:100',
-            'item_detail' => [
+            'item_details.*.item_id' => 'required|integer',
+            'item_details.*.unit_id' => 'required|integer',
+            'item_details.*.quantity' => 'required|integer|min:1',
+            'item_details' => [
                 'required',
                 'array',
                 'min:1',
                 function ($attribute, $value, $fail) {
-                    if($this->isMethod('post'))
+                    $fromBranchId = Auth::user()->branch_id;
+                    if($this->isMethod('put') || $this->isMethod('patch'))
                     {
-                        $fromBranchId = request('from_branch_id');
-                    }else{
-                        $transfer = Transfer::find($this->route('transfer'));
-                        if (!$transfer->status) {
-                            throw new HttpResponseException(
-                                response()->json([
-                                    'message' => 'Record not found.',
-                                    'errors' => [], // You can provide additional error details if needed
-                                ], Response::HTTP_UNPROCESSABLE_ENTITY)
-                            );
-                        }
-                        $fromBranchId = $transfer->from_branch_id;
+                        $requestId = $this->route('issue');
+                        $issueData = Issue::find($requestId);  
                     }
+                    
                     foreach ($value as $item) {
                         // Check if 'quantity' key is present in the item array
                         if (array_key_exists('quantity', $item)) {
@@ -72,11 +65,27 @@ class TransferRequest extends FormRequest
                                 continue; // Skip further checks for this item
                             }
         
-                            $itemExists = Inventory::where('item_id', $item['item_id'])
+                            if($this->isMethod('put') || $this->isMethod('patch'))
+                            {
+                                $detail = TransferDetail::where('item_id', $item['item_id'])->where('unit_id', $item['unit_id'])->where('voucher_no', $issueData->voucher_no )->first();
+                                if($detail){
+                                    $totalQuantity =  $quantity - $detail->quantity;
+                                    $itemExists = Inventory::where('item_id', $item['item_id'])
+                                    ->where('unit_id', $item['unit_id'])
+                                    ->where('branch_id', $fromBranchId)
+                                    ->where('quantity', '>=', $totalQuantity)
+                                    ->exists();
+                                }else{
+                                    $itemExists = true;
+                                }
+                            }else{
+                                $itemExists = Inventory::where('item_id', $item['item_id'])
                                 ->where('unit_id', $item['unit_id'])
                                 ->where('branch_id', $fromBranchId)
                                 ->where('quantity', '>=', $quantity)
                                 ->exists();
+                            }
+                           
         
                             if (!$itemExists) {
                                 $fail("Insufficient quantity for item_id: {$item['item_id']}, unit_id: {$item['unit_id']} for quantity: {$quantity}");
@@ -89,17 +98,17 @@ class TransferRequest extends FormRequest
 
         if($this->isMethod('post'))
         {
-            info('here');
-            $rules['from_branch_id'] = 'required|integer';
             $rules['to_branch_id'] = 'required|integer';
             
         }
 
-        if($this->isMethod('put') || $this->isMethod('patch'))
-        {
-            $rules['item_detail.*.id'] = 'required|integer';
-        }
+        // if($this->isMethod('put') || $this->isMethod('patch'))
+        // {
+        //     $rules['item_details.*.id'] = 'required|integer';
+        // }
 
         return $rules;
     }
+
+    
 }

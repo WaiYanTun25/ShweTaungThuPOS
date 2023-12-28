@@ -2,8 +2,16 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Branch;
+use App\Models\Issue;
+use App\Models\Receive;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Support\{
+    Carbon,
+    Str
+};
+use Illuminate\Support\Facades\Auth;
 
 class TransferResourceCollection extends ResourceCollection
 {
@@ -15,16 +23,16 @@ class TransferResourceCollection extends ResourceCollection
     public function toArray($request)
     {
         return [
-            'data' => $this->collection->map(function ($transfer) {
+            'issue_receive_damage_list' => $this->collection->map(function ($transfer) {
+                $branchName = $this->getBranchName($transfer->branch_id);
                 return [
                     'id' => $transfer->id,
+                    'type' => $transfer->type, // issue or recieve depend on comming rows
                     'voucher_no' => $transfer->voucher_no,
-                    'from_branch_id' => $transfer->from_branch_id,
-                    'to_branch_id' => $transfer->to_branch_id,
+                    'branch_name' => $branchName,
                     'total_quantity' => $transfer->total_quantity,
-                    'transaction_date' => $transfer->transaction_date,
-                    'status' => $transfer->status,
-                    'transfer_details' => TransferDetailResource::collection($transfer->transfer_details),
+                    'transaction_date' => Carbon::parse($transfer->transaction_date)->format('d/m/y'),
+                    'item_names' => $this->getItemNames($transfer->transfer_details),
                 ];
             }),
             'links' => [
@@ -44,5 +52,31 @@ class TransferResourceCollection extends ResourceCollection
                 'total' => $this->total(),
             ],
         ];
+    }
+
+    // private function getType($transfer)
+    // {
+    //     $voucherNo = $transfer->voucher_no;
+    //     if (Str::startsWith($voucherNo, 'INV-D')) {
+    //         return "Damage";
+    //     } else if (Str::startsWith($voucherNo, 'INV-I')) {
+    //         return "Issue";
+    //     } else {
+    //         return "Receive";
+    //     }
+
+
+    //     return null; // Handle other cases if necessary
+    // }
+
+    private function getBranchName($branchId)
+    {
+        return Branch::find($branchId)->name;
+    }
+
+    private function getItemNames($transfer_details)
+    {
+        // Assuming transfer_details is a collection of TransferDetail models
+        return $transfer_details->pluck('item.item_name')->implode(', ');
     }
 }

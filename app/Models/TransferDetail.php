@@ -10,6 +10,11 @@ class TransferDetail extends Model
     use HasFactory;
     public $timestamps = false;
     
+    public function damage()
+    {
+        return $this->belongsTo(Damage::class, 'voucher_no', 'voucher_no');
+    }
+
     public function unit()
     {
         return $this->belongsTo(Unit::class, 'unit_id');

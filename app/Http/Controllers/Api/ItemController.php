@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ItemRequest;
+use App\Http\Resources\ItemResource;
 use App\Models\Item;
 use App\Models\ItemUnitDetail;
 use Illuminate\Http\Request;
@@ -190,5 +191,14 @@ class ItemController extends ApiBaseController
             info($e->getMessage());
             return $this->sendErrorResponse('Error deleting item', Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
         }
+    }
+
+    public function showByCode($item_code)
+    {
+        $item = Item::with(['itemUnitDetails'])->where('item_code', $item_code)->firstOrFail();
+        
+        $result = new ItemResource($item);
+
+        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
     }
 }

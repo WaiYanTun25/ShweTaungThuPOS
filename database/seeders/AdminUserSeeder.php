@@ -18,6 +18,7 @@ class AdminUserSeeder extends Seeder
         $user->name = 'Admin User';
         $user->branch_id = 0;
         $user->password = Hash::make('password');
+        $user->phone_number = "0983748322";
         $user->save();
         
         $user->assignRole('Admin');

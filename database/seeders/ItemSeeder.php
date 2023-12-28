@@ -33,18 +33,17 @@ class ItemSeeder extends Seeder
             ],
         ];
 
-        foreach((array)$categories as $data)
-        {
+        foreach ((array)$categories as $data) {
             $category = new Category();
             $category->name = $data['name'];
             $category->prefix = $data['prefix'];
             $category->save();
         }
-        
+
         $itemData = [
             [
                 "category_id" => 1,
-                "supplier_id" =>  2,
+                "supplier_id" =>  1,
                 "item_name" => "item 1",
                 "unit_detail" => [
                     [
@@ -91,19 +90,42 @@ class ItemSeeder extends Seeder
                         "reorder_period" => 25
                     ]
                 ]
+            ],
+            [
+                "category_id" => 1,
+                "supplier_id" =>  3,
+                "item_name" => "item 3",
+                "unit_detail" => [
+                    [
+                        "unit_id" => 1,
+                        "rate" => 1,
+                        "vip_price" => 800,
+                        "retail_price" => 700,
+                        "wholesale_price" => 500,
+                        "reorder_level" => 10,
+                        "reorder_period" => 10
+                    ],
+                    [
+                        "unit_id" => 2,
+                        "rate" => 6,
+                        "vip_price" => 5000,
+                        "retail_price" => 4000,
+                        "wholesale_price" => 3000,
+                        "reorder_level" => 20,
+                        "reorder_period" => 25
+                    ]
+                ]
             ]
         ];
 
-        foreach((array)$itemData as $data)
-        {
+        foreach ((array)$itemData as $data) {
             $item = new Item();
             $item->category_id = $data['category_id'];
             $item->supplier_id = $data['supplier_id'];
             $item->item_name = $data['item_name'];
             $item->save();
 
-            foreach((array)$data['unit_detail'] as $detail)
-            {
+            foreach ((array)$data['unit_detail'] as $detail) {
                 $itemUnitDetail = new ItemUnitDetail();
                 $itemUnitDetail->item_id = $item->id;
                 $itemUnitDetail->rate = $detail['rate'];
@@ -117,11 +139,10 @@ class ItemSeeder extends Seeder
             }
         }
 
-        $unitData = ['ဗူး', '၆ ကဒ်', '၁၂ ကဒ်'];
+        $unitData = ['ဗူး', 'ကဒ်', 'ပါကင်'];
 
 
-        foreach($unitData as $data)
-        {
+        foreach ($unitData as $data) {
             $unit = new Unit();
             $unit->name = $data;
             $unit->save();
@@ -178,8 +199,7 @@ class ItemSeeder extends Seeder
             ],
         ];
 
-        foreach((array)$inventoryData as $data)
-        {
+        foreach ((array)$inventoryData as $data) {
             $inventory = new Inventory();
             $inventory->branch_id = $data['branch_id'];
             $inventory->item_id = $data['item_id'];
@@ -187,41 +207,5 @@ class ItemSeeder extends Seeder
             $inventory->quantity = $data['quantity'];
             $inventory->save();
         }
-
-        $supplierData = [
-            [
-                "name" => "အောင်ကောင်းစည်1",
-                "phone_number" => "0996939693",
-                "address" => "၆၀ ဘီ ကမ်းနားလမ်း အလုံ",
-                "township" => "ကြည့်မြင်တိုင်",
-                "city" => "Yangon"
-            ],
-            [
-                "name" => "အောင်ကောင်းစည်2",
-                "phone_number" => "0996939693",
-                "address" => "၆၀ ဘီ ကမ်းနားလမ်း အလုံ",
-                "township" => "ကြည့်မြင်တိုင်",
-                "city" => "Yangon"
-            ],
-            [
-                "name" => "အောင်ကောင်းစည်3",
-                "phone_number" => "0996939693",
-                "address" => "၆၀ ဘီ ကမ်းနားလမ်း အလုံ",
-                "township" => "ကြည့်မြင်တိုင်",
-                "city" => "Yangon"
-            ],
-        ];
-
-        foreach((array)$supplierData as $data)
-        {
-            $supplier = new Supplier();
-            $supplier->name = $data['name'];
-            $supplier->phone_number = $data['phone_number'];
-            $supplier->address = $data['address'];
-            $supplier->township = $data['township'];
-            $supplier->city = $data['city'];
-            $supplier->save();
-        }
-
     }
 }

@@ -17,20 +17,26 @@ class Item extends Model
 
         // Creating event to generate and set the item_code
         static::creating(function ($item) {
-            $item->item_code = static::generateItemCode();
+            $item->item_code = static::generateItemCode($item->supplier_id);
         });
     }
 
-    protected static function generateItemCode()
+    protected static function generateItemCode($supplierId)
     {
-        // Get the last item from the database
-        $lastItem = static::latest('id')->first();
-
+        // Get the last item for the given supplier from the database
+        $lastItem = static::where('supplier_id', $supplierId)->latest('item_code')->first();
+        // Get the supplier's prefix
+        $supplier = Supplier::find($supplierId);
+        $supplierPrefix = $supplier->prefix;
         if (!$lastItem) {
-            return 'p-000001';
+            return $supplierPrefix . '-000001';
         }
-
-        return ++$lastItem->item_code;
+    
+        // Extract the numeric part of the existing item code and increment it
+        $numericPart = (int)substr($lastItem->item_code, -6);
+        $newNumericPart = str_pad($numericPart + 1, 6, '0', STR_PAD_LEFT);
+    
+        return $supplierPrefix . '-' . $newNumericPart;
     }
 
     public function ItemUnitDetails()

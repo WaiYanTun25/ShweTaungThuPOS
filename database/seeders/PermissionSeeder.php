@@ -13,6 +13,7 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
+        // $branchPermissionList = ['branch:get', 'branch:create', 'branch:edit','branch:detail','branch:delete'];
         $branchPermissionList = ['branch:get', 'branch:create', 'branch:edit','branch:detail','branch:delete'];
         $categoryPermissionList = ['category:get', 'category:create', 'category:edit','category:detail','category:delete'];
         $supplierPermissionList = ['supplier:get', 'supplier:create', 'supplier:edit','supplier:detail','supplier:delete'];

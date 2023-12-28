@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
-use App\Models\Transfer;
+use App\Models\Issue;
+use App\Models\Receive;
+use App\Observers\ReceiveObserver;
 use App\Observers\TransferObserver;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // observers for models
-        Transfer::observe(TransferObserver::class);
+        Issue::observe(TransferObserver::class);
+        Receive::observe(ReceiveObserver::class);
     }
 }

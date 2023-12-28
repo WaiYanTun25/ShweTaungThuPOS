@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('branch_id');
             $table->timestamp('transaction_date');
             $table->integer('total_quantity');
-            // $table->timestamps();
+            $table->text('remark');
         });
     }
 

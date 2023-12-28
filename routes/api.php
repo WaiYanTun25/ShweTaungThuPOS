@@ -6,10 +6,11 @@ use App\Http\Controllers\Api\{
     CategoryController,
     CustomerController,
     DamageController,
+    InventoryController,
+    IssueController,
     ItemController,
     ReceiveController,
     SupplierController,
-    TransferController,
     UnitController
 };
 use App\Http\Controllers\Api\TestController;
@@ -54,11 +55,20 @@ Route::group(["middleware" => ['auth:sanctum']] , function () {
     // item, unit
     Route::apiResource('units', UnitController::class);
     Route::apiResource('items', ItemController::class);
+    Route::prefix('items')->group(function () {
+        Route::get('code/{item_code}', [ItemController::class, 'showByCode']);
+    });
 
-    // issue , receive, damage
-    Route::apiResource('transfers', TransferController::class);
+    // issue , receive, damage, inventory
+    Route::prefix('inventories')->group(function() {
+        Route::get('getlowstock', [InventoryController::class, 'getLowStockInventories']);
+    });
+    Route::apiResource('issues', IssueController::class);
     Route::apiResource('receives', ReceiveController::class);
     Route::apiResource('damages', DamageController::class);
+
+    // get issues and receives of branch
+    Route::get('transfers', [IssueController::class, 'getIssuesReceivesAndDamages']);
 });
 
 

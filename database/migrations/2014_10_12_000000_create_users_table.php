@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->string('password');
             $table->unsignedBigInteger('branch_id')->nullable();
+            $table->string('phone_number');
         });
     }
 

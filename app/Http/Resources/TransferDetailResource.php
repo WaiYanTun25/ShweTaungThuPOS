@@ -16,13 +16,16 @@ class TransferDetailResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'voucher_no' => $this->voucher_no,
+            // 'voucher_no' => $this->voucher_no,
+            'supplier_name' => $this->item->supplier->name,
+            'category_name' => $this->item->category->name,
             'item_id' => $this->item_id,
+            'item_code' => $this->item->item_code,
             'item_name' => $this->item->item_name,
             'unit_id' => $this->unit_id,
             'unit_name' => $this->unit->name,
-            'quantity' => $this->quantity,
-            'remark' => $this->remark,
+            // 'quantity' => $this->quantity,
+            // 'remark' => $this->remark,
         ];
     }
 }

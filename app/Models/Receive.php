@@ -10,29 +10,47 @@ class Receive extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected $table = "transfers";
-
-    // const for enum status
-    const SENT = "sent";
-    const RECEIVE = "received";
 
     protected static function boot()
     {
         parent::boot();
         static::addGlobalScope(new BranchScope('to_branch_id'));
 
-        static::updating(function ($model) {
+        static::creating(function ($model) {
             // Generate voucher_no if it's not already set
-
-            if (!$model->status) {
-                $model->status = self::SENT;
+            if (!$model->voucher_no) {
+                $model->voucher_no = $model->generateVoucherNo();
             }
 
             // for transaction_date
-            if (!$model->receive_date) {
+            if (!$model->transaction_date) {
                 $model->transaction_date = now();
             }
         });
+        // static::updating(function ($model) {
+        //     // Generate voucher_no if it's not already set
+
+        //     if (!$model->status) {
+        //         $model->status = self::SENT;
+        //     }
+
+        //     // for transaction_date
+        //     if (!$model->receive_date) {
+        //         $model->transaction_date = now();
+        //     }
+        // });
+    }
+
+    private function generateVoucherNo()
+    {
+
+        // Get the current count of existing records and increment it
+        $count = static::count() + 1;
+
+        // Generate a formatted voucher number with leading zeros
+        $voucherNo = "INV-R-" . str_pad($count, 10, '0', STR_PAD_LEFT);
+
+        return $voucherNo;
     }
 
     public function transfer_details()
