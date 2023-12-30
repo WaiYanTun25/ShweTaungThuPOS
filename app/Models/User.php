@@ -20,10 +20,12 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_code',
         'name',
         'password',
         'branch_id',
-        'phone_number'
+        'phone_number',
+        'join_date'
     ];
 
     /**
@@ -43,6 +45,34 @@ class User extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+            // Set the join_date attribute to the current date if it's not provided
+            $user->join_date = $user->join_date ?? now();
+            $user->user_code = static::generateItemCode();
+        });
+    }
+
+    protected static function generateItemCode()
+    {
+        // Get the last item for the given supplier from the database
+        $lastUser = static::latest('user_code')->first();
+        info($lastUser);
+        $userPrefix = 'SP'; 
+        if (!$lastUser) {
+            return $userPrefix . '-000001';
+        }
+    
+        // Extract the numeric part of the existing item code and increment it
+        $numericPart = (int)substr($lastUser->user_code, -6);
+        $newNumericPart = str_pad($numericPart + 1, 6, '0', STR_PAD_LEFT);
+    
+        return $userPrefix . '-' . $newNumericPart;
+    }
 
     // public function getDefaultGuardName()
     // {

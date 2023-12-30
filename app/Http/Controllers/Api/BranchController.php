@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BranchRequest;
+use App\Http\Resources\BranchUserResource;
 use App\Models\Branch;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
@@ -71,8 +73,9 @@ class BranchController extends ApiBaseController
     public function show(string $id)
     {
         $branch_id = $id;
-
         $getBranch = $this->getBranch($branch_id);
+        // info($branch_id);
+        // $getBranch['user_list'] = $this->getBranchUsers($branch_id);
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $getBranch);
     }
 
@@ -105,5 +108,22 @@ class BranchController extends ApiBaseController
         $message = 'Branch ('.$getBranch->name.') is deleted successfully';
 
         return $this->sendSuccessResponse($message, Response::HTTP_OK);
+    }
+
+    public function getUserLists($branch_id, Request $request)
+    {
+        $perPage = $request->query('perPage', 10); 
+        $search = $request->query('searchBy');
+
+        $userQuery = User::where('branch_id', $branch_id);
+
+        if ($search) {
+            $userQuery->where('name' , 'Like', "%$search%");
+        }
+
+        $results =$userQuery->paginate($perPage);
+
+        $resultCollection = new BranchUserResource($results);
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $resultCollection);
     }
 }

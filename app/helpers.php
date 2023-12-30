@@ -9,3 +9,11 @@ if (!function_exists('convertEnglishToMyanmarNumber')) {
         return str_replace($englishNumbers, $myanmarNumbers, $number);
     }
 }
+
+if (!function_exists('formatToCustomDate')) {
+    function formatToCustomDate($inputDate)
+    {
+        $dateTime = new DateTime($inputDate);
+        return $dateTime->format('d/m/y');
+    }
+}

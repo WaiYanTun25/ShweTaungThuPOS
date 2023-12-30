@@ -40,10 +40,27 @@ trait BranchTrait
         // damage
         // reciesve
         // inventory
-        if($user)
-        {
+        if ($user) {
             return true;
         }
-        
     }
+
+    // public function getBranchUsers($branchId, $perPage = null)
+    // {
+    //     $usersQuery = User::where('branch_id', $branchId);
+
+    //     // Check if $perPage is provided to determine whether to paginate or not
+    //     if ($perPage) {
+    //         $users = $usersQuery->paginate($perPage);
+    //     } else {
+    //         $users = $usersQuery->get();
+    //     }
+
+    //     // Iterate through each user and format the join_date
+    //     foreach ($users as $user) {
+    //         $user->join_date = formatToCustomDate($user->join_date);
+    //     }
+
+    //     return $users;
+    // }
 }

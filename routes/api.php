@@ -46,6 +46,9 @@ Route::group(["middleware" => ['auth:sanctum']] , function () {
 
     Route::apiResource('roles', RoleController::class);
     Route::apiResource('branches', BranchController::class);
+    Route::prefix('branches')->group(function() {
+        Route::get('{branch_id}/user-list', [BranchController::class, 'getUserLists']);
+    });
     Route::apiResource('categories', CategoryController::class);
     // Route::apiResource('subcategories', CategoryController::class);
   
