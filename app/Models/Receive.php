@@ -43,12 +43,19 @@ class Receive extends Model
 
     private function generateVoucherNo()
     {
+        $lastVoucherNo = static::withoutGlobalScope(BranchScope::class)->where('voucher_no', 'like', 'INV-R%')->max('voucher_no');
+        // $lastVoucherNo = static::withoutGlobalScope(BranchScope::class)->latest('voucher_no')->pluck('voucher_no');
+        
+        if($lastVoucherNo) {
+            $voucherNo = ++$lastVoucherNo;
+        }else {
+             // Get the current count of existing records and increment it
+            $count = static::count() + 1;
 
-        // Get the current count of existing records and increment it
-        $count = static::count() + 1;
-
-        // Generate a formatted voucher number with leading zeros
-        $voucherNo = "INV-R-" . str_pad($count, 10, '0', STR_PAD_LEFT);
+            // Generate a formatted voucher number with leading zeros
+            $voucherNo = "INV-R-" . str_pad($count, 10, '0', STR_PAD_LEFT);
+        }
+       
 
         return $voucherNo;
     }

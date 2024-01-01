@@ -32,6 +32,7 @@ class ReceiveObserver
                     $addQtyFromInventory->increment('quantity', $detail['quantity']);
                 } else {
                     $createInventory = new Inventory();
+                    $createInventory->branch_id = Auth::user()->branch_id;
                     $createInventory->item_id = $detail['item_id'];
                     $createInventory->unit_id = $detail['unit_id'];
                     $createInventory->quantity = $detail['quantity'];

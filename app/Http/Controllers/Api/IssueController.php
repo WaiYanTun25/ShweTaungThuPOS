@@ -27,29 +27,29 @@ class IssueController extends ApiBaseController
      */
     public function index(Request $request)
     {
-        $getTransfer = Issue::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
-        $search = $request->query('searchBy');
+        // $getTransfer = Issue::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
+        // $search = $request->query('searchBy');
 
-        if ($search) {
-            $getTransfer->where('voucher_no', 'like', "%$search%")
-                ->orWhere('transaction_date', 'like', "%$search%")
-                ->orWhere('total_quantity', 'like', "%$search%");
-        }
+        // if ($search) {
+        //     $getTransfer->where('voucher_no', 'like', "%$search%")
+        //         ->orWhere('transaction_date', 'like', "%$search%")
+        //         ->orWhere('total_quantity', 'like', "%$search%");
+        // }
 
-        // Handle order and column
-        $order = $request->query('order', 'asc'); // default to asc if not provided
-        $column = $request->query('column', 'id'); // default to id if not provided
+        // // Handle order and column
+        // $order = $request->query('order', 'asc'); // default to asc if not provided
+        // $column = $request->query('column', 'id'); // default to id if not provided
 
-        $getTransfer->orderBy($column, $order);
+        // $getTransfer->orderBy($column, $order);
 
-        // Add pagination
-        $perPage = $request->query('perPage', 10); // default to 10 if not provided
-        $transfers = $getTransfer->paginate($perPage);
+        // // Add pagination
+        // $perPage = $request->query('perPage', 10); // default to 10 if not provided
+        // $transfers = $getTransfer->paginate($perPage);
 
-        $resourceCollection = new TransferResourceCollection($transfers);
+        // $resourceCollection = new TransferResourceCollection($transfers);
 
-        // return $resourceCollection;
-        return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+        // // return $resourceCollection;
+        // return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
     }
 
     /**
@@ -146,30 +146,36 @@ class IssueController extends ApiBaseController
         // $getDamage = Damage::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
 
         $getIssue = Issue::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
-        ->select(['id', 'voucher_no', 'total_quantity','transaction_date', DB::raw("to_branch_id as branch_id"), DB::raw("'Issue' as type")]);
+        ->select(['id', 'voucher_no', 'total_quantity','transaction_date', DB::raw("to_branch_id as branch_id"), DB::raw("'ISSUE' as type")]);
 
         $getReceive = Receive::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
-            ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("from_branch_id as branch_id"), DB::raw("'Receive' as type")]);
+            ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("from_branch_id as branch_id"), DB::raw("'RECEIVE' as type")]);
             // ->addSelect(DB::raw("from_branch_id as branch_id"));
 
-        $getDamage = Damage::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
-            ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("branch_id as branch_id"), DB::raw("'Damage' as type")]);
+        // $getDamage = Damage::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
+        //     ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("branch_id as branch_id"), DB::raw("'Damage' as type")]);
             // ->addSelect(DB::raw("branch_id as branch_id"));
 
         $search = $request->query('searchBy');
 
         if ($search) {
             $getIssue->where('voucher_no', 'like', "%$search%")
-                ->orWhere('transaction_date', 'like', "%$search%")
-                ->orWhere('total_quantity', 'like', "%$search%");
+                // ->orWhere('transaction_date', 'like', "%$search%")
+                // ->orWhere('total_quantity', 'like', "%$search%")
+                ->orWhereHas('transfer_details.item', function ($query) use ($search) {
+                    $query->where('item_name', 'like', "%$search%");
+                });
 
             $getReceive->where('voucher_no', 'like', "%$search%")
-                ->orWhere('transaction_date', 'like', "%$search%")
-                ->orWhere('total_quantity', 'like', "%$search%");
+                // ->orWhere('transaction_date', 'like', "%$search%")
+                // ->orWhere('total_quantity', 'like', "%$search%")
+                ->orWhereHas('transfer_details.item', function ($query) use ($search) {
+                    $query->where('item_name', 'like', "%$search%");
+                });
             
-            $getDamage->where('voucher_no', 'like', "%$search%")
-                ->orWhere('transaction_date', 'like', "%$search%")
-                ->orWhere('total_quantity', 'like', "%$search%");
+            // $getDamage->where('voucher_no', 'like', "%$search%")
+            //     ->orWhere('transaction_date', 'like', "%$search%")
+            //     ->orWhere('total_quantity', 'like', "%$search%");
         }
 
         // Handle order and column
@@ -177,9 +183,9 @@ class IssueController extends ApiBaseController
         $column = $request->query('column', 'transaction_date'); // default to id if not provided
         // Combine the results using union
         $perPage = $request->query('perPage', 10); 
-        // $results = $getIssue->union($getReceive)->orderBy($column, $order)->paginate($perPage);
-        $results = $getIssue->union($getReceive)->union($getDamage)->orderBy($column, $order)->paginate($perPage);
-
+        $results = $getIssue->union($getReceive)->orderBy($column, $order)->paginate($perPage);
+        // $results = $getIssue->union($getReceive)->union($getDamage)->orderBy($column, $order)->paginate($perPage);
+        // return $results;
         $resourceCollection = new TransferResourceCollection($results);
         // return $results;
 

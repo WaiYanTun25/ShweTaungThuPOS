@@ -23,7 +23,7 @@ class TransferResourceCollection extends ResourceCollection
     public function toArray($request)
     {
         return [
-            'issue_receive_damage_list' => $this->collection->map(function ($transfer) {
+            'issue_receive_list' => $this->collection->map(function ($transfer) {
                 $branchName = $this->getBranchName($transfer->branch_id);
                 return [
                     'id' => $transfer->id,

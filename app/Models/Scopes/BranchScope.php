@@ -26,4 +26,17 @@ class BranchScope implements Scope
             $builder->where($this->columnName, $user->branch_id);
         }
     }
+
+    // // this is used when want to get lasted voucher_no across all branches
+    // public function remove(Builder $builder, Model $model): void
+    // {
+    //     $query = $builder->getQuery();
+
+    //     foreach ((array) $query->wheres as $key => $where) {
+    //         if ($where['column'] === $this->columnName) {
+    //             unset($query->wheres[$key]);
+    //             $query->wheres = array_values($query->wheres);
+    //         }
+    //     }
+    // }
 }

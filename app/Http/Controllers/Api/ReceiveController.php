@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\DB;
 use App\Traits\TransactionTrait;
 use Illuminate\Support\Facades\Auth;
 
+use function Laravel\Prompts\error;
+
 class ReceiveController extends ApiBaseController
 {
     use TransactionTrait;
@@ -63,6 +65,7 @@ class ReceiveController extends ApiBaseController
             $createdReceive->to_branch_id = Auth::user()->branch_id;
             $createdReceive->total_quantity =  collect($request->item_details)->sum('quantity');
             $createdReceive->save();
+            // info($createdReceive);
             // array_sum(array_column($request->item_detail, 'quantity'))
 
             //create Transaction Detail 
