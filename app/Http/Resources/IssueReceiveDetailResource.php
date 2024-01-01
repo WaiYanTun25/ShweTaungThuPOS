@@ -8,6 +8,12 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class IssueReceiveDetailResource extends JsonResource
 {
+    protected $resourceType;
+    public function __construct($resource, $resourceType = 'ISSUE')
+    {
+        parent::__construct($resource);
+        $this->resourceType = $resourceType;
+    }
     /**
      * Transform the resource into an array.
      *
@@ -17,9 +23,12 @@ class IssueReceiveDetailResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'type' => $this->resourceType,
             'voucher_no' => $this->voucher_no,
-            'transaction_date' => Carbon::parse($this->transaction_date)->format('d/m/y'),
-            'item_details' => TransferDetailResource::collection($this->transfer_details)
+            'transaction_date' => convertToMyanmarDate($this->transaction_date),
+            'branch_name' => $this->resourceType == "ISSUE" ? $this->issuesTo->name : $this->receiveFrom->name, 
+            'total_quantity' => $this->total_quantity,
+            'item_details' => TransferDetailResource::collection($this->transfer_details),
         ];
     }
 }

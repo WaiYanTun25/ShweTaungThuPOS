@@ -85,7 +85,7 @@ class ReceiveController extends ApiBaseController
     {
         $receive = Receive::with('transfer_details')->findOrFail($id);
         // return $receive;
-        $result =  new IssueReceiveDetailResource($receive);
+        $result =  new IssueReceiveDetailResource($receive, 'RECEIVE');
         // $resourceCollection = new TransferResourceCollection(collect([$receive]));
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $result);
     }

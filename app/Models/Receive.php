@@ -53,6 +53,17 @@ class Receive extends Model
         return $voucherNo;
     }
 
+    public function receiveTo()
+    {
+        return $this->belongsTo(Branch::class, 'to_branch_id', 'id');
+    }
+
+    // Define the relationship for issues where the branch is the source branch
+    public function receiveFrom()
+    {
+        return $this->belongsTo(Branch::class, 'from_branch_id', 'id');
+    }
+
     public function transfer_details()
     {
         return $this->hasMany(TransferDetail::class, 'voucher_no', 'voucher_no');

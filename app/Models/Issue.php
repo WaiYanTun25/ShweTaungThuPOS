@@ -67,6 +67,16 @@ class Issue extends Model
     //     return "I-{$branchId}-" . substr($uniqueId, 0, -4) . substr($timestamp, 0, -4);
     // }
 
+    public function issuesTo()
+    {
+        return $this->belongsTo(Branch::class, 'to_branch_id', 'id');
+    }
+
+    public function issuesFrom()
+    {
+        return $this->belongsTo(Branch::class, 'from_branch_id', 'id');
+    }
+
     public function transfer_details()
     {
         return $this->hasMany(TransferDetail::class, 'voucher_no', 'voucher_no');
