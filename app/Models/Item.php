@@ -39,7 +39,7 @@ class Item extends Model
         return $supplierPrefix . '-' . $newNumericPart;
     }
 
-    public function ItemUnitDetails()
+    public function itemUnitDetails()
     {
         return $this->hasmany(ItemUnitDetail::class);
     }
@@ -52,5 +52,10 @@ class Item extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+    
+    public function inventory()
+    {
+        return $this->hasMany(Inventory::class);
     }
 }

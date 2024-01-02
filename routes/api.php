@@ -36,6 +36,12 @@ use Illuminate\Support\Facades\Route;
 // login route
 Route::post('/login', [AuthenticationController::class, 'loginUser']);
 
+Route::post('/central_links', function () {
+    return [
+        "product_detail" => config('app.url'). "/api/items"
+    ];
+});
+
 
 Route::get('/testing', [TestController::class, 'testing']);
 

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ItemRequest;
+use App\Http\Resources\ItemDetailResource;
 use App\Http\Resources\ItemResource;
+use App\Models\Inventory;
 use App\Models\Item;
 use App\Models\ItemUnitDetail;
 use Illuminate\Http\Request;
@@ -111,10 +113,19 @@ class ItemController extends ApiBaseController
      */
     public function show(string $id)
     {
-        $getItems = Item::with(['supplier', 'category'])->select('id' , 'item_code', 'category_id', 'supplier_id', 'item_name');
+        $getItems = Item::with(['itemUnitDetails','supplier', 'category'])->select('id' , 'item_code', 'category_id', 'supplier_id', 'item_name');
 
-        $item = $getItems->find($id);
-        return $this->sendSuccessResponse('success', Response::HTTP_OK, $item ? $item : new stdClass);
+        $item = $getItems->findOrFail($id);
+
+        $item['branch_with_quantities'] = Inventory::select('branches.name', DB::raw('SUM(quantity) as total_quantity'))
+                ->join('branches', 'inventories.branch_id', '=', 'branches.id')
+                ->groupBy('inventories.branch_id')
+                ->where('inventories.item_id', $id)
+                ->get();
+        
+
+        $result = new ItemDetailResource($item);
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $result);
     }
 
     /**

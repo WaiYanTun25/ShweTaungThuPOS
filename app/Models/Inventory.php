@@ -22,6 +22,11 @@ class Inventory extends Model
     {
         return $this->belongsTo(User::class, 'branch_id', 'branch_id');
     }
+
+    public function  branch() 
+    {
+        return $this->belongsTo(Branch::class, 'branch_id', 'id');
+    }
 }
 
 // $user = $this;
