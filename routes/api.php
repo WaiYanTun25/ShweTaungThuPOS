@@ -11,11 +11,11 @@ use App\Http\Controllers\Api\{
     ItemController,
     ReceiveController,
     SupplierController,
-    UnitController
+    UnitController,
+    UnitConvertController
 };
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\RoleController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -38,7 +38,9 @@ Route::post('/login', [AuthenticationController::class, 'loginUser']);
 
 Route::post('/central_links', function () {
     return [
-        "product_detail" => config('app.url'). "/api/items"
+        "product_detail (GET)" => config('app.url'). "/api/items",
+        "get_last_5_rows_convert (GET)" => config('app.url'). "/api/unit_converts", 
+        "create_unit_convert (POST)" => config('app.url'). "/api/unit_converts",
     ];
 });
 
@@ -78,6 +80,9 @@ Route::group(["middleware" => ['auth:sanctum']] , function () {
 
     // get issues and receives of branch
     Route::get('transfers', [IssueController::class, 'getIssuesReceivesAndDamages']);
+
+    // unit conversion 
+    Route::apiResource('unit_converts', UnitConvertController::class);
 });
 
 
