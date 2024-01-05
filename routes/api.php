@@ -39,8 +39,11 @@ Route::post('/login', [AuthenticationController::class, 'loginUser']);
 Route::post('/central_links', function () {
     return [
         "product_detail (GET)" => config('app.url'). "/api/items",
+       "unit_convert" => [
         "get_last_5_rows_convert (GET)" => config('app.url'). "/api/unit_converts", 
         "create_unit_convert (POST)" => config('app.url'). "/api/unit_converts",
+        "delete_unit_convert (DELETE)" => config('app.url'). "/api/unit_converts",
+       ]
     ];
 });
 
@@ -73,6 +76,11 @@ Route::group(["middleware" => ['auth:sanctum']] , function () {
     // issue , receive, damage, inventory
     Route::prefix('inventories')->group(function() {
         Route::get('getlowstock', [InventoryController::class, 'getLowStockInventories']);
+        // get issues, receives and damages of branch
+        Route::get('issues-receives-damages', [InventoryController::class, 'getIssuesReceivesAndDamages']);
+        // inventories summary
+        Route::get('summary', [InventoryController::class, 'getInventorySummary']);
+
     });
     Route::apiResource('issues', IssueController::class);
     Route::apiResource('receives', ReceiveController::class);

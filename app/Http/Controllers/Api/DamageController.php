@@ -59,7 +59,7 @@ class DamageController extends ApiBaseController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(DamageRequest $request)
     {
         try {
             DB::beginTransaction();

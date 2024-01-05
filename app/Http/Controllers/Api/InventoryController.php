@@ -11,6 +11,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Exception;
+use stdClass;
+use App\Models\Issue;
+use App\Models\Damage;
+use App\Models\Receive;
+use App\Http\Resources\TransferResourceCollection;
 
 class InventoryController extends ApiBaseController
 {
@@ -97,5 +105,91 @@ class InventoryController extends ApiBaseController
         }
 
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $result);
+    }
+
+    public function getIssuesReceivesAndDamages(Request $request)
+    {
+        // $getIssue = Issue::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
+        // $getReceive = Receive::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
+        // $getDamage = Damage::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
+
+        $getIssue = Issue::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
+        ->select(['id', 'voucher_no', 'total_quantity','transaction_date', DB::raw("to_branch_id as branch_id"), DB::raw("'ISSUE' as type")]);
+
+        $getReceive = Receive::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
+            ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("from_branch_id as branch_id"), DB::raw("'RECEIVE' as type")]);
+            // ->addSelect(DB::raw("from_branch_id as branch_id"));
+
+        $getDamage = Damage::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
+            ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("branch_id as branch_id"), DB::raw("'DAMAGE' as type")]);
+            // ->addSelect(DB::raw("branch_id as branch_id"));
+
+        $search = $request->query('searchBy');
+
+        if ($search) {
+            $getIssue->where('voucher_no', 'like', "%$search%")
+                // ->orWhere('transaction_date', 'like', "%$search%")
+                // ->orWhere('total_quantity', 'like', "%$search%")
+                ->orWhereHas('transfer_details.item', function ($query) use ($search) {
+                    $query->where('item_name', 'like', "%$search%");
+                });
+
+            $getReceive->where('voucher_no', 'like', "%$search%")
+                // ->orWhere('transaction_date', 'like', "%$search%")
+                // ->orWhere('total_quantity', 'like', "%$search%")
+                ->orWhereHas('transfer_details.item', function ($query) use ($search) {
+                    $query->where('item_name', 'like', "%$search%");
+                });
+            
+            $getDamage->where('voucher_no', 'like', "%$search%")
+                // ->orWhere('transaction_date', 'like', "%$search%")
+                // ->orWhere('total_quantity', 'like', "%$search%");
+                ->orWhereHas('transfer_details.item', function ($query) use ($search) {
+                    $query->where('item_name', 'like', "%$search%");
+                });
+        }
+
+        // Handle order and column
+        $order = $request->query('order', 'asc'); // default to asc if not provided
+        $column = $request->query('column', 'transaction_date'); // default to id if not provided
+        // Combine the results using union
+        $perPage = $request->query('perPage', 10); 
+        // $results = $getIssue->union($getReceive)->orderBy($column, $order)->paginate($perPage);
+        $results = $getIssue->union($getReceive)->union($getDamage)->orderBy($column, $order)->paginate($perPage);
+        $resourceCollection = new TransferResourceCollection($results);
+
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+
+         // $getIssue = Issue::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
+        // $getReceive = Receive::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
+        // $search = $request->query('searchBy');
+
+        // if ($search) {
+        //     $getIssue->where('voucher_no', 'like', "%$search%")
+        //         ->orWhere('transaction_date', 'like', "%$search%")
+        //         ->orWhere('total_quantity', 'like', "%$search%");
+        // }
+
+        // // Handle order and column
+        // $order = $request->query('order', 'asc'); // default to asc if not provided
+        // $column = $request->query('column', 'id'); // default to id if not provided
+
+        // $getTransfer->orderBy($column, $order);
+
+        // Add pagination
+        // $perPage = $request->query('perPage', 10); // default to 10 if not provided
+        // $transfers = $getTransfer->paginate($perPage);
+    }
+
+    public function getInventorySummary(Request $request)
+    {
+        $countItem = Item::count();
+        $countIssueWithingOneMonth = 10;
+        $countReceiveWithinOneMonth = 10;
+        $coutnDamgeWithingOneMonth = 10;
+        $countLowStockWithinOneMonth = 10;
+
+        $result = new stdClass;
+        
     }
 }

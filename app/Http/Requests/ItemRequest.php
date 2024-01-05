@@ -36,7 +36,7 @@ class ItemRequest extends FormRequest
         return [
             'category_id' => 'required',
             'supplier_id' => 'required',
-            'item_name' => 'required',
+            'item_name' => 'required | unique:items',
             'unit_detail' => 'required|array',
             'unit_detail.*.unit_id' => 'required|numeric',
             'unit_detail.*.rate' => 'required|numeric',
