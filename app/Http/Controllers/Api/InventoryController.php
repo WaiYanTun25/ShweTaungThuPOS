@@ -19,6 +19,7 @@ use App\Models\Issue;
 use App\Models\Damage;
 use App\Models\Receive;
 use App\Http\Resources\TransferResourceCollection;
+use Carbon\Carbon;
 
 class InventoryController extends ApiBaseController
 {
@@ -64,9 +65,9 @@ class InventoryController extends ApiBaseController
                     'inventories.quantity as quantity',
                     'inventories.branch_id as branch_id'
                 )
-                ->orderBy($column, $order) 
+                ->orderBy($column, $order)
                 ->paginate($perPage);
-                // return $itemDetails;
+            // return $itemDetails;
             $result = new LowStockResource($itemDetails);
         } else {
             $itemDetails = ItemUnitDetail::with('item')
@@ -100,7 +101,7 @@ class InventoryController extends ApiBaseController
                     'inventories.branch_id as branch_id'
                 )
                 ->paginate($perPage);
-                    // return $itemDetails;
+            // return $itemDetails;
             $result = new LowStockResource($itemDetails);
         }
 
@@ -114,15 +115,15 @@ class InventoryController extends ApiBaseController
         // $getDamage = Damage::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
 
         $getIssue = Issue::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
-        ->select(['id', 'voucher_no', 'total_quantity','transaction_date', DB::raw("to_branch_id as branch_id"), DB::raw("'ISSUE' as type")]);
+            ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("to_branch_id as branch_id"), DB::raw("'ISSUE' as type")]);
 
         $getReceive = Receive::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
             ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("from_branch_id as branch_id"), DB::raw("'RECEIVE' as type")]);
-            // ->addSelect(DB::raw("from_branch_id as branch_id"));
+        // ->addSelect(DB::raw("from_branch_id as branch_id"));
 
         $getDamage = Damage::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
             ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("branch_id as branch_id"), DB::raw("'DAMAGE' as type")]);
-            // ->addSelect(DB::raw("branch_id as branch_id"));
+        // ->addSelect(DB::raw("branch_id as branch_id"));
 
         $search = $request->query('searchBy');
 
@@ -140,7 +141,7 @@ class InventoryController extends ApiBaseController
                 ->orWhereHas('transfer_details.item', function ($query) use ($search) {
                     $query->where('item_name', 'like', "%$search%");
                 });
-            
+
             $getDamage->where('voucher_no', 'like', "%$search%")
                 // ->orWhere('transaction_date', 'like', "%$search%")
                 // ->orWhere('total_quantity', 'like', "%$search%");
@@ -153,14 +154,14 @@ class InventoryController extends ApiBaseController
         $order = $request->query('order', 'asc'); // default to asc if not provided
         $column = $request->query('column', 'transaction_date'); // default to id if not provided
         // Combine the results using union
-        $perPage = $request->query('perPage', 10); 
+        $perPage = $request->query('perPage', 10);
         // $results = $getIssue->union($getReceive)->orderBy($column, $order)->paginate($perPage);
         $results = $getIssue->union($getReceive)->union($getDamage)->orderBy($column, $order)->paginate($perPage);
         $resourceCollection = new TransferResourceCollection($results);
 
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
 
-         // $getIssue = Issue::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
+        // $getIssue = Issue::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
         // $getReceive = Receive::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
         // $search = $request->query('searchBy');
 
@@ -183,13 +184,51 @@ class InventoryController extends ApiBaseController
 
     public function getInventorySummary(Request $request)
     {
+        $currentMonth = Carbon::now();
+        $currentYear = Carbon::now()->year;
+
         $countItem = Item::count();
-        $countIssueWithingOneMonth = 10;
-        $countReceiveWithinOneMonth = 10;
-        $coutnDamgeWithingOneMonth = 10;
-        $countLowStockWithinOneMonth = 10;
+        $countIssueWithinOneMonth = Issue::whereYear('transaction_date', $currentYear)
+            ->whereMonth('transaction_date', $currentMonth)
+            ->count();
+
+        $countReceiveWithinOneMonth = Receive::whereYear('transaction_date', $currentYear)
+            ->whereMonth('transaction_date', $currentMonth)
+            ->count();
+
+        $coutnDamgeWithingOneMonth = Damage::whereYear('transaction_date', $currentYear)
+            ->whereMonth('transaction_date', $currentMonth)
+            ->count();
+
+        $countLowStockWithinOneMonth = ItemUnitDetail::with('item')
+            ->join('inventories', function ($join) {
+                $join->on('item_unit_details.item_id', '=', 'inventories.item_id')
+                    ->on('item_unit_details.unit_id', '=', 'inventories.unit_id')
+                    ->when(Auth::user()->branch_id !== 0, function ($query) {
+                        $query->where('inventories.branch_id', Auth::user()->branch_id);
+                    })
+                    ->where('inventories.quantity', '<', DB::raw('item_unit_details.reorder_level'));
+            })->count();
+
+        $countOutOfStock = Inventory::when(Auth::user()->branch_id !== 0, function ($query) {
+                $query->where('inventories.branch_id', Auth::user()->branch_id);
+            })
+            ->where('quantity', 0)
+            ->count();
+
 
         $result = new stdClass;
-        
+        $result->total_items = $countItem;
+        $result->total_transfers = [
+            'total_receive' => $countReceiveWithinOneMonth,
+            'total_issue' => $countIssueWithinOneMonth
+        ];
+        $result->total_damages = $coutnDamgeWithingOneMonth; // Typo in variable name corrected
+        $result->total_lowstocks = [
+            'total_lowstock' => $countLowStockWithinOneMonth,
+            'total_outstock' => $countOutOfStock,
+        ];
+
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $result);
     }
 }
