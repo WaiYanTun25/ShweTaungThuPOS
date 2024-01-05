@@ -84,7 +84,6 @@ class ItemController extends ApiBaseController
             $createItem->save();
 
             foreach($request->unit_detail as $detail){
-                // info($detail);
                 $createItemUnit = new ItemUnitDetail();
                 $createItemUnit->item_id = $createItem->id;
                 $createItemUnit->unit_id = $detail['unit_id'];  
@@ -102,7 +101,6 @@ class ItemController extends ApiBaseController
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
         }catch(Exception $e){
             DB::rollBack();
-            // info($e->getMessage());
             return $this->sendErrorResponse('Error creating item', Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
         }
     }
