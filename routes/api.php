@@ -91,6 +91,11 @@ Route::group(["middleware" => ['auth:sanctum']] , function () {
 
     // unit conversion 
     Route::apiResource('unit_converts', UnitConvertController::class);
+
+    // core module
+    Route::prefix('purchases')->group(function() {
+
+    });
 });
 
 
