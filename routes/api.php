@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\{
     InventoryController,
     IssueController,
     ItemController,
+    PurchaseController,
     ReceiveController,
     SupplierController,
     UnitController,
@@ -38,31 +39,34 @@ Route::post('/login', [AuthenticationController::class, 'loginUser']);
 
 Route::post('/central_links', function () {
     return [
-        "product_detail (GET)" => config('app.url'). "/api/items",
-       "unit_convert" => [
-        "get_last_5_rows_convert (GET)" => config('app.url'). "/api/unit_converts", 
-        "create_unit_convert (POST)" => config('app.url'). "/api/unit_converts",
-        "delete_unit_convert (DELETE)" => config('app.url'). "/api/unit_converts",
-       ]
+        "product_detail (GET)" => config('app.url') . "/api/items",
+        "unit_converts" => [
+            "get_last_5_rows_convert (GET)" => config('app.url') . "/api/unit_converts",
+            "create_unit_convert (POST)" => config('app.url') . "/api/unit_converts",
+            "delete_unit_convert (DELETE)" => config('app.url') . "/api/unit_converts",
+        ],
+        "purchases" => [
+            "create_purchase (POST)" => config('app.url') . "/api/purchases",
+        ]
     ];
 });
 
 
 Route::get('/testing', [TestController::class, 'testing']);
 
-Route::group(["middleware" => ['auth:sanctum']] , function () {
+Route::group(["middleware" => ['auth:sanctum']], function () {
 
     Route::post('/register', [AuthenticationController::class, 'registerUser']);
     Route::get('/get-current-user', [AuthenticationController::class, 'getCurrentUserRoleAndPermission']);
 
     Route::apiResource('roles', RoleController::class);
     Route::apiResource('branches', BranchController::class);
-    Route::prefix('branches')->group(function() {
+    Route::prefix('branches')->group(function () {
         Route::get('{branch_id}/user-list', [BranchController::class, 'getUserLists']);
     });
     Route::apiResource('categories', CategoryController::class);
     // Route::apiResource('subcategories', CategoryController::class);
-  
+
     Route::apiResource('suppliers', SupplierController::class);
     Route::apiResource('customers', CustomerController::class);
 
@@ -74,13 +78,12 @@ Route::group(["middleware" => ['auth:sanctum']] , function () {
     });
 
     // issue , receive, damage, inventory
-    Route::prefix('inventories')->group(function() {
+    Route::prefix('inventories')->group(function () {
         Route::get('getlowstock', [InventoryController::class, 'getLowStockInventories']);
         // get issues, receives and damages of branch
         Route::get('issues-receives-damages', [InventoryController::class, 'getIssuesReceivesAndDamages']);
         // inventories summary
         Route::get('summary', [InventoryController::class, 'getInventorySummary']);
-
     });
     Route::apiResource('issues', IssueController::class);
     Route::apiResource('receives', ReceiveController::class);
@@ -93,13 +96,5 @@ Route::group(["middleware" => ['auth:sanctum']] , function () {
     Route::apiResource('unit_converts', UnitConvertController::class);
 
     // core module
-    Route::prefix('purchases')->group(function() {
-
-    });
+    Route::apiResource('purchases', PurchaseController::class);
 });
-
-
-
-
-
-

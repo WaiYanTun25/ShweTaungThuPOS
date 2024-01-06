@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\Inventory;
 use App\Models\ItemUnitDetail;
 use App\Models\TransferDetail;
+use Error;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 
@@ -96,7 +97,7 @@ trait TransactionTrait
      }
    }
 
-   public function addItemtoBranch($requestDetails , $voucher_no)
+   public function addItemtoBranch($requestDetails , $voucher_no = null)
    {
       try{
          foreach ($requestDetails as $detail) {
@@ -111,12 +112,13 @@ trait TransactionTrait
                 $createInventory = new Inventory();
                 $createInventory->item_id = $detail['item_id'];
                 $createInventory->unit_id = $detail['unit_id'];
+                $createInventory->branch_id = Auth::user()->branch_id;
                 $createInventory->quantity = $detail['quantity'];
                 $createInventory->save();
             }
         }
       }catch(Exception $e){
-
+         throw new Error($e->getMessage());
       }
    }
 

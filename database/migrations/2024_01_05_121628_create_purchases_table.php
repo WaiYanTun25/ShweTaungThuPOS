@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('purchases', function (Blueprint $table) {
             $table->id();
             $table->string('voucher_no');
+            $table->integer('branch_id');
             $table->integer('supplier_id');
             $table->integer('total_quantity');
             $table->integer('total_amount');
@@ -24,7 +25,6 @@ return new class extends Migration
             $table->integer('pay_amount')->default(0);
             $table->integer('remain_amount');
             $table->enum('payment_status', ['PARTIALLY_PAID', 'FULLY_PAID', 'UN_PAID']);
-            $table->enum('paid_status', ['not_finished', 'finished']);
             $table->string('remark');
             $table->timestamp('purchase_date');
         });
