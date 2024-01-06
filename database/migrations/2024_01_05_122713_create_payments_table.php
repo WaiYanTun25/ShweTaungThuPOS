@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('voucher_no');
             $table->integer('purchase_id');
+            $table->integer('payment_method_id');
             $table->integer('pay_amount');
             $table->timestamp('payment_date');
         });

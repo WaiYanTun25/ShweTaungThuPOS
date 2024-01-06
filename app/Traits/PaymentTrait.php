@@ -14,6 +14,7 @@ trait PaymentTrait
     {
         $createPayment = new Payment();
         $createPayment->purchase_id = $purchaseId;
+        $createPayment->payment_method_id = $data['payment_method'];
         $createPayment->pay_amount = $data['pay_amount'];
         $createPayment->save();
 
