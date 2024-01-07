@@ -34,10 +34,9 @@ class SupplierController extends ApiBaseController
         {
             $getSupplier->where('name', 'like', "%$search%")
                     ->orWhere('phone_number', 'like', "%$search%")
-                    ->orWhere('address', 'like', "%$search%")
-                    ->orWhere('township', 'like', "%$search%")
-                    ->orWhere('city', 'like', "%$search%")
-                    ->orWhere('join_date', 'like', "%$search%");
+                    // ->orWhere('address', 'like', "%$search%")
+                    ->orWhere('township', 'like', "%$search%");
+                    // ->orWhere('join_date', 'like', "%$search%");
         }
          // Handle order and column
         $order = $request->query('order', 'asc'); // default to asc if not provided
@@ -46,6 +45,11 @@ class SupplierController extends ApiBaseController
         $getSupplier->orderBy($column, $order);
 
         $suppliers = $getSupplier->get();
+
+        $suppliers->transform(function ($supplier) {
+            $supplier->join_date = date('d/m/Y', strtotime($supplier->join_date));
+            return $supplier;
+        });
 
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $suppliers);
     }
