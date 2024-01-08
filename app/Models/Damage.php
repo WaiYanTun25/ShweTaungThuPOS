@@ -41,7 +41,7 @@ class Damage extends Model
             $count = static::count() + 1;
 
             // Generate a formatted voucher number with leading zeros
-            $voucherNo = "INV-R-" . str_pad($count, 10, '0', STR_PAD_LEFT);
+            $voucherNo = "INV-D-" . str_pad($count, 10, '0', STR_PAD_LEFT);
         }
        
 
