@@ -39,15 +39,62 @@ Route::post('/login', [AuthenticationController::class, 'loginUser']);
 
 Route::post('/central_links', function () {
     return [
-        "product_detail (GET)" => config('app.url') . "/api/items",
-        "unit_converts" => [
-            "get_last_5_rows_convert (GET)" => config('app.url') . "/api/unit_converts",
-            "create_unit_convert (POST)" => config('app.url') . "/api/unit_converts",
-            "delete_unit_convert (DELETE)" => config('app.url') . "/api/unit_converts",
-        ],
-        "purchases" => [
-            "create_purchase (POST)" => config('app.url') . "/api/purchases",
+        "INVENTORY_MODULE" => [
+            "inventory" => [
+                "အလုံးစုံစာရင်း" => config('app.url') . "/api/inventories/summary",
+                "ဂိုထောင်မှတ်တမ်း" => config('app.url') . "/api/inventories/issues-receives-damages?order=desc&column=total_quantity&searchBy=&page=1&perPage=10",
+            ],
+            "receive/issue detail" => [
+                "issue_detail" => config('app.url') . "/api/issues/{id}",
+                "receive_detail" => config('app.url') . "/api/receives/{id}"
+            ],
+            "product_list" => [
+                "ထုတ်ကုန်များ" => "UNDER CONSTRUCTION",
+            ],
+            "damage/lost product list" => [
+                "ပျက်စီးထုတ်ကုန်များ" => config('app.url') . "/api/damages?searchBy=&order=desc&column=quantity&perPage=10&page=1"
+            ],
+            "less stock list" => [
+                "Stock နည်းနေသောထုတ်ကုန်များ" => config('app.url') . "/api/inventories/getlowstock?perPage=10&page=1&order=asc&column=quantity"
+            ],
+            "item issue,receive list" => [
+                "ပစည်းလွှဲပြောင်း နှင့်လက်ခံစာရင်း" => config('app.url') . "/api/transfers?order=desc&column=total_quantity&searchBy=&page=1&perPage=10"
+            ],
+            "product detail" => config('app.url') . "/api/items/{id}",
+            "product purchase list" => "UNDER CONSTRUCTION",
+            "product sale list" => "UNDER CONSTRUCTION",
+            "stock history" => "UNDER CONSTRUCTION",
+            "Unit Conversion" => [
+                "get Item By Code" => config('app.url') . '/api/items/code/{item_code}',
+                "ယူနစ်ကူးပြောင်းမှူမှတ်တမ်း (GET)" => config('app.url') . '/api/unit_converts',
+                "create Unit Conversion (POST)" => config('app.url') . '/api/unit_converts'
+            ],
+            "set up new product" => [
+                "get Item By Code (GET)" => config('app.url') . '/api/items/code/{item_code}',
+                "ထုတ်ကုန်အသစ်သတ်မှတ် (POST)" => config('app.url') . '/api/items',
+            ],
+            "add new item receive" => [
+                "get Item By Code (GET)" => config('app.url') . '/api/items/code/{item_code}',
+                "ပစည်းလက်ခံစာရင်းသစ်သတ်မှတ် (POST)" => config('app.url') . '/api/receives'
+            ],
+            "add new damage" => [
+                "get Item By Code (GET)" => config('app.url') . '/api/items/code/{item_code}',
+                "ပျက်စီးထုတ်ကုန်စာရင်းသစ်သတ်မှတ် (POST)" => config('app.url') . '/api/damages'
+            ],
+            "add new item issue" => [
+                "get Item By Code (GET)" => config('app.url') . '/api/items/code/{item_code}',
+                "ပစည်းပို့စာရင်းသစ်သတ်မှတ် (POST)" => config('app.url') . '/api/issues'
+            ],
         ]
+        // "product_detail (GET)" => config('app.url') . "/api/items",
+        // "unit_converts" => [
+        //     "get_last_5_rows_convert (GET)" => config('app.url') . "/api/unit_converts",
+        //     "create_unit_convert (POST)" => config('app.url') . "/api/unit_converts",
+        //     "delete_unit_convert (DELETE)" => config('app.url') . "/api/unit_converts",
+        // ],
+        // "purchases" => [
+        //     "create_purchase (POST)" => config('app.url') . "/api/purchases",
+        // ]
     ];
 });
 
@@ -95,6 +142,6 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     // unit conversion 
     Route::apiResource('unit_converts', UnitConvertController::class);
 
-    // core module
+    // core modules
     Route::apiResource('purchases', PurchaseController::class);
 });
