@@ -95,7 +95,7 @@ class Purchase extends Model
 
     public function branch()
     {
-        return $this->hasOne(branch::class, 'id', 'branch_id');
+        return $this->hasOne(Branch::class, 'id', 'branch_id');
     }
 
     public function purchase_details()
