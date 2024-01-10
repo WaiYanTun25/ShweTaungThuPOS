@@ -58,4 +58,10 @@ class Item extends Model
     {
         return $this->hasMany(Inventory::class);
     }
+
+    // for purchase
+    public function purchaseDetails()
+    {
+        return $this->hasMany(PurchaseDetail::class, 'item_id');
+    }
 }

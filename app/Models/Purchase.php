@@ -5,18 +5,50 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Scopes\BranchScope;
+use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+
+use Spatie\Activitylog\Models\Activity;
 
 class Purchase extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
     public $timestamps = false;
+    protected $fillable = ['voucher_no', 'branch_id', 'supplier_id', 'total_quantity', 'total', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'pay_amount', 'remain_amount', 'payment_status', 'remark', 'purchase_date'];
+    
+    public function getActivitylogOptions(): LogOptions
+    {
+        $logOptions = LogOptions::defaults()
+            ->logOnly(static::getFillable())
+            ->setDescriptionForEvent(function (string $eventName) {
+                $userName = Auth::user()->name ?? 'Unknown User';
+                return "{$userName} {$eventName} the Purchase (Voucher_no {$this->voucher_no})";
+            });
+            
+        
+        $logOptions->logName = 'PURCHASE';
 
+        return $logOptions;
+    }
+
+   /**
+     * Log the activity with custom properties.
+     *
+     * @param LogOptions $logOptions
+     * @return void
+     */
+
+    
+   // protected static $logAttributes = ['voucher_no', 'branch_id', 'supplier_id', 'total_quantity', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'pay_amount', 'remain_amount', 'payment_status', 'remark', 'purchase_date'];
+
+    
     /**
      * The "booting" method of the model.
      *
      * @return void
      */
-    protected static function boot()
+     protected static function boot()
     {
         parent::boot();
 
@@ -59,5 +91,30 @@ class Purchase extends Model
         }
 
         return $voucherNo;
+    }
+
+    public function branch()
+    {
+        return $this->hasOne(branch::class, 'id', 'branch_id');
+    }
+
+    public function purchase_details()
+    {
+        return $this->hasMany(PurchaseDetail::class, 'purchase_id', 'id');
+    }
+
+    public function supplier()
+    {
+        return $this->hasOne(supplier::class, 'id', 'supplier_id');
+    }
+
+    public function createActivity()
+    {
+        return $this->hasOne(Activity::class, 'subject_id', 'id');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'purchase_id', 'id');
     }
 }

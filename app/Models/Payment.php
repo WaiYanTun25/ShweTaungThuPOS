@@ -49,5 +49,10 @@ class Payment extends Model
 
         return $voucherNo;
     }
+
+    public function payment_method()
+    {
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
+    }
     
 }

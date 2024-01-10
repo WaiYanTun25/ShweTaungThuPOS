@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\{
 };
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\RoleController;
+use App\Models\Inventory;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -85,6 +86,15 @@ Route::post('/central_links', function () {
                 "get Item By Code (GET)" => config('app.url') . '/api/items/code/{item_code}',
                 "ပစည်းပို့စာရင်းသစ်သတ်မှတ် (POST)" => config('app.url') . '/api/issues'
             ],
+        ],
+        "PURCHASE_MODULE" => [
+            "purchase" => [
+                "အလုံးစုံစာရင်း" => "UNDER CONSTRUCTION",
+                "ဝယ်ယူမှုမှတ်တမ်း" => "UNDER CONSTRUCTION",
+            ],
+            "purchase detail" => config('app.url') . "/api/purchases/{id}",
+            "create purchase" => config('app.url') . "/api/purchases",
+            "total purchase List" => config('app.url') . "/api/purchases/total_purchase_list?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=2024-01-01 00:00:00&endDate=2024-01-09 23:59:59&supplierId=1"
         ]
         // "product_detail (GET)" => config('app.url') . "/api/items",
         // "unit_converts" => [
@@ -142,6 +152,10 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     // unit conversion 
     Route::apiResource('unit_converts', UnitConvertController::class);
 
+    
     // core modules
+    Route::prefix('purchases')->group(function () { 
+        Route::get('total_purchase_list', [PurchaseController::class, 'getTotalPurchaseList']);
+    });
     Route::apiResource('purchases', PurchaseController::class);
 });

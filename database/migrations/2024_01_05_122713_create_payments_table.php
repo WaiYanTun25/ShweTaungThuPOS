@@ -21,13 +21,6 @@ return new class extends Migration
         });
     }
 
-//   id integer [primary key]
-//   purchase_id integer
-//   user_id integer
-//   payment_method_id integer
-//   pay_amount integer
-//   payment_date integer
-
     /**
      * Reverse the migrations.
      */

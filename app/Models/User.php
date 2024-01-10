@@ -8,10 +8,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\Activitylog\Traits\CausesActivity;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, CausesActivity;
 
     public $timestamps = false;
     /**
@@ -61,7 +62,6 @@ class User extends Authenticatable
     {
         // Get the last item for the given supplier from the database
         $lastUser = static::latest('user_code')->first();
-        info($lastUser);
         $userPrefix = 'SP'; 
         if (!$lastUser) {
             return $userPrefix . '-000001';

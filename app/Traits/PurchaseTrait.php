@@ -3,17 +3,23 @@
 namespace App\Traits;
 
 use App\Models\{
+    Inventory,
     Purchase,
     PurchaseDetail
 };
 
 trait PurchaseTrait
 {
-    public function createPurchase($data, $brancId)
+    public function createOrUpdatePurchase($data, $branchId, $update = false, $prevData = null)
     {
-        $createPurchase = new Purchase();
+        if($update) {
+            $createPurchase = $prevData;
+        }else{
+            $createPurchase = new Purchase();
+        }
         $createPurchase->supplier_id = $data['supplier_id'];
-        $createPurchase->branch_id = $brancId;
+        $createPurchase->branch_id = $branchId;
+        $createPurchase->amount = $data['amount'];
         $createPurchase->total_amount = $data['total_amount'];
         $createPurchase->tax_percentage = $data['tax_percentage'];
         $createPurchase->tax_amount = $data['tax_amount'];
@@ -31,6 +37,7 @@ trait PurchaseTrait
 
     public function createPurchaseDetail($data, $purchaseId)
     {
+        $createdDetails = [];
         foreach ($data['purchase_details'] as $detail) {
             $createPurchaseDetail = new PurchaseDetail();
             $createPurchaseDetail->purchase_id = $purchaseId;
@@ -41,7 +48,8 @@ trait PurchaseTrait
             $createPurchaseDetail->discount_amount = $detail['discount_amount'];
             $createPurchaseDetail->amount = $detail['amount'];
             $createPurchaseDetail->save();
+            $createdDetails[] = $createPurchaseDetail;
         }
-        return true;
+        return $createdDetails;
     }
 }
