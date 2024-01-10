@@ -105,7 +105,7 @@ class Purchase extends Model
 
     public function supplier()
     {
-        return $this->hasOne(supplier::class, 'id', 'supplier_id');
+        return $this->hasOne(Supplier::class, 'id', 'supplier_id');
     }
 
     public function createActivity()
