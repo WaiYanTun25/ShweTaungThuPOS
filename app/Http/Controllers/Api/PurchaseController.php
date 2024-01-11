@@ -139,6 +139,7 @@ class PurchaseController extends ApiBaseController
         DB::beginTransaction();
         try {
             $this->addItemtoBranch($deletePurchase->purchase_details);
+            $deletePurchase->payments()->delete();
             $deletePurchase->purchase_details()->delete();
             $deletePurchase->delete();
 
