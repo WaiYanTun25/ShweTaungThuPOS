@@ -4,8 +4,8 @@ namespace App\Traits;
 
 use App\Models\{
     Inventory,
-    Purchase,
-    PurchaseDetail
+    PurchaseDetail,
+    PurchaseOrder
 };
 
 trait PurchaseOrderTrait
@@ -15,7 +15,7 @@ trait PurchaseOrderTrait
         if($update) {
             $createPurchase = $prevData;
         }else{
-            $createPurchase = new Purchase();
+            $createPurchase = new PurchaseOrder();
         }
         $createPurchase->supplier_id = $data['supplier_id'];
         $createPurchase->branch_id = $branchId;
@@ -25,10 +25,7 @@ trait PurchaseOrderTrait
         $createPurchase->tax_amount = $data['tax_amount'];
         $createPurchase->discount_percentage = $data['discount_percentage'];
         $createPurchase->discount_amount = $data['discount_amount'];
-        $createPurchase->pay_amount = $data['pay_amount'];
-        $createPurchase->total_quantity = collect($data['purchase_details'])->sum('quantity');
-        $createPurchase->remain_amount = $data['total_amount'] - $data['pay_amount'];
-        $createPurchase->payment_status = $data['payment_status'];
+        $createPurchase->total_quantity = collect($data['purchase_order_details'])->sum('quantity');
         $createPurchase->remark = $data['remark'];
         $createPurchase->save();
 

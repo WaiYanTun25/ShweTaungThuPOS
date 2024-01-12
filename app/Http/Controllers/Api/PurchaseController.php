@@ -158,7 +158,6 @@ class PurchaseController extends ApiBaseController
 
         try {
             $search = $request->query('searchBy');
-            $filter = $request->query('filterBy');
             if ($search) {
                 $getPurchases->where(function ($query) use ($search) {
                     $query->where('voucher_no', 'like', "%$search%")

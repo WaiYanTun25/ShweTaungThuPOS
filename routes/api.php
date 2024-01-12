@@ -97,7 +97,10 @@ Route::post('/central_links', function () {
             "purchase detail" => config('app.url') . "/api/purchases/{id}",
             "create purchase" => config('app.url') . "/api/purchases",
             "total purchase List" => config('app.url') . "/api/purchases/total_purchase_list?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=2024-01-01 00:00:00&endDate=2024-01-09 23:59:59&supplierId=1",
+            "total order List" => config('app.url') . "/api/purchase_orders",
             "create_purchase_orders (POST)" => config('app.url') . "/api/purchase_orders",
+            "update_purchase_orders (PUT)" => config('app.url') . "/api/purchase_orders/{id}",
+            "delete_purchase_orders (DELETE)" => config('app.url') . "/api/purchase_orders/{id}",
             ]
         ]
         // "product_detail (GET)" => config('app.url') . "/api/items",
@@ -156,7 +159,6 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     // unit conversion 
     Route::apiResource('unit_converts', UnitConvertController::class);
 
-    
     // core modules
     Route::prefix('purchases')->group(function () { 
         Route::get('total_purchase_list', [PurchaseController::class, 'getTotalPurchaseList']);
@@ -164,6 +166,9 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     Route::apiResource('purchases', PurchaseController::class);
 
     Route::prefix('purchase_orders')->group(function () {
+        Route::get('', [PurchaseOrderController::class, 'index']);
         Route::post('', [PurchaseOrderController::class, 'create']);
+        Route::put('{id}', [PurchaseOrderController::class, 'update']);
+        Route::delete('{id}', [PurchaseOrderController::class, 'delete']);
     });
 });

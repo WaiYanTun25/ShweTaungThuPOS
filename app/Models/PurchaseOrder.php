@@ -5,12 +5,32 @@ namespace App\Models;
 use App\Models\Scopes\BranchScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class PurchaseOrder extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
     public $timestamps = false;
+    protected $fillable = ['voucher_no', 'branch_id', 'supplier_id', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'remark', 'order_date'];
+    
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        $logOptions = LogOptions::defaults()
+            ->logOnly(static::getFillable())
+            ->setDescriptionForEvent(function (string $eventName) {
+                $userName = Auth::user()->name ?? 'Unknown User';
+                return "{$userName} {$eventName} the Purchase Order (Voucher_no {$this->voucher_no})";
+            });
+            
+        
+        $logOptions->logName = 'PURCHASE_ORDER';
+
+        return $logOptions;
+    }
 
      /**
      * The "booting" method of the model.
@@ -46,7 +66,7 @@ class PurchaseOrder extends Model
     private function generateVoucherNo()
     {
         // Get the last voucher number without the branch scope
-        $lastVoucherNo = static::withoutGlobalScope(BranchScope::class)->where('voucher_no', 'like', 'PUR-O%')->max('voucher_no');
+        $lastVoucherNo = static::withoutGlobalScope(BranchScope::class)->where('voucher_no', 'like', 'PUR-O-%')->max('voucher_no');
 
         // Generate a new voucher number based on the last voucher number
         if ($lastVoucherNo) {
@@ -56,7 +76,7 @@ class PurchaseOrder extends Model
             $count = static::count() + 1;
 
             // Generate a formatted voucher number with leading zeros
-            $voucherNo = "PUR-" . str_pad($count, 10, '0', STR_PAD_LEFT);
+            $voucherNo = "PUR-O-" . str_pad($count, 10, '0', STR_PAD_LEFT);
         }
 
         return $voucherNo;
