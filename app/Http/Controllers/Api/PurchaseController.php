@@ -8,6 +8,7 @@ use App\Http\Resources\PurchasesListResource;
 use App\Models\Item;
 use App\Models\Purchase;
 use App\Models\PurchaseDetail;
+use App\Models\PurchaseReturn;
 use Exception;
 use Illuminate\Http\{
     Request,
@@ -135,6 +136,13 @@ class PurchaseController extends ApiBaseController
      */
     public function destroy(string $id)
     {
+        $checkPurchaseReturn = PurchaseReturn::where('purchase_id', $id)->first();
+
+        if ($checkPurchaseReturn) {
+            $message = 'This Purchase has Purchase Return data!';
+            return $this->sendErrorResponse($message, Response::HTTP_BAD_REQUEST);
+        }
+        
         $deletePurchase = Purchase::findOrFail($id);
         DB::beginTransaction();
         try {

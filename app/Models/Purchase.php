@@ -15,7 +15,7 @@ class Purchase extends Model
 {
     use HasFactory, LogsActivity;
     public $timestamps = false;
-    protected $fillable = ['voucher_no', 'branch_id', 'supplier_id', 'total_quantity', 'total', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'pay_amount', 'remain_amount', 'payment_status', 'remark', 'purchase_date'];
+    protected $fillable = ['voucher_no', 'branch_id', 'supplier_id', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'pay_amount', 'remain_amount', 'payment_status', 'remark', 'purchase_date'];
     
     public function getActivitylogOptions(): LogOptions
     {
@@ -32,17 +32,6 @@ class Purchase extends Model
         return $logOptions;
     }
 
-   /**
-     * Log the activity with custom properties.
-     *
-     * @param LogOptions $logOptions
-     * @return void
-     */
-
-    
-   // protected static $logAttributes = ['voucher_no', 'branch_id', 'supplier_id', 'total_quantity', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'pay_amount', 'remain_amount', 'payment_status', 'remark', 'purchase_date'];
-
-    
     /**
      * The "booting" method of the model.
      *
