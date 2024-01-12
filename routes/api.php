@@ -101,6 +101,11 @@ Route::post('/central_links', function () {
             "create_purchase_orders (POST)" => config('app.url') . "/api/purchase_orders",
             "update_purchase_orders (PUT)" => config('app.url') . "/api/purchase_orders/{id}",
             "delete_purchase_orders (DELETE)" => config('app.url') . "/api/purchase_orders/{id}",
+            "purchase return list" => "UNDER CONSTRUCTION",
+            "purchase return detail" => "UNDER CONSTRUCTION",
+            "create purchase return form" => "UNDER CONSTRUCTION",
+            "update purchase return form" => "UNDER CONSTRUCTION",
+            "delete purchase return form" => "UNDER CONSTRUCTION",
             ]
         ]
         // "product_detail (GET)" => config('app.url') . "/api/items",
