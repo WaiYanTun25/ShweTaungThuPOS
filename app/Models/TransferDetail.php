@@ -12,7 +12,7 @@ class TransferDetail extends Model
     
     public function damage()
     {
-        return $this->belongsTo(Damage::class, 'voucher_no', 'voucher_no');
+        return $this->hasOne(Damage::class, 'voucher_no', 'voucher_no');
     }
 
     public function unit()

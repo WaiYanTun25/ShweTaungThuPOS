@@ -29,20 +29,47 @@ class InventoryController extends ApiBaseController
 {
     public function getLowStockInventories(Request $request)
     {
+
         $perPage = $request->query('perPage', 10);
         $search = $request->query('searchBy');
         // Handle order and column
         $order = $request->query('order', 'asc'); // default to asc if not provided
         $column = $request->query('column', 'transaction_date'); // default to id if not provided
 
+        //Filter
+        $category_id = $request->query('category_id');
+        $supplier_id = $request->query('supplier_id');
+        $reorder_from = $request->query('reorder_from');
+        $reorder_to = $request->query('reorder_to');
+
         if (Auth::user()->branch_id != 0) {
-            $itemDetails = ItemUnitDetail::with('item')
-                ->join('inventories', function ($join) {
+            $itemDetails = ItemUnitDetail::with('item');
+
+            // filter data
+            if($reorder_from && $reorder_to){
+                $itemDetails->where('reorder_period', '>=', $reorder_from)
+                        ->where('reorder_period', '<=', $reorder_to);
+            }
+            if($category_id)
+            {
+               $itemDetails->whereHas('item' , function ($q) use ($category_id) {
+                $q->where('category_id', $category_id);
+               }); 
+            }
+            if($supplier_id)
+            {
+               $itemDetails->whereHas('item' , function ($q) use ($supplier_id) {
+                $q->where('supplier_id', $supplier_id);
+               }); 
+            }
+
+            $itemDetails->join('inventories', function ($join) {
                     $join->on('item_unit_details.item_id', '=', 'inventories.item_id')
                         ->on('item_unit_details.unit_id', '=', 'inventories.unit_id')
                         ->where('inventories.branch_id', Auth::user()->branch_id)
                         ->where('inventories.quantity', '<', DB::raw('item_unit_details.reorder_level'));
                 })
+               
 
                 ->leftJoin('transfer_details', function ($join) {
                     $join->on('item_unit_details.item_id', '=', 'transfer_details.item_id')
@@ -50,6 +77,7 @@ class InventoryController extends ApiBaseController
                         ->where('transfer_details.voucher_no', 'like', 'INV-R%')
                         ->whereRaw('transfer_details.id = (SELECT MAX(id) FROM transfer_details WHERE item_unit_details.item_id = transfer_details.item_id AND item_unit_details.unit_id = transfer_details.unit_id AND transfer_details.voucher_no LIKE "INV-R%")');
                 })
+                
 
                 ->leftJoin('receives', function ($join) {
                     $join->on('transfer_details.voucher_no', '=', 'receives.voucher_no');
@@ -69,13 +97,34 @@ class InventoryController extends ApiBaseController
                     'inventories.quantity as quantity',
                     'inventories.branch_id as branch_id'
                 )
-                ->orderBy($column, $order)
-                ->paginate($perPage);
-            // return $itemDetails;
+
+                ->orderBy($column, $order);
+
+                $itemDetails =  $itemDetails->paginate($perPage);
+
             $result = new LowStockResource($itemDetails);
         } else {
-            $itemDetails = ItemUnitDetail::with('item')
-                ->join('inventories', function ($join) {
+            $itemDetails = ItemUnitDetail::with('item');
+
+            // filter Data
+            if($reorder_from && $reorder_to){
+                $itemDetails->where('reorder_period', '>=', $reorder_from)
+                        ->where('reorder_period', '<=', $reorder_to);
+            }
+            if($category_id)
+            {
+               $itemDetails->whereHas('item' , function ($q) use ($category_id) {
+                $q->where('category_id', $category_id);
+               }); 
+            }
+            if($category_id)
+            {
+               $itemDetails->whereHas('item' , function ($q) use ($category_id) {
+                $q->where('category_id', $category_id);
+               }); 
+            }
+
+            $itemDetails->join('inventories', function ($join) {
                     $join->on('item_unit_details.item_id', '=', 'inventories.item_id')
                         ->on('item_unit_details.unit_id', '=', 'inventories.unit_id')
                         ->where('inventories.quantity', '<', DB::raw('item_unit_details.reorder_level'));

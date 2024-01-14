@@ -24,13 +24,45 @@ class DamageController extends ApiBaseController
     public function index(Request $request)
     {
         $perPage = $request->query('perPage', 10);
+        $search = $request->query('searchBy');
+
+        // FILTER
+        $startDate = $request->query('startDate');
+        $endDate = $request->query('endDate');
+        $category_id = $request->query('category_id');
+        $supplier_id = $request->query('supplier_id');
+
+        $branch_id = Auth::user()->branch_id;
+
         $damageItems = TransferDetail::with('damage')->where('transfer_details.voucher_no', 'like', 'INV-D%');
 
-        $search = $request->query('searchBy');
+        // filters
+        if($startDate && $endDate){
+            $damageItems->whereHas('damage', function ($q) use ($startDate, $endDate){
+                $q->whereBetween('transaction_date', [$startDate, $endDate]);
+            });
+        }
+        if($category_id){
+            $damageItems->whereHas('item', function ($q) use ($category_id){
+                $q->where('category_id', $category_id);
+            });
+        }
+        if($supplier_id){
+            $damageItems->whereHas('item', function ($q) use ($supplier_id){
+                $q->where('supplier_id', $supplier_id);
+            });
+        }
+
+        if($branch_id != 0) {
+            $damageItems->whereHas('damage', function ($q) use ($branch_id){
+                $q->where('branch_id', $branch_id);
+            });
+        }
+
         if ($search) {
             $damageItems->whereHas('item', function ($itemQuery) use ($search) {
-                $itemQuery->where('item_name', 'like', '%' . $search . '%');
-                $itemQuery->orWhere('item_code', 'like', '%' . $search . '%');
+                $itemQuery->where('item_name', 'like', '%' . $search . '%')
+                            ->orWhere('item_code', 'like', '%' . $search . '%');
             });
         }
 
