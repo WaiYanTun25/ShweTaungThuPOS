@@ -5,13 +5,34 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Scopes\BranchScope;
+use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+
+use Spatie\Activitylog\Models\Activity;
 
 class Issue extends Model
 {
     use HasFactory;
     public $timestamps = false;
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     $logOptions = LogOptions::defaults()
+    //         ->setDescriptionForEvent(function (string $eventName) {
+    //             $userName = Auth::user()->name ?? 'Unknown User';
+    //             return "{$userName} {$eventName} the Issue (Voucher_no {$this->voucher_no})";
+    //         });
 
+    //     $logOptions->logName = 'ISSUE';
 
+    //     return $logOptions;
+    // }
+
+     /**
+     * The "booting" method of the model.
+     *
+     * @return void
+     */
     protected static function boot()
     {
         parent::boot();
@@ -64,24 +85,7 @@ class Issue extends Model
        
 
         return $voucherNo;
-
-        // // Get the current count of existing records and increment it
-        // $count = static::count() + 1;
-
-        // // Generate a formatted voucher number with leading zeros
-        // $voucherNo = "INV-I-" . str_pad($count, 10, '0', STR_PAD_LEFT);
-
-        // return $voucherNo;
     }
-
-    // private function generateVoucherNo()
-    // {
-    //     $branchId = $this->from_branch_id;
-    //     $uniqueId = uniqid();
-    //     $timestamp = now()->timestamp;
-    //     return substr(base_convert(sha1(uniqid(mt_rand())), 16, 36), 0, 12);
-    //     return "I-{$branchId}-" . substr($uniqueId, 0, -4) . substr($timestamp, 0, -4);
-    // }
 
     public function issuesTo()
     {
@@ -107,5 +111,10 @@ class Issue extends Model
     public function items()
     {
         return $this->hasManyThrough(Item::class, TransferDetail::class, 'voucher_no', 'id', 'voucher_no', 'item_id');
+    }
+
+    public function createActivity()
+    {
+        return $this->hasOne(Activity::class, 'subject_id', 'id');
     }
 }

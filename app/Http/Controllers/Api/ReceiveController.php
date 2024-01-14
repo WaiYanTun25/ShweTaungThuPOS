@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\DB;
 use App\Traits\TransactionTrait;
 use Illuminate\Support\Facades\Auth;
 
-use function Laravel\Prompts\error;
 
 class ReceiveController extends ApiBaseController
 {
@@ -65,11 +64,16 @@ class ReceiveController extends ApiBaseController
             $createdReceive->to_branch_id = Auth::user()->branch_id;
             $createdReceive->total_quantity =  collect($request->item_details)->sum('quantity');
             $createdReceive->save();
-            // info($createdReceive);
-            // array_sum(array_column($request->item_detail, 'quantity'))
-
+       
             //create Transaction Detail 
             $createdReceiveDetail = $this->createTransactionDetail($request->item_details, $createdReceive->voucher_no);
+
+            activity()
+            ->causedBy(Auth::user())
+            ->event('created')
+            ->performedOn($createdReceive)
+            ->withProperties(['Reveieve' => $createdReceive , 'ReceiveDetail' => $createdReceiveDetail])
+            ->log('{$userName} created the Receive (Voucher_no)'.$createdReceive->voucher_no.')');
 
             DB::commit();
             $message = 'Receive ('.$createdReceive->voucher_no.') is created successfully';
@@ -99,16 +103,23 @@ class ReceiveController extends ApiBaseController
     public function update(ReceiveRequest $request, string $id)
     {
         $receive = Receive::with('transfer_details')->findOrFail($id);
-
         try{
             DB::beginTransaction();
             $this->deductItemFromBranch($receive->transfer_details, $receive->to_branch_id);
             TransferDetail::where('voucher_no', $receive->voucher_no)->delete();
             //create Transaction Detail 
-             $this->createTransactionDetail($request->item_details, $receive->voucher_no);
-             $this->addItemtoBranch($request->item_details, $receive->voucher_no);
+            $createdTransactionDetail = $this->createTransactionDetail($request->item_details, $receive->voucher_no);
+            $this->addItemtoBranch($request->item_details, $receive->voucher_no);
             $receive->from_branch_id = $request->from_branch_id;
-            $receive->save();
+            $receive->update();
+
+            activity()
+            ->causedBy(Auth::user())
+            ->setEvent('updated')
+            ->performedOn($receive)
+            ->withProperties(['Reveieve' => $receive , 'ReceiveDetail' => $createdTransactionDetail])
+            ->log('{$userName} updated the Receive (Voucher_no'.$receive->voucher_no.')');
+
             DB::commit();
             $message = 'Voucher Number ('.$receive->voucher_no.") is updated.";
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
@@ -128,6 +139,14 @@ class ReceiveController extends ApiBaseController
         $issue = Receive::with('transfer_details')->findOrFail($id);
         try{
             DB::beginTransaction();
+
+            activity()
+            ->causedBy(Auth::user())
+            ->setEvent('deleted')
+            ->performedOn($issue)
+            ->withProperties(['Reveieve' => $issue , 'ReceiveDetail' => $issue->transfer_details])
+            ->log('{$userName} deleted the Receive (Voucher_no -'.$issue->voucher_no.')');
+
             $deleteTransactionDetail = $this->deductItemFromBranch($issue->transfer_details, $issue->to_branch_id);
             $issue->transfer_details()->delete();
             $issue->delete();

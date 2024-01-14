@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('voucher_no');
             $table->integer('branch_id');
             $table->integer('supplier_id');
+            $table->integer('payment_id')->nullable();
             $table->integer('total_quantity');
             $table->integer('amount');
             $table->integer('total_amount');

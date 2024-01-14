@@ -15,7 +15,7 @@ class PurchaseReturn extends Model
     use HasFactory, LogsActivity;
     public $timestamps = false;
 
-    protected $fillable = ['voucher_no', 'purchase_id','branch_id', 'supplier_id', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'pay_amount', 'remark', 'purchase_return_date'];
+    protected $fillable = ['voucher_no','branch_id', 'supplier_id', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'pay_amount', 'remark', 'purchase_return_date'];
     
     public function getActivitylogOptions(): LogOptions
     {

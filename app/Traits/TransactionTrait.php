@@ -5,6 +5,7 @@ namespace App\Traits;
 use App\Models\Branch;
 use App\Models\Inventory;
 use App\Models\ItemUnitDetail;
+use App\Models\Receive;
 use App\Models\TransferDetail;
 use Error;
 use Exception;
@@ -14,6 +15,7 @@ trait TransactionTrait
 {
    public function createTransactionDetail($dataArray, $voucher_no)
    {
+      $receiveDetail = [];
       foreach ($dataArray as $data) {
          $createdTransactionDetail = new TransferDetail();
          $createdTransactionDetail->voucher_no = $voucher_no;
@@ -21,9 +23,10 @@ trait TransactionTrait
          $createdTransactionDetail->unit_id = $data['unit_id'];
          $createdTransactionDetail->quantity = $data['quantity'];
          $createdTransactionDetail->save();
+         $receiveDetail[] = $createdTransactionDetail;
       }
 
-      return true;
+      return $receiveDetail;
    }
 
    public function updatedTransactionDetail($dataArray, $voucher_no, $branchId)
@@ -36,6 +39,7 @@ trait TransactionTrait
          $prevDetail->delete();
       }
 
+      $data = [];
       foreach ($dataArray as $data) {
          $createdTransactionDetail = new TransferDetail();
          $createdTransactionDetail->voucher_no = $voucher_no;
@@ -43,9 +47,10 @@ trait TransactionTrait
          $createdTransactionDetail->unit_id = $data['unit_id'];
          $createdTransactionDetail->quantity = $data['quantity'];
          $createdTransactionDetail->save();
+         $data[] = $createdTransactionDetail;
       }
 
-      return true;
+      return $data;
    }
 
    public function deleteTransactionDetail($voucher_no, $branchId)
@@ -125,6 +130,7 @@ trait TransactionTrait
    public function updatedDamageDetail($currDetails, $voucher_no, $branchId)
    {
       $deletePrevDetailAndAddInventory = $this->deleteDamageDetailAndIncInventory($voucher_no, $branchId);
+      $data = [];
       if($deletePrevDetailAndAddInventory)
       {
          foreach ($currDetails as $data) {
@@ -134,11 +140,13 @@ trait TransactionTrait
             $createdTransactionDetail->unit_id = $data['unit_id'];
             $createdTransactionDetail->quantity = $data['quantity'];
             $createdTransactionDetail->save();
+            $data[] = $createdTransactionDetail;
 
             $deductInventory = Inventory::where('item_id', $data['item_id'])->where('unit_id', $data['unit_id'])->where('branch_id', $branchId)->first();
             $deductInventory->decrement('quantity', $data['quantity']);
          }
       }
+      return $data;
    }
 
    public function deleteDamageDetailAndIncInventory($voucher_no, $branchId)
@@ -151,4 +159,19 @@ trait TransactionTrait
       }
       return true;
    }
+
+   // receive create
+   // public function createOrUpdateReceive($request , $update = false , $receive = null)
+   // {
+   //    if($update){
+   //       $createReceive = $receive;
+   //    }else{
+   //       $createReceive = new Receive();
+   //    }
+   //    $branchId = $request->from_branch_id;
+   //    $createReceive->from_branch_id = $branchId;
+   //    $createReceive->save();
+
+   //    return $createReceive;
+   // }
 }

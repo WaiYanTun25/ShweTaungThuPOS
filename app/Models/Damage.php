@@ -6,10 +6,30 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Scopes\BranchScope;
 
+use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+
+use Spatie\Activitylog\Models\Activity;
+
 class Damage extends Model
 {
     use HasFactory;
     public $timestamps = false;
+
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     $logOptions = LogOptions::defaults()
+    //         ->setDescriptionForEvent(function (string $eventName) {
+    //             $userName = Auth::user()->name ?? 'Unknown User';
+    //             return "{$userName} {$eventName} the Damage (Voucher_no {$this->voucher_no})";
+    //         });
+
+
+    //     $logOptions->logName = 'DAMAGE';
+
+    //     return $logOptions;
+    // }
 
     protected static function boot()
     {

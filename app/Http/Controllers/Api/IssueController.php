@@ -65,13 +65,20 @@ class IssueController extends ApiBaseController
             $createdIssue->to_branch_id = $request->to_branch_id;
             $createdIssue->total_quantity =  collect($request->item_details)->sum('quantity');
             $createdIssue->save();
-            // array_sum(array_column($request->item_detail, 'quantity'))
 
             //create Transaction Detail 
             $createdIssueDetail = $this->createTransactionDetail($request->item_details, $createdIssue->voucher_no);
 
             DB::commit();
-            $message = 'Issue is created successfully';
+
+            activity()
+            ->causedBy(Auth::user())
+            ->event('created')
+            ->performedOn($createdIssue)
+            // ->withProperties(['Reveieve' => $createdIssue , 'ReceiveDetail' => $createdIssueDetail])
+            ->log('{$userName} created the Issue (Voucher_no)'.$createdIssue->voucher_no.')');
+
+            $message = 'Issue (' . $createdIssue->voucher_no . ') is created successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
         } catch (Exception $e) {
             DB::rollBack();
@@ -100,20 +107,28 @@ class IssueController extends ApiBaseController
         $updateTransfer = Issue::findOrFail($id);
         try {
             DB::beginTransaction();
+            
             $updateTransfer->total_quantity = collect($request->item_details)->sum('quantity');
             $updateTransfer->to_branch_id = $request->to_branch_id;
-            $updateTransfer->save();
-            // array_sum(array_column($request->item_detail, 'quantity'))
+            $updateTransfer->update();
             //create Transaction Detail 
-            $createdTransferDetail = $this->updatedTransactionDetail($request->item_details, $updateTransfer->voucher_no, $updateTransfer->from_branch_id);
+            $createdTransactionDetail = $this->updatedTransactionDetail($request->item_details, $updateTransfer->voucher_no, $updateTransfer->from_branch_id);
 
+            activity()
+            ->causedBy(Auth::user())
+            ->setEvent('updated')
+            ->performedOn($updateTransfer)
+            // ->withProperties(['Reveieve' => $updateTransfer , 'ReceiveDetail' => $createdTransactionDetail])
+            ->log('{$userName} updated the Issue (Voucher_no'.$updateTransfer->voucher_no.')');
+
+            
             DB::commit();
-            $message = 'Issue ('.$updateTransfer->voucher_no.') is updated successfully';
+            $message = 'Issue (' . $updateTransfer->voucher_no . ') is updated successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
         } catch (Exception $e) {
             DB::rollBack();
             info($e->getMessage());
-            return $this->sendErrorResponse('Something went wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->sendErrorResponse('Error Updating Issue', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -125,6 +140,14 @@ class IssueController extends ApiBaseController
         $issue = Issue::findOrFail($id);
         try{
             DB::beginTransaction();
+
+            activity()
+            ->causedBy(Auth::user())
+            ->setEvent('deleted')
+            ->performedOn($issue)
+            // ->withProperties(['Reveieve' => $issue , 'ReceiveDetail' => $issue->transfer_details])
+            ->log('{$userName} deleted the Issue (Voucher_no -'.$issue->voucher_no.')');
+
             $deleteTransactionDetail = $this->deleteTransactionDetail($issue->voucher_no, $issue->from_branch_id);
             $issue->delete();
             DB::commit();

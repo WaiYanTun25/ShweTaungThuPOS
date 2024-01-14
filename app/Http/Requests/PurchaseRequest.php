@@ -37,7 +37,7 @@ class PurchaseRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules =  [
             'supplier_id' => 'required',
             'amount' => 'required | integer | min: 1',
             'total_amount' => 'required | integer',
@@ -47,8 +47,8 @@ class PurchaseRequest extends FormRequest
             'discount_amount' => 'required | integer',
             'payment_status' => 'required | in:PARTIALLY_PAID,FULLY_PAID,UN_PAID',
             'remark' => 'required | max:100',
-            'pay_amount' => 'required | integer',
-            'payment_method' => 'required',
+            // 'pay_amount' => 'required | integer',
+            // 'payment_method' => 'required',
             'purchase_details.*.item_id' => 'required|integer | exists:item_unit_details,item_id',
             'purchase_details.*.unit_id' => 'required|integer | exists:item_unit_details,unit_id',
             'purchase_details.*.item_price' => 'required|integer|min:1',
@@ -91,21 +91,34 @@ class PurchaseRequest extends FormRequest
                                 }else{
                                     $itemExists = true;
                                 }
+
+                                $itemExists = Inventory::where('item_id', $item['item_id'])
+                                ->where('unit_id', $item['unit_id'])
+                                ->where('branch_id', Auth::user()->branch_id)
+                                ->where('quantity', '>=', $quantity)
+                                ->exists();
+
+                                if (!$itemExists) {
+                                    $fail("Invalid for {$attribute}.{$index}.item_id: {$item['item_id']}, unit_id: {$item['unit_id']}");
+                                }
                             }
 
-                            $itemExists = Inventory::where('item_id', $item['item_id'])
-                            ->where('unit_id', $item['unit_id'])
-                            ->where('branch_id', Auth::user()->branch_id)
-                            ->where('quantity', '>=', $quantity)
-                            ->exists();
-
-                            if (!$itemExists) {
-                                $fail("Invalid for {$attribute}.{$index}.item_id: {$item['item_id']}, unit_id: {$item['unit_id']}");
-                            }
+                            
                         }
                     }
                 }
             ]
         ];
+
+        if ($this->input('payment_status') === 'UN_PAID') {
+            $rules['payment_method'] = 'nullable';
+            $rules['pay_amount'] = 'nullable|integer';
+        } else {
+            // If payment_status is not UN_PAID, ensure payment_method and pay_amount are required
+            $rules['payment_method'] = 'required';
+            $rules['pay_amount'] = 'required|integer';
+        }
+
+        return $rules;
     }
 }

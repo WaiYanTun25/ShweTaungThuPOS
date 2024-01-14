@@ -71,9 +71,17 @@ class DamageController extends ApiBaseController
             // array_sum(array_column($request->item_detail, 'quantity'))
 
             //create Transaction Detail 
-            $this->createTransactionDetail($request->item_details, $createdDamage->voucher_no);
+            $createdTransactionDetail = $this->createTransactionDetail($request->item_details, $createdDamage->voucher_no);
             //deduct from branch's inventory
             $this->deductItemFromBranch($request->item_details, Auth::user()->branch_id);
+
+            activity()
+            ->causedBy(Auth::user())
+            ->event('created')
+            ->performedOn($createdDamage)
+            // ->withProperties(['Reveieve' => $createdDamage , 'ReceiveDetail' => $createdTransactionDetail])
+            ->log('{$userName} created the Receive (Voucher_no)'.$createdDamage->voucher_no.')');
+
 
             DB::commit();
             $message = 'Damage (' . $createdDamage->voucher_no . ') is created successfully';
@@ -105,10 +113,18 @@ class DamageController extends ApiBaseController
         try {
             DB::beginTransaction();
             $updateDamage->total_quantity = collect($request->item_detail)->sum('quantity');
-            $updateDamage->save();
+            $updateDamage->update();
             // array_sum(array_column($request->item_detail, 'quantity'))
             //create Transaction Detail 
             $createdTransferDetail = $this->updatedDamageDetail($request->item_details, $updateDamage->voucher_no, $updateDamage->branch_id);
+
+            activity()
+            ->causedBy(Auth::user())
+            ->setEvent('updated')
+            ->performedOn($updateDamage)
+            // ->withProperties(['Reveieve' => $updateDamage , 'ReceiveDetail' => $createdTransferDetail])
+            ->log('{$userName} updated the Damage (Voucher_no'.$updateDamage->voucher_no.')');
+
 
             DB::commit();
             $message = 'Damage voucher (' . $updateDamage->voucher_no . ') is updated successfully';
@@ -128,6 +144,14 @@ class DamageController extends ApiBaseController
         $damage = Damage::findOrFail($id);
         try {
             DB::beginTransaction();
+
+            activity()
+            ->causedBy(Auth::user())
+            ->setEvent('deleted')
+            ->performedOn($damage)
+            // ->withProperties(['Reveieve' => $damage , 'ReceiveDetail' => $damage->transfer_details])
+            ->log('{$userName} deleted the Damage (Voucher_no -'.$damage->voucher_no.')');
+
             $deleteTransactionDetail = $this->deleteDamageDetailAndIncInventory($damage->voucher_no, $damage->branch_id);
             $damage->delete();
             DB::commit();

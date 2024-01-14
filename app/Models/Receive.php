@@ -6,10 +6,36 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Scopes\BranchScope;
 
+use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+
+use Spatie\Activitylog\Models\Activity;
+
 class Receive extends Model
 {
     use HasFactory;
     public $timestamps = false;
+
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     $logOptions = LogOptions::defaults()
+    //         ->setDescriptionForEvent(function (string $eventName) {
+    //             $userName = Auth::user()->name ?? 'Unknown User';
+    //             return "{$userName} {$eventName} the Receive (Voucher_no {$this->voucher_no})";
+    //         });
+
+    //     $logOptions->logName = 'RECEIVE';
+
+    //     return $logOptions;
+    // }
+
+
+    protected function getTransferDetails()
+    {
+        // Adjust the criteria for fetching TransferDetail records based on your actual conditions
+        return TransferDetail::where('voucher_no', $this->voucher_no)->get();
+    }
 
     protected static function boot()
     {
@@ -27,18 +53,6 @@ class Receive extends Model
                 $model->transaction_date = now();
             }
         });
-        // static::updating(function ($model) {
-        //     // Generate voucher_no if it's not already set
-
-        //     if (!$model->status) {
-        //         $model->status = self::SENT;
-        //     }
-
-        //     // for transaction_date
-        //     if (!$model->receive_date) {
-        //         $model->transaction_date = now();
-        //     }
-        // });
     }
 
     private function generateVoucherNo()
@@ -84,5 +98,10 @@ class Receive extends Model
     public function items()
     {
         return $this->hasManyThrough(Item::class, TransferDetail::class, 'voucher_no', 'id', 'voucher_no', 'item_id');
+    }
+
+    public function createActivity()
+    {
+        return $this->hasOne(Activity::class, 'subject_id', 'id');
     }
 }

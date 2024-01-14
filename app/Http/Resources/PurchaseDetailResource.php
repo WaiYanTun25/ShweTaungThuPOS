@@ -21,14 +21,14 @@ class PurchaseDetailResource extends JsonResource
             'supplier_name' => $this->supplier->name,
             'supplier_address' => $this->supplier->address,
             'causer_name' => $this->createActivity->causer->name,
-            'payment_method' => $this->getPaymentMethodsName(),
+            'payment_method' => $this->payment->payment_method->name,
             'purchase_date' => formatToCustomDate($this->purchase_date),
             'total_quantity' => $this->total_amount,
             'tax_percentage' => $this->tax_percentage,
             'tax_amount' => $this->tax_amount,
             'discount_percentage' => $this->discount_percentage,
             'discount_amount' => $this->discount_amount,
-            'total_payment_amount' => $this->getPaymentTotal(),
+            // 'total_payment_amount' => $this->payment->pay_amount,
             'pay_amount' => $this->pay_amount,
             'remain_amount' => $this->remain_amount,
             'purchase_details' =>$this->purchase_details->map(function ($detail) {
@@ -49,14 +49,5 @@ class PurchaseDetailResource extends JsonResource
             $paymentMethods[] = $paymentMethod->payment_method->name;
         }
         return implode(', ', $paymentMethods);
-    }
-
-    private function getPaymentTotal()
-    {
-        $total = 0;
-        foreach ($this->payments as $payment) {
-            $total += $payment->pay_amount;
-        }
-        return $total;
     }
 }

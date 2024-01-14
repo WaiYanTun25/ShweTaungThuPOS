@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ItemRequest;
 use App\Http\Resources\ItemDetailResource;
+use App\Http\Resources\ItemListResource;
 use App\Http\Resources\ItemResource;
 use App\Models\Inventory;
 use App\Models\Item;
@@ -17,6 +18,7 @@ use Exception;
 use stdClass;
 
 use App\Traits\ItemTrait;
+use Illuminate\Support\Facades\Auth;
 
 class ItemController extends ApiBaseController
 {
@@ -36,37 +38,34 @@ class ItemController extends ApiBaseController
      */
     public function index(Request $request)
     {
-        $getItems = Item::select('id' , 'item_code', 'category_id', 'supplier_id', 'item_name');
-
+        $branchId = Auth::user()->branch_id;
+        $getItems = Inventory::with('item');
+        
+        if ($branchId != 0) {
+            $getItems->where('branch_id', $branchId);
+        }
+        
+        $perPage = $request->query('perPage', 10);
         $search = $request->query('searchBy');
-        if ($search)
-        {
-            $getItems->where('item_code', 'like', "%$search%")
-                    ->andWhere('item_name', 'like', "%$search%");
+        $order = $request->query('order', 'asc');
+        $column = $request->query('column', 'id');
+        
+        if ($search) {
+            $getItems->whereHas('item', function ($query) use ($search) {
+                $query->where('item_name', 'like', "%$search%")
+                    ->orWhere('item_code', 'like', "%$search%");
+            });
         }
-         // Retrieve the 'filter-by' parameter from the query string
-         $filterBy = $request->input('filterby');
 
-         if ($filterBy) {
-            $filterByArray = json_decode($filterBy, true);
-
-            // Access category_ids and supplier_ids from the filterByArray
-            $categoryIds = $filterByArray['category_ids'] ?? [];
-            $supplierIds = $filterByArray['supplier_ids'] ?? [];
-
-            // Check if category_ids is not empty, then apply the whereIn clause
-            if (!empty($categoryIds)) {
-                $getItems->whereIn('category_id', $categoryIds);
-            }
-
-            // Check if supplier_ids is not empty, then apply the whereIn clause
-            if (!empty($supplierIds)) {
-                $getItems->whereIn('supplier_id', $supplierIds);
-            }
+        if($column == 'quantity'){
+            $getItems->orderBy('quantity', $order);
         }
-        $items = $getItems->get();
 
-        return $this->sendSuccessResponse('success', Response::HTTP_OK, $items);
+        $items = $getItems->paginate($perPage);
+
+        $resourceCollection = new ItemListResource($items);
+
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
     }
 
     /**

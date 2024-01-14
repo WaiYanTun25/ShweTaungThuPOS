@@ -15,18 +15,17 @@ class Purchase extends Model
 {
     use HasFactory, LogsActivity;
     public $timestamps = false;
-    protected $fillable = ['voucher_no', 'branch_id', 'supplier_id', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'pay_amount', 'remain_amount', 'payment_status', 'remark', 'purchase_date'];
-    
+    protected $fillable = ['voucher_no', 'payment_id', 'branch_id', 'supplier_id', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'pay_amount', 'remain_amount', 'payment_status', 'remark', 'purchase_date'];
+
     public function getActivitylogOptions(): LogOptions
     {
         $logOptions = LogOptions::defaults()
-            ->logOnly(static::getFillable())
             ->setDescriptionForEvent(function (string $eventName) {
                 $userName = Auth::user()->name ?? 'Unknown User';
                 return "{$userName} {$eventName} the Purchase (Voucher_no {$this->voucher_no})";
             });
-            
-        
+
+
         $logOptions->logName = 'PURCHASE';
 
         return $logOptions;
@@ -37,7 +36,7 @@ class Purchase extends Model
      *
      * @return void
      */
-     protected static function boot()
+    protected static function boot()
     {
         parent::boot();
 
@@ -102,8 +101,9 @@ class Purchase extends Model
         return $this->hasOne(Activity::class, 'subject_id', 'id');
     }
 
-    public function payments()
+    public function payment()
     {
-        return $this->hasMany(Payment::class, 'purchase_id', 'id');
+        // return $this->hasMany(Payment::class, 'purchase_id', 'id');
+        return $this->belongsTo(Payment::class, 'payment_id', 'id');
     }
 }

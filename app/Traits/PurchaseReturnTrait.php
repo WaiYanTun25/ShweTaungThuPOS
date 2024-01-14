@@ -5,37 +5,31 @@ namespace App\Traits;
 use App\Models\{
     Inventory,
     Purchase,
-    PurchaseDetail
+    PurchaseDetail,
+    PurchaseReturn,
+    PurchaseReturnDetail
 };
 
-trait PurchaseTrait
+trait PurchaseReturnTrait
 {
-    public function createOrUpdatePurchase($payment_id, $data, $branchId, $update = false, $prevData = null)
+    public function createOrUpdatePurchaseReturn($data, $branchId, $update = false, $prevData = null)
     {
         if($update) {
             $createPurchase = $prevData;
         }else{
-            $createPurchase = new Purchase();
+            $createPurchase = new PurchaseReturn();
         }
-        
-        $pay_amount = 0;
-        
         $createPurchase->supplier_id = $data['supplier_id'];
         $createPurchase->branch_id = $branchId;
         $createPurchase->amount = $data['amount'];
-        if($payment_id != null)
-        {
-            $createPurchase->payment_id = $payment_id;
-            $pay_amount = $data['pay_amount'];
-        }
         $createPurchase->total_amount = $data['total_amount'];
         $createPurchase->tax_percentage = $data['tax_percentage'];
         $createPurchase->tax_amount = $data['tax_amount'];
         $createPurchase->discount_percentage = $data['discount_percentage'];
         $createPurchase->discount_amount = $data['discount_amount'];
-        $createPurchase->pay_amount = $pay_amount;
+        $createPurchase->pay_amount = $data['pay_amount'];
         $createPurchase->total_quantity = collect($data['purchase_details'])->sum('quantity');
-        $createPurchase->remain_amount = $data['total_amount'] - $pay_amount;
+        $createPurchase->remain_amount = $data['total_amount'] - $data['pay_amount'];
         $createPurchase->payment_status = $data['payment_status'];
         $createPurchase->remark = $data['remark'];
         $createPurchase->save();
@@ -46,8 +40,8 @@ trait PurchaseTrait
     public function createPurchaseDetail($data, $purchaseId)
     {
         $createdDetails = [];
-        foreach ($data['purchase_details'] as $detail) {
-            $createPurchaseDetail = new PurchaseDetail();
+        foreach ($data['purchase_return_details'] as $detail) {
+            $createPurchaseDetail = new PurchaseReturnDetail();
             $createPurchaseDetail->purchase_id = $purchaseId;
             $createPurchaseDetail->item_id = $detail['item_id'];
             $createPurchaseDetail->unit_id = $detail['unit_id'];

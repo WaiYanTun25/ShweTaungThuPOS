@@ -14,11 +14,12 @@ class PurchasesListResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        info($this->data);
         return [
-            'total_purchase_amount' => $this->sum('total_amount'),
-            'total_pay_amount' => $this->sum('pay_amount'),
-            'total_remain_amount' => $this->sum('remain_amount'),
-            'total_purchases_list' => $this->map(function ($purchase) {
+            'total_purchase_amount' => $this->total_purchase_amount,
+            'total_pay_amount' => $this->total_pay_amount,
+            'total_remain_amount' => $this->total_remain_amount,
+            'total_purchases_list' => $this->data->map(function ($purchase) {
                 return [
                     'id' => $purchase->id,
                     'voucher_no' => $purchase->voucher_no,
@@ -27,27 +28,27 @@ class PurchasesListResource extends JsonResource
                     'branch_name' => $purchase->branch->name,
                     'total_quantity' => $purchase->total_quantity,
                     'total_amount' => $purchase->total_amount,
-                    'pay_amount' => $this->getPaymentTotal($purchase),
+                    'pay_amount' => $purchase->pay_amount,
                     'remain_amount' => $purchase->remain_amount,
                     'causer_name' => $purchase->createActivity->causer->name ?? "",
                     'payment_status' => $purchase->payment_status
                 ];
             }),
             'links' => [
-                'first' => $this->url(1),
-                'last' => $this->url($this->lastPage()),
-                'prev' => $this->previousPageUrl(),
-                'next' => $this->nextPageUrl(),
+                'first' => $this->data->url(1),
+                'last' => $this->data->url($this->data->lastPage()),
+                'prev' => $this->data->previousPageUrl(),
+                'next' => $this->data->nextPageUrl(),
             ],
             'meta' => [
-                'current_page' => $this->currentPage(),
-                'from' => $this->firstItem(),
-                'last_page' => $this->lastPage(),
-                'links' => $this->links(),
-                'path' => $this->path(),
-                'per_page' => $this->perPage(),
-                'to' => $this->lastItem(),
-                'total' => $this->total(),
+                'current_page' => $this->data->currentPage(),
+                'from' => $this->data->firstItem(),
+                'last_page' => $this->data->lastPage(),
+                'links' => $this->data->links(),
+                'path' => $this->data->path(),
+                'per_page' => $this->data->perPage(),
+                'to' => $this->data->lastItem(),
+                'total' => $this->data->total(),
             ],
         ];
     }
@@ -59,14 +60,5 @@ class PurchasesListResource extends JsonResource
             $itemsName[] = $detail->item->item_name;
         }
         return implode(', ', $itemsName);
-    }
-
-    private function getPaymentTotal($purchase)
-    {
-        $total = 0;
-        foreach ($purchase->payments as $payment) {
-            $total += $payment->pay_amount;
-        }
-        return $total;
     }
 }

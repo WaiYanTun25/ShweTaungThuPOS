@@ -20,7 +20,6 @@ class PurchaseOrder extends Model
     public function getActivitylogOptions(): LogOptions
     {
         $logOptions = LogOptions::defaults()
-            ->logOnly(static::getFillable())
             ->setDescriptionForEvent(function (string $eventName) {
                 $userName = Auth::user()->name ?? 'Unknown User';
                 return "{$userName} {$eventName} the Purchase Order (Voucher_no {$this->voucher_no})";

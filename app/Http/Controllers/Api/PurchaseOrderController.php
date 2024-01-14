@@ -74,12 +74,12 @@ class PurchaseOrderController extends ApiBaseController
 
         DB::beginTransaction();
         try {
-            LogBatch::startBatch();
+            // LogBatch::startBatch();
             $createdPurchaseOrder = $this->createOrUpdatePurchaseOrder($validatedData, Auth::user()->branch_id);
 
             $createdPurchaseOrder->purchase_order_details()->createMany($validatedData['purchase_order_details']);
             DB::commit();
-            LogBatch::endBatch();
+            // LogBatch::endBatch();
 
             $message = 'Purchase Order (' . $createdPurchaseOrder->voucher_no . ') is created successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
@@ -94,7 +94,7 @@ class PurchaseOrderController extends ApiBaseController
         $updatePurchaseOrder = PurchaseOrder::findOrFail($id);
         DB::beginTransaction();
         try {
-            LogBatch::startBatch();
+            // LogBatch::startBatch();
             $validatedData = $request->validated();
             // update the purchase
             $this->createOrUpdatePurchaseOrder($validatedData, Auth::user()->branch_id, true, $updatePurchaseOrder);
@@ -103,7 +103,7 @@ class PurchaseOrderController extends ApiBaseController
             // create new purchase order details
             $updatePurchaseOrder->purchase_order_details()->createMany($validatedData['purchase_order_details']);
             DB::commit();
-            LogBatch::endBatch();
+            // LogBatch::endBatch();
             $message = 'Purchase Order (' . $updatePurchaseOrder->voucher_no . ') is updated successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
         } catch (Exception $e) {
@@ -128,19 +128,19 @@ class PurchaseOrderController extends ApiBaseController
         DB::beginTransaction();
 
         try {
-            LogBatch::startBatch();
+            // LogBatch::startBatch();
             // Delete the purchase order details
-            // $deletePurchaseOrder->purchase_order_details()->delete();
+            $deletePurchaseOrder->purchase_order_details()->delete();
 
-            foreach ($deletePurchaseOrder->purchase_order_details as $detail) {
-                $detail->delete();
-            }
+            // foreach ($deletePurchaseOrder->purchase_order_details as $detail) {
+            //     $detail->delete();
+            // }
             // Delete the purchase order
             $deletePurchaseOrder->delete();
 
             // Commit the transaction
             DB::commit();
-            LogBatch::endBatch();
+            // LogBatch::endBatch();
             // Build the success message
             $message = 'Purchase Order (' . $deletePurchaseOrder->voucher_no . ') is deleted successfully';
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Requests\PurchaseRequest;
+use App\Http\Resources\PrePurchaseReturnResource;
 use App\Http\Resources\PurchaseDetailResource;
 use App\Http\Resources\PurchasesListResource;
 use App\Models\Item;
@@ -21,6 +22,7 @@ use App\Traits\{
     PaymentTrait,
 };
 use Illuminate\Support\Facades\Auth;
+use stdClass;
 
 class PurchaseController extends ApiBaseController
 {
@@ -28,19 +30,9 @@ class PurchaseController extends ApiBaseController
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $purchase = Purchase::find(22);
-
-        return $purchase->payments;
-        // $activityLog = Activity::inLog('PURCHASE')
-        // ->where('subject_id', 25)
-        // ->first();
-        // $activityLog->properties['attributes']['pay_amount'] = [
-        //     "test" => 1000,
-        // ];
-
-        // return $activityLog->properties['attributes'];
+        return;
     }
 
     /**
@@ -52,23 +44,27 @@ class PurchaseController extends ApiBaseController
      */
     public function store(PurchaseRequest $request)
     {
+        
         // Validate the purchase request data
         $validatedData = $request->validated();
         // Begin a database transaction
         DB::beginTransaction();
         try {
+            // Create a payment if the payment status is not 'UN_PAID'
+            $created_payment = null;
+            if ($validatedData['payment_status'] != 'UN_PAID') {
+                $created_payment = $this->createPayment($validatedData);
+            }
+            
             // Create the purchase
-            $createdPurchase = $this->createOrUpdatePurchase($validatedData, Auth::user()->branch_id);
+            $createdPurchase = $this->createOrUpdatePurchase($created_payment?->id, $validatedData, Auth::user()->branch_id);
+
             // Create the purchase details
             // $createdDetails = $this->createPurchaseDetail($validatedData, $createdPurchase->id);
             $createdPurchase->purchase_details()->createMany($validatedData['purchase_details']);
             // Add the items to the branch
             $this->addItemToBranch($validatedData['purchase_details']);
 
-            // Create a payment if the payment status is not 'UN_PAID'
-            if ($validatedData['payment_status'] != 'UN_PAID') {
-                $this->createPayment($validatedData, $createdPurchase->id);
-            }
             // Commit the database transaction
             DB::commit();
 
@@ -102,16 +98,16 @@ class PurchaseController extends ApiBaseController
         DB::beginTransaction();
         try {
             $validatedData = $request->validated();
-            // update the purchase
-            $this->createOrUpdatePurchase($validatedData, Auth::user()->branch_id, true, $updatePurchase);
             // delete prev payments
-            $updatePurchase->payments()->delete();
+            $updatePurchase->payment()->delete();
             // create new payments
+            $created_payment = null;
             if ($validatedData['payment_status'] != 'UN_PAID') {
-                $this->createPayment($validatedData, $updatePurchase->id);
+                $created_payment = $this->createPayment($validatedData, $updatePurchase->id);
             }
+            // update the purchase
+            $this->createOrUpdatePurchase($created_payment->id, $validatedData, Auth::user()->branch_id, true, $updatePurchase);
             
-
             // deduct prev quantity from branch
             $this->deductItemFromBranch($updatePurchase->purchase_details, Auth::user()->branch_id);
             $updatePurchase->purchase_details()->delete();
@@ -136,12 +132,12 @@ class PurchaseController extends ApiBaseController
      */
     public function destroy(string $id)
     {
-        $checkPurchaseReturn = PurchaseReturn::where('purchase_id', $id)->first();
+        // $checkPurchaseReturn = PurchaseReturn::where('purchase_id', $id)->first();
 
-        if ($checkPurchaseReturn) {
-            $message = 'This Purchase has Purchase Return data!';
-            return $this->sendErrorResponse($message, Response::HTTP_BAD_REQUEST);
-        }
+        // if ($checkPurchaseReturn) {
+        //     $message = 'This Purchase has Purchase Return data!';
+        //     return $this->sendErrorResponse($message, Response::HTTP_BAD_REQUEST);
+        // }
         
         $deletePurchase = Purchase::findOrFail($id);
         DB::beginTransaction();
@@ -193,12 +189,21 @@ class PurchaseController extends ApiBaseController
                 $getPurchases->where('supplier_id', $supplierId);
             }
 
+            $total_purchase_amount = $getPurchases->sum('total_amount');
+            $total_pay_amount = $getPurchases->sum('pay_amount');
+            $total_remain_amount = $getPurchases->sum('remain_amount');
+
             // Handle order and column
             $order = $request->query('order', 'desc'); // default to asc if not provided
             $column = $request->query('column', 'purchase_date'); // default to id if not provided
             $perPage = $request->query('perPage', 10);
 
-            $result = $getPurchases->orderBy($column, $order)->paginate($perPage);
+            $result = new stdClass;
+            $result->data = $getPurchases->orderBy($column, $order)->paginate($perPage);
+            $result->total_purchase_amount = $total_purchase_amount;
+            $result->total_pay_amount = $total_pay_amount;
+            $result->total_remain_amount = $total_remain_amount;
+
             $resourceCollection = new PurchasesListResource($result);
 
             return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
@@ -206,5 +211,14 @@ class PurchaseController extends ApiBaseController
             info($e->getMessage());
             return $this->sendErrorResponse('Error getting item', Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
         }
+    }
+
+    public function getPreReturnFormData(Request $request, $id)
+    {
+        $purchaseData =  Purchase::with('purchase_details')->findOrFail($id);
+        
+        $resourceCollection = new PrePurchaseReturnResource($purchaseData);
+
+        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
     }
 }

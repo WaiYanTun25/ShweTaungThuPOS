@@ -10,14 +10,15 @@ use App\Models\{
 
 trait PaymentTrait
 {
-    public function createPayment($data, $purchaseId)
+    public function createPayment($data)
     {
         $createPayment = new Payment();
-        $createPayment->purchase_id = $purchaseId;
+        $createPayment->type = 'Supplier'; // or 'Customer' based on your logic
+        $createPayment->subject_id = $data['supplier_id'];
         $createPayment->payment_method_id = $data['payment_method'];
         $createPayment->pay_amount = $data['pay_amount'];
         $createPayment->save();
-
+    
         return $createPayment;
     }
 }

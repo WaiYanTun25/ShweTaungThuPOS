@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\{
     ItemController,
     PurchaseController,
     PurchaseOrderController,
+    PurchaseReturnController,
     ReceiveController,
     SupplierController,
     UnitController,
@@ -51,7 +52,7 @@ Route::post('/central_links', function () {
                 "receive_detail" => config('app.url') . "/api/receives/{id}"
             ],
             "product_list" => [
-                "ထုတ်ကုန်များ" => "UNDER CONSTRUCTION",
+                "ထုတ်ကုန်များ" => config('app.url') . "/api/items?searchBy=&order=desc&column=quantity",
             ],
             "damage/lost product list" => [
                 "ပျက်စီးထုတ်ကုန်များ" => config('app.url') . "/api/damages?searchBy=&order=desc&column=quantity&perPage=10&page=1"
@@ -63,9 +64,9 @@ Route::post('/central_links', function () {
                 "ပစည်းလွှဲပြောင်း နှင့်လက်ခံစာရင်း" => config('app.url') . "/api/transfers?order=desc&column=total_quantity&searchBy=&page=1&perPage=10"
             ],
             "product detail" => config('app.url') . "/api/items/{id}",
-            "product purchase list" => "UNDER CONSTRUCTION",
+            "product purchase list" => config('app.url') . "/api/products/{id}/stock_history_list",
             "product sale list" => "UNDER CONSTRUCTION",
-            "stock history" => "UNDER CONSTRUCTION",
+            "stock history" =>  config('app.url') . "/api/products/{id}/stock_history_list",
             "Unit Conversion" => [
                 "get Item By Code" => config('app.url') . '/api/items/code/{item_code}',
                 "ယူနစ်ကူးပြောင်းမှူမှတ်တမ်း (GET)" => config('app.url') . '/api/unit_converts',
@@ -103,9 +104,12 @@ Route::post('/central_links', function () {
             "delete_purchase_orders (DELETE)" => config('app.url') . "/api/purchase_orders/{id}",
             "purchase return list" => "UNDER CONSTRUCTION",
             "purchase return detail" => "UNDER CONSTRUCTION",
-            "create purchase return form" => "UNDER CONSTRUCTION",
-            "update purchase return form" => "UNDER CONSTRUCTION",
-            "delete purchase return form" => "UNDER CONSTRUCTION",
+            "create purchase return" => [
+                "pre_form (GET)" => config('app.url') . "/api/purchases/{id}/pre_return_form_data",
+                "Create form (POST)" => config('app.url'). '/api/purchase_returns',
+            ],
+            "update purchase return (PUT)" => "UNDER CONSTRUCTION",
+            "delete purchase return (DELETE)" => "UNDER CONSTRUCTION",
             ]
         ]
         // "product_detail (GET)" => config('app.url') . "/api/items",
@@ -153,6 +157,8 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::get('issues-receives-damages', [InventoryController::class, 'getIssuesReceivesAndDamages']);
         // inventories summary
         Route::get('summary', [InventoryController::class, 'getInventorySummary']);
+        Route::get('products/{id}/stock_history_list', [InventoryController::class, 'getStockHistory']);
+        Route::get('products/{id}/purchase_list', [InventoryController::class, 'productPurchaseListById']);
     });
     Route::apiResource('issues', IssueController::class);
     Route::apiResource('receives', ReceiveController::class);
@@ -167,6 +173,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     // core modules
     Route::prefix('purchases')->group(function () { 
         Route::get('total_purchase_list', [PurchaseController::class, 'getTotalPurchaseList']);
+        Route::get('{id}/pre_return_form_data', [PurchaseController::class, 'getPreReturnFormData']);
     });
     Route::apiResource('purchases', PurchaseController::class);
 
@@ -176,4 +183,6 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::put('{id}', [PurchaseOrderController::class, 'update']);
         Route::delete('{id}', [PurchaseOrderController::class, 'delete']);
     });
+
+    Route::apiResource('purchase_returns', PurchaseReturnController::class);
 });

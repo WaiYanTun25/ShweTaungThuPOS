@@ -35,7 +35,6 @@ if (!function_exists('convertToMyanmarDate')) {
         return $formattedDate;
         } catch (Exception $e) {
             // Log any conversion errors
-            info("Myanmar Date Conversion Error: " . $e->getMessage());
             return null;
         }
     }

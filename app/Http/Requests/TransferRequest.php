@@ -102,11 +102,6 @@ class TransferRequest extends FormRequest
             
         }
 
-        // if($this->isMethod('put') || $this->isMethod('patch'))
-        // {
-        //     $rules['item_details.*.id'] = 'required|integer';
-        // }
-
         return $rules;
     }
 
