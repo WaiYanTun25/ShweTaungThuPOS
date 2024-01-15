@@ -19,6 +19,7 @@ class ItemListResource extends ResourceCollection
         return [
             'product_list' => $this->collection->map(function ($inventory) {
                 return [
+                    'id' => $inventory->id,
                     'item_id' => $inventory->item->id,
                     'supplier_id' => $inventory->item->supplier_id,
                     'category_id' => $inventory->item->category_id,
