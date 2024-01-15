@@ -10,6 +10,7 @@ class ItemUnitDetail extends Model
     use HasFactory;
 
     public $timestamps = false;
+    protected $fillable = ['item_id', 'unit_id', 'rate', 'vip_price', 'retail_price', 'wholesale_price', 'reorder_level', 'reorder_period'];
 
     public function unit()
     {

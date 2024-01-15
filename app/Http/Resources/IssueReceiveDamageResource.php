@@ -9,11 +9,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\{
     Carbon,
-    Str
 };
 use Illuminate\Support\Facades\Auth;
 
-class TransferResourceCollection extends ResourceCollection
+class IssueReceiveDamageResource extends ResourceCollection
 {
     /**
      * Transform the resource collection into an array.
@@ -23,7 +22,7 @@ class TransferResourceCollection extends ResourceCollection
     public function toArray($request)
     {
         return [
-            'issue_receive_list' => $this->collection->map(function ($transfer) {
+            'issue_receive_damage_list' => $this->collection->map(function ($transfer) {
                 $branchName = $this->getBranchName($transfer->branch_id);
                 return [
                     'id' => $transfer->id,

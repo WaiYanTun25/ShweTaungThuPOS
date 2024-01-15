@@ -51,13 +51,13 @@ class PurchaseController extends ApiBaseController
         DB::beginTransaction();
         try {
             // Create a payment if the payment status is not 'UN_PAID'
-            $created_payment = null;
-            if ($validatedData['payment_status'] != 'UN_PAID') {
-                $created_payment = $this->createPayment($validatedData);
-            }
+            // $created_payment = null;
+            // if ($validatedData['payment_status'] != 'UN_PAID') {
+            //     $created_payment = $this->createPayment($validatedData);
+            // }
             
             // Create the purchase
-            $createdPurchase = $this->createOrUpdatePurchase($created_payment?->id, $validatedData, Auth::user()->branch_id);
+            $createdPurchase = $this->createOrUpdatePurchase($validatedData, Auth::user()->branch_id);
 
             // Create the purchase details
             // $createdDetails = $this->createPurchaseDetail($validatedData, $createdPurchase->id);
@@ -99,14 +99,14 @@ class PurchaseController extends ApiBaseController
         try {
             $validatedData = $request->validated();
             // delete prev payments
-            $updatePurchase->payment()->delete();
+            // $updatePurchase->payment()->delete();
             // create new payments
-            $created_payment = null;
-            if ($validatedData['payment_status'] != 'UN_PAID') {
-                $created_payment = $this->createPayment($validatedData, $updatePurchase->id);
-            }
+            // $created_payment = null;
+            // if ($validatedData['payment_status'] != 'UN_PAID') {
+            //     $created_payment = $this->createPayment($validatedData, $updatePurchase->id);
+            // }
             // update the purchase
-            $this->createOrUpdatePurchase($created_payment->id, $validatedData, Auth::user()->branch_id, true, $updatePurchase);
+            $this->createOrUpdatePurchase($validatedData, Auth::user()->branch_id, true, $updatePurchase);
             
             // deduct prev quantity from branch
             $this->deductItemFromBranch($updatePurchase->purchase_details, Auth::user()->branch_id);
@@ -143,7 +143,6 @@ class PurchaseController extends ApiBaseController
         DB::beginTransaction();
         try {
             $this->addItemtoBranch($deletePurchase->purchase_details);
-            $deletePurchase->payments()->delete();
             $deletePurchase->purchase_details()->delete();
             $deletePurchase->delete();
 

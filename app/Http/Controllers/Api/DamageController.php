@@ -79,6 +79,14 @@ class DamageController extends ApiBaseController
             $damageItems->orderBy('transfer_details.quantity', $order);
         }
 
+        if($request->query('report') == "True")
+        {
+            $results = $damageItems->get();
+            $resourceCollection = new DamageItemListResource($results, true);
+
+            return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+        }
+
         $damageItemsPaginated = $damageItems->paginate($perPage);
 
 
@@ -144,6 +152,7 @@ class DamageController extends ApiBaseController
         $updateDamage = Damage::with('transfer_details')->findOrFail($id);
         try {
             DB::beginTransaction();
+            $updateDamage->remark = $request->remark;
             $updateDamage->total_quantity = collect($request->item_detail)->sum('quantity');
             $updateDamage->update();
             // array_sum(array_column($request->item_detail, 'quantity'))

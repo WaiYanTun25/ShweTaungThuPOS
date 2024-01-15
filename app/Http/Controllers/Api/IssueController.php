@@ -4,13 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TransferRequest;
+use App\Http\Resources\IssueReceiveDamageResource;
 use App\Http\Resources\IssueReceiveDetailResource;
+use App\Http\Resources\IssueReceiveResource;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use App\Traits\TransactionTrait;
-use App\Http\Resources\TransferResourceCollection;
+// use App\Http\Resources\IssueReceiveDamageResource;
 use App\Models\Damage;
 use App\Models\Issue;
 use App\Models\Receive;
@@ -162,29 +164,53 @@ class IssueController extends ApiBaseController
     }
 
     // custom functions
-    public function getIssuesReceivesAndDamages(Request $request)
+    public function getIssuesReceives(Request $request)
     {
-        // $getIssue = Issue::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
-        // $getReceive = Receive::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
-        // $getDamage = Damage::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
+        // filter query request
+        $reason = $request->query('reason');
+        $reasonArray = explode(",", $reason);
+
+        $startDate = $request->query('startDate');
+        $endDate = $request->query('endDate');
+
+        // receiveFrom To
+        $receiveFrom = $request->query('receiveFrom');
+        $receiveTo = $request->query('receiveTo');
+
+        // issueFrom To
+        $issueFrom = $request->query('issueFrom');
+        $issueTo = $request->query('issueTo');
+
+        $withDateFilter = function ($query) use ($startDate, $endDate) {
+            if ($startDate && $endDate) {
+                $query->whereBetween('transaction_date', [$startDate, $endDate]);
+            }
+        };
 
         $getIssue = Issue::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
-        ->select(['id', 'voucher_no', 'total_quantity','transaction_date', DB::raw("to_branch_id as branch_id"), DB::raw("'ISSUE' as type")]);
+        ->select(['id', 'voucher_no', 'total_quantity', 'from_branch_id', 'to_branch_id', 'transaction_date', DB::raw("'ISSUE' as type")])
+        ->when($issueFrom, function ($query) use ($issueFrom) {
+            return $query->where('from_branch_id', $issueFrom);
+        })
+        ->when($issueTo, function ($query) use ($issueTo) {
+            return $query->where('to_branch_id', $issueTo);
+        })
+        ->tap($withDateFilter);
 
         $getReceive = Receive::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
-            ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("from_branch_id as branch_id"), DB::raw("'RECEIVE' as type")]);
-            // ->addSelect(DB::raw("from_branch_id as branch_id"));
-
-        // $getDamage = Damage::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
-        //     ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("branch_id as branch_id"), DB::raw("'Damage' as type")]);
-            // ->addSelect(DB::raw("branch_id as branch_id"));
+            ->select(['id', 'voucher_no', 'total_quantity', 'from_branch_id', 'to_branch_id', 'transaction_date', DB::raw("'RECEIVE' as type")])
+            ->when($receiveFrom, function ($query) use ($receiveFrom) {
+                return $query->where('from_branch_id', $receiveFrom);
+            })
+            ->when($receiveTo, function ($query) use ($receiveTo) {
+                return $query->where('to_branch_id', $receiveTo);
+            })
+            ->tap($withDateFilter);
 
         $search = $request->query('searchBy');
 
         if ($search) {
             $getIssue->where('voucher_no', 'like', "%$search%")
-                // ->orWhere('transaction_date', 'like', "%$search%")
-                // ->orWhere('total_quantity', 'like', "%$search%")
                 ->orWhereHas('transfer_details.item', function ($query) use ($search) {
                     $query->where('item_name', 'like', "%$search%");
                 });
@@ -195,44 +221,39 @@ class IssueController extends ApiBaseController
                 ->orWhereHas('transfer_details.item', function ($query) use ($search) {
                     $query->where('item_name', 'like', "%$search%");
                 });
-            
-            // $getDamage->where('voucher_no', 'like', "%$search%")
-            //     ->orWhere('transaction_date', 'like', "%$search%")
-            //     ->orWhere('total_quantity', 'like', "%$search%");
+        }
+
+        if (in_array('ISSUE', $reasonArray) && in_array('RECEIVE', $reasonArray)) {
+            $results = $getIssue->union($getReceive);
+        } elseif (in_array('ISSUE', $reasonArray)) {
+            $results = $getIssue;
+        } elseif (in_array('RECEIVE', $reasonArray)) {
+            $results = $getReceive;
+        } else {
+            // Default case when none of the conditions match
+            $results = $getIssue->union($getReceive);
         }
 
         // Handle order and column
         $order = $request->query('order', 'asc'); // default to asc if not provided
         $column = $request->query('column', 'transaction_date'); // default to id if not provided
-        // Combine the results using union
         $perPage = $request->query('perPage', 10); 
-        $results = $getIssue->union($getReceive)->orderBy($column, $order)->paginate($perPage);
-        // $results = $getIssue->union($getReceive)->union($getDamage)->orderBy($column, $order)->paginate($perPage);
-        // return $results;
-        $resourceCollection = new TransferResourceCollection($results);
-        // return $results;
 
-        // return $resourceCollection;
+        $results = $results->orderBy($column, $order);
+
+        if($request->query('report') == "True")
+        {
+            $results = $results->get();
+            $resourceCollection = new IssueReceiveResource($results, true);
+
+            return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+        }
+
+        $results = $results->paginate($perPage);
+
+        // return $results;
+        $resourceCollection = new IssueReceiveResource($results);
+
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
-
-         // $getIssue = Issue::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
-        // $getReceive = Receive::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
-        // $search = $request->query('searchBy');
-
-        // if ($search) {
-        //     $getIssue->where('voucher_no', 'like', "%$search%")
-        //         ->orWhere('transaction_date', 'like', "%$search%")
-        //         ->orWhere('total_quantity', 'like', "%$search%");
-        // }
-
-        // // Handle order and column
-        // $order = $request->query('order', 'asc'); // default to asc if not provided
-        // $column = $request->query('column', 'id'); // default to id if not provided
-
-        // $getTransfer->orderBy($column, $order);
-
-        // Add pagination
-        // $perPage = $request->query('perPage', 10); // default to 10 if not provided
-        // $transfers = $getTransfer->paginate($perPage);
     }
 }

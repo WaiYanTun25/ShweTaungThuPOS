@@ -77,6 +77,14 @@ class ItemController extends ApiBaseController
             $getItems->orderBy('quantity', $order);
         }
 
+        if($request->query('report') == "True")
+        {
+            $results = $getItems->get();
+            $resourceCollection = new ItemListResource($results, true);
+
+            return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+        }
+
         $items = $getItems->paginate($perPage);
         $resourceCollection = new ItemListResource($items);
 
@@ -147,40 +155,47 @@ class ItemController extends ApiBaseController
         $item = Item::findOrFail($id);
         try {
             DB::beginTransaction();
+
+            $item->supplier_id = $request->supplier_id;
+            $item->category_id = $request->category_id;
+            $item->item_name = $request->item_name;
+            $item->save();
+            $item->itemUnitDetails()->delete();
             // Retrieve existing unit details
-            $existingUnitDetails = $item->ItemUnitDetails;
+            // $existingUnitDetails = $item->ItemUnitDetails;
             // Updated unit details from the request
-            $updatedUnitDetails = $request->input('unit_detail', []);
+            // $updatedUnitDetails = $request->input('unit_detail', []);
             
             // Get the IDs of existing and updated unit details
-            $existingIds = $existingUnitDetails->pluck('id')->toArray();
-            $updatedIds = collect($updatedUnitDetails)->pluck('id')->toArray();
+            // $existingIds = $existingUnitDetails->pluck('id')->toArray();
+            // $updatedIds = collect($updatedUnitDetails)->pluck('id')->toArray();
+            $item->itemUnitDetails()->createMany($request->unit_detail);
           
             // Identify new, updated, and deleted unit details
             // $newIds = array_diff($updatedIds, $existingIds);
-            $updatedIds = array_intersect($updatedIds, $existingIds);
-            $deletedIds = array_diff($existingIds, $updatedIds);
+            // $updatedIds = array_intersect($updatedIds, $existingIds);
+            // $deletedIds = array_diff($existingIds, $updatedIds);
 
-            if($updatedIds)
-            {
-                foreach($updatedUnitDetails as $detail)
-                {
-                    $updateItemUnitDetail = ItemUnitDetail::findOrFail($detail['id']);
-                    $updateItemUnitDetail->item_id = $item->id;
-                    $updateItemUnitDetail->unit_id = $detail['unit_id'];  
-                    $updateItemUnitDetail->rate = $detail['rate'];        
-                    $updateItemUnitDetail->vip_price = $detail['vip_price'];
-                    $updateItemUnitDetail->retail_price = $detail['retail_price'];  
-                    $updateItemUnitDetail->wholesale_price = $detail['wholesale_price'];  
-                    $updateItemUnitDetail->reorder_level = $detail['reorder_level'];  
-                    $updateItemUnitDetail->reorder_period = $detail['reorder_period'];
-                    $updateItemUnitDetail->save();
-                }
-            }
+            // if($updatedIds)
+            // {
+            //     foreach($updatedUnitDetails as $detail)
+            //     {
+            //         $updateItemUnitDetail = ItemUnitDetail::findOrFail($detail['id']);
+            //         $updateItemUnitDetail->item_id = $item->id;
+            //         $updateItemUnitDetail->unit_id = $detail['unit_id'];  
+            //         $updateItemUnitDetail->rate = $detail['rate'];        
+            //         $updateItemUnitDetail->vip_price = $detail['vip_price'];
+            //         $updateItemUnitDetail->retail_price = $detail['retail_price'];  
+            //         $updateItemUnitDetail->wholesale_price = $detail['wholesale_price'];  
+            //         $updateItemUnitDetail->reorder_level = $detail['reorder_level'];  
+            //         $updateItemUnitDetail->reorder_period = $detail['reorder_period'];
+            //         $updateItemUnitDetail->save();
+            //     }
+            // }
 
-            if ($deletedIds) {
-                $deleteItemUnitDetails = ItemUnitDetail::whereIn('id', $deletedIds)->delete(); 
-            }
+            // if ($deletedIds) {
+            //     $deleteItemUnitDetails = ItemUnitDetail::whereIn('id', $deletedIds)->delete(); 
+            // }
             $message = 'Item (' . $item->item_name .') is updated successfully';
             DB::commit();
     

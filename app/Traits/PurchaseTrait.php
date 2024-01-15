@@ -10,7 +10,7 @@ use App\Models\{
 
 trait PurchaseTrait
 {
-    public function createOrUpdatePurchase($payment_id, $data, $branchId, $update = false, $prevData = null)
+    public function createOrUpdatePurchase($data, $branchId, $update = false, $prevData = null)
     {
         if($update) {
             $createPurchase = $prevData;
@@ -23,10 +23,10 @@ trait PurchaseTrait
         $createPurchase->supplier_id = $data['supplier_id'];
         $createPurchase->branch_id = $branchId;
         $createPurchase->amount = $data['amount'];
-        if($payment_id != null)
+        if ($data['payment_status'] != 'UN_PAID') 
         {
-            $createPurchase->payment_id = $payment_id;
             $pay_amount = $data['pay_amount'];
+            $createPurchase->payment_method_id = $data['payment_method'];
         }
         $createPurchase->total_amount = $data['total_amount'];
         $createPurchase->tax_percentage = $data['tax_percentage'];

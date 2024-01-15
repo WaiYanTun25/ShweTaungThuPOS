@@ -14,7 +14,6 @@ class PurchasesListResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        info($this->data);
         return [
             'total_purchase_amount' => $this->total_purchase_amount,
             'total_pay_amount' => $this->total_pay_amount,

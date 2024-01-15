@@ -20,6 +20,7 @@ class DamageDetailResource extends JsonResource
             'remark' => $this->remark,
             'voucher_no' => $this->voucher_no,
             'transaction_date' => Carbon::parse($this->transaction_date)->format('d/m/y'),
+            'total_quantity' => $this->transfer_details->sum('quantity'),
             'item_details' => TransferDetailResource::collection($this->transfer_details)
         ];
     }

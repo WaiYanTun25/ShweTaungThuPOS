@@ -101,9 +101,15 @@ class Purchase extends Model
         return $this->hasOne(Activity::class, 'subject_id', 'id');
     }
 
-    public function payment()
+    public function paymentMethod()
     {
         // return $this->hasMany(Payment::class, 'purchase_id', 'id');
-        return $this->belongsTo(Payment::class, 'payment_id', 'id');
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id', 'id');
     }
+
+    // public function payment()
+    // {
+    //     // return $this->hasMany(Payment::class, 'purchase_id', 'id');
+    //     return $this->belongsTo(Payment::class, 'payment_id', 'id');
+    // }
 }

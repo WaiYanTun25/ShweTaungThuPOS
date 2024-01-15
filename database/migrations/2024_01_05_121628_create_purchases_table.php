@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('voucher_no');
             $table->integer('branch_id');
             $table->integer('supplier_id');
-            $table->integer('payment_id')->nullable();
             $table->integer('total_quantity');
             $table->integer('amount');
             $table->integer('total_amount');
@@ -25,6 +24,7 @@ return new class extends Migration
             $table->decimal('discount_percentage', 5, 2)->nullable();
             $table->integer('discount_amount');
             $table->integer('pay_amount')->default(0);
+            $table->integer('payment_method_id')->nullable();
             $table->integer('remain_amount');
             $table->enum('payment_status', ['PARTIALLY_PAID', 'FULLY_PAID', 'UN_PAID']);
             $table->string('remark');

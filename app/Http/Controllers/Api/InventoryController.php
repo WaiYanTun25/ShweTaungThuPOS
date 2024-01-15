@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\IssueReceiveDamageResource;
 use App\Http\Resources\LowStockResource;
+use App\Http\Resources\PurchaseListByProductIdResource;
 use App\Http\Resources\StockHistroyResource;
 use App\Models\Inventory;
 use App\Models\Item;
@@ -19,7 +21,6 @@ use stdClass;
 use App\Models\Issue;
 use App\Models\Damage;
 use App\Models\Receive;
-use App\Http\Resources\TransferResourceCollection;
 use App\Models\Purchase;
 use App\Models\PurchaseDetail;
 use App\Models\Scopes\BranchScope;
@@ -100,6 +101,14 @@ class InventoryController extends ApiBaseController
 
                 ->orderBy($column, $order);
 
+                if($request->query('report') == "True")
+                {
+                    $results = $itemDetails->get();
+                    $resourceCollection = new LowStockResource($results, true);
+        
+                    return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+                }
+
                 $itemDetails =  $itemDetails->paginate($perPage);
 
             $result = new LowStockResource($itemDetails);
@@ -152,8 +161,16 @@ class InventoryController extends ApiBaseController
                     'item_unit_details.*',
                     'inventories.quantity as quantity',
                     'inventories.branch_id as branch_id'
-                )
-                ->paginate($perPage);
+                );
+
+                if($request->query('report') == "True")
+                {
+                    $results = $itemDetails->get();
+                    $resourceCollection = new LowStockResource($results, true);
+        
+                    return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+                }
+                $itemDetails->paginate($perPage);
             // return $itemDetails;
             $result = new LowStockResource($itemDetails);
         }
@@ -178,15 +195,15 @@ class InventoryController extends ApiBaseController
 
         $getIssue = Issue::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
             ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("to_branch_id as branch_id"), DB::raw("'ISSUE' as type")])
-            ->tap($withDateFilter);;
+            ->tap($withDateFilter);
 
         $getReceive = Receive::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
             ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("from_branch_id as branch_id"), DB::raw("'RECEIVE' as type")])
-            ->tap($withDateFilter);;
+            ->tap($withDateFilter);
 
         $getDamage = Damage::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])
             ->select(['id', 'voucher_no', 'total_quantity', 'transaction_date', DB::raw("branch_id as branch_id"), DB::raw("'DAMAGE' as type")])
-            ->tap($withDateFilter);;
+            ->tap($withDateFilter);
 
         $search = $request->query('searchBy');
 
@@ -240,7 +257,7 @@ class InventoryController extends ApiBaseController
         $perPage = $request->query('perPage', 10);
         $results = $results->paginate($perPage);
 
-        $resourceCollection = new TransferResourceCollection($results);
+        $resourceCollection = new IssueReceiveDamageResource($results);
 
         // $results = $getIssue->union($getReceive)->union($getDamage)->orderBy($column, $order)->paginate($perPage);
         // $resourceCollection = new TransferResourceCollection($results);
@@ -304,6 +321,10 @@ class InventoryController extends ApiBaseController
         $order = $request->query('order', 'asc');
         $column = $request->query('column', 'id');
 
+        // filter
+        $supplier_id = $request->query('supplier_id');
+        $startDate = $request->query('startDate');
+        $endDate = $request->query('endDate');
 
         $purchase_products = Purchase::with(['purchase_details' => function ($query) use ($id) {
             $query->where('item_id', $id);
@@ -316,6 +337,13 @@ class InventoryController extends ApiBaseController
             $purchase_products->where('branch_id', Auth::user()->branch_id);
         }
 
+        if($startDate && $endDate) {
+            $purchase_products->whereBetween('purchase_date', [$startDate, $endDate]);
+        }
+        if($supplier_id) {
+            $purchase_products->where('supplier_id', $supplier_id);
+        }
+
         if($search) {
             $purchase_products->where(function ($query) use ($search) {
                 $query->whereHas('supplier', function ($subquery) use ($search) {
@@ -325,7 +353,17 @@ class InventoryController extends ApiBaseController
             });
         }
 
-        return $purchase_products->orderBy($column, $order)->paginate($perPage);
+        if($request->query('report') == "True") {
+            $results = $purchase_products->orderBy($column, $order)->get();
+            $resourceCollection = new PurchaseListByProductIdResource($results, True);
+            return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+        }
+
+        $results = $purchase_products->orderBy($column, $order)->paginate($perPage);
+
+        $resourceCollection = new PurchaseListByProductIdResource($results);
+
+        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
     }
 
     public function getStockHistory(Request $request, $id)

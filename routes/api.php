@@ -45,7 +45,14 @@ Route::post('/central_links', function () {
         "INVENTORY_MODULE" => [
             "inventory" => [
                 "အလုံးစုံစာရင်း" => config('app.url') . "/api/inventories/summary",
-                "ဂိုထောင်မှတ်တမ်း" => config('app.url') . "/api/inventories/issues-receives-damages?order=desc&column=total_quantity&searchBy=&page=1&perPage=10",
+                "ဂိုထောင်မှတ်တမ်း" => [
+                    'table_url' => config('app.url') . "/api/inventories/issues-receives-damages?order=desc&column=total_quantity&searchBy=&page=1&perPage=10",
+                    'edit_url' => [
+                        "issue" => config('app.url') . "/api/issues/{id}",
+                        "receive" => config('app.url') . "/api/receives/{id}",
+                        "damage" => config('app.url') . "/api/damages/{id}",
+                    ],
+                ],
             ],
             "receive/issue detail" => [
                 "issue_detail" => config('app.url') . "/api/issues/{id}",
@@ -64,7 +71,7 @@ Route::post('/central_links', function () {
                 "ပစည်းလွှဲပြောင်း နှင့်လက်ခံစာရင်း" => config('app.url') . "/api/transfers?order=desc&column=total_quantity&searchBy=&page=1&perPage=10"
             ],
             "product detail" => config('app.url') . "/api/items/{id}",
-            "product purchase list" => config('app.url') . "/api/products/{id}/stock_history_list",
+            "product purchase list" => config('app.url') . "/api/products/{id}/purchase_list",
             "product sale list" => "UNDER CONSTRUCTION",
             "stock history" =>  config('app.url') . "/api/products/{id}/stock_history_list",
             "Unit Conversion" => [
@@ -165,7 +172,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     Route::apiResource('damages', DamageController::class);
 
     // get issues and receives of branch
-    Route::get('transfers', [IssueController::class, 'getIssuesReceivesAndDamages']);
+    Route::get('transfers', [IssueController::class, 'getIssuesReceives']);
 
     // unit conversion 
     Route::apiResource('unit_converts', UnitConvertController::class);
