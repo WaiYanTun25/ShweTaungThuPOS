@@ -21,7 +21,7 @@ class Purchase extends Model
     {
         $logOptions = LogOptions::defaults()
             ->setDescriptionForEvent(function (string $eventName) {
-                $userName = Auth::user()->name ?? 'Unknown User';
+                $userName = "{userName}";
                 return "{$userName} {$eventName} the Purchase (Voucher_no {$this->voucher_no})";
             });
 

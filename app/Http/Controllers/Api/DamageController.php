@@ -116,11 +116,12 @@ class DamageController extends ApiBaseController
             $this->deductItemFromBranch($request->item_details, Auth::user()->branch_id);
 
             activity()
+            ->useLog('DAMAGE')
             ->causedBy(Auth::user())
             ->event('created')
             ->performedOn($createdDamage)
             // ->withProperties(['Reveieve' => $createdDamage , 'ReceiveDetail' => $createdTransactionDetail])
-            ->log('{$userName} created the Receive (Voucher_no)'.$createdDamage->voucher_no.')');
+            ->log('{userName} created the Receive (Voucher_no)'.$createdDamage->voucher_no.')');
 
 
             DB::commit();
@@ -160,11 +161,12 @@ class DamageController extends ApiBaseController
             $createdTransferDetail = $this->updatedDamageDetail($request->item_details, $updateDamage->voucher_no, $updateDamage->branch_id);
 
             activity()
+            ->useLog('DAMAGE')
             ->causedBy(Auth::user())
             ->setEvent('updated')
             ->performedOn($updateDamage)
             // ->withProperties(['Reveieve' => $updateDamage , 'ReceiveDetail' => $createdTransferDetail])
-            ->log('{$userName} updated the Damage (Voucher_no'.$updateDamage->voucher_no.')');
+            ->log('{userName} updated the Damage (Voucher_no'.$updateDamage->voucher_no.')');
 
 
             DB::commit();
@@ -187,11 +189,12 @@ class DamageController extends ApiBaseController
             DB::beginTransaction();
 
             activity()
+            ->useLog('DAMAGE')
             ->causedBy(Auth::user())
             ->setEvent('deleted')
             ->performedOn($damage)
             // ->withProperties(['Reveieve' => $damage , 'ReceiveDetail' => $damage->transfer_details])
-            ->log('{$userName} deleted the Damage (Voucher_no -'.$damage->voucher_no.')');
+            ->log('{userName} deleted the Damage (Voucher_no -'.$damage->voucher_no.')');
 
             $deleteTransactionDetail = $this->deleteDamageDetailAndIncInventory($damage->voucher_no, $damage->branch_id);
             $damage->delete();

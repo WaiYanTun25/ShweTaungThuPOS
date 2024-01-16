@@ -74,11 +74,12 @@ class IssueController extends ApiBaseController
             DB::commit();
 
             activity()
+            ->useLog('ISSUE')
             ->causedBy(Auth::user())
             ->event('created')
             ->performedOn($createdIssue)
             // ->withProperties(['Reveieve' => $createdIssue , 'ReceiveDetail' => $createdIssueDetail])
-            ->log('{$userName} created the Issue (Voucher_no)'.$createdIssue->voucher_no.')');
+            ->log('{userName} created the Issue (Voucher_no)'.$createdIssue->voucher_no.')');
 
             $message = 'Issue (' . $createdIssue->voucher_no . ') is created successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
@@ -117,11 +118,12 @@ class IssueController extends ApiBaseController
             $createdTransactionDetail = $this->updatedTransactionDetail($request->item_details, $updateTransfer->voucher_no, $updateTransfer->from_branch_id);
 
             activity()
+            ->useLog('ISSUE')
             ->causedBy(Auth::user())
             ->setEvent('updated')
             ->performedOn($updateTransfer)
             // ->withProperties(['Reveieve' => $updateTransfer , 'ReceiveDetail' => $createdTransactionDetail])
-            ->log('{$userName} updated the Issue (Voucher_no'.$updateTransfer->voucher_no.')');
+            ->log('{userName} updated the Issue (Voucher_no'.$updateTransfer->voucher_no.')');
 
             
             DB::commit();
@@ -144,11 +146,12 @@ class IssueController extends ApiBaseController
             DB::beginTransaction();
 
             activity()
+            ->useLog('ISSUE')
             ->causedBy(Auth::user())
             ->setEvent('deleted')
             ->performedOn($issue)
             // ->withProperties(['Reveieve' => $issue , 'ReceiveDetail' => $issue->transfer_details])
-            ->log('{$userName} deleted the Issue (Voucher_no -'.$issue->voucher_no.')');
+            ->log('{userName} deleted the Issue (Voucher_no -'.$issue->voucher_no.')');
 
             $deleteTransactionDetail = $this->deleteTransactionDetail($issue->voucher_no, $issue->from_branch_id);
             $issue->delete();

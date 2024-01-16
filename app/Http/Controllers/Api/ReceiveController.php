@@ -26,29 +26,29 @@ class ReceiveController extends ApiBaseController
      */
     public function index(Request $request)
     {
-        $getReceive = Receive::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
-        $search = $request->query('searchBy');
+        // $getReceive = Receive::with(['transfer_details', 'transfer_details.unit', 'transfer_details.item'])->select('*');
+        // $search = $request->query('searchBy');
 
-        if ($search) {
-            $getReceive->where('voucher_no', 'like', "%$search%")
-                ->orWhere('transaction_date', 'like', "%$search%")
-                ->orWhere('total_quantity', 'like', "%$search%");
-        }
+        // if ($search) {
+        //     $getReceive->where('voucher_no', 'like', "%$search%")
+        //         ->orWhere('transaction_date', 'like', "%$search%")
+        //         ->orWhere('total_quantity', 'like', "%$search%");
+        // }
 
-        // Handle order and column
-        $order = $request->query('order', 'asc'); // default to asc if not provided
-        $column = $request->query('column', 'id'); // default to id if not provided
+        // // Handle order and column
+        // $order = $request->query('order', 'asc'); // default to asc if not provided
+        // $column = $request->query('column', 'id'); // default to id if not provided
 
-        $getReceive->orderBy($column, $order);
+        // $getReceive->orderBy($column, $order);
 
-        // Add pagination
-        $perPage = $request->query('perPage', 10); // default to 10 if not provided
-        $transfers = $getReceive->paginate($perPage);
+        // // Add pagination
+        // $perPage = $request->query('perPage', 10); // default to 10 if not provided
+        // $transfers = $getReceive->paginate($perPage);
 
-        $resourceCollection = new TransferResourceCollection($transfers);
+        // $resourceCollection = new TransferResourceCollection($transfers);
 
-        // return $resourceCollection;
-        return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+        // // return $resourceCollection;
+        // return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
     }
 
     /**
@@ -69,11 +69,12 @@ class ReceiveController extends ApiBaseController
             $createdReceiveDetail = $this->createTransactionDetail($request->item_details, $createdReceive->voucher_no);
 
             activity()
+            ->useLog('RECEIVE')
             ->causedBy(Auth::user())
             ->event('created')
             ->performedOn($createdReceive)
             ->withProperties(['Reveieve' => $createdReceive , 'ReceiveDetail' => $createdReceiveDetail])
-            ->log('{$userName} created the Receive (Voucher_no)'.$createdReceive->voucher_no.')');
+            ->log('{userName} created the Receive (Voucher_no)'.$createdReceive->voucher_no.')');
 
             DB::commit();
             $message = 'Receive ('.$createdReceive->voucher_no.') is created successfully';
@@ -114,11 +115,12 @@ class ReceiveController extends ApiBaseController
             $receive->update();
 
             activity()
+            ->useLog('RECEIVE')
             ->causedBy(Auth::user())
             ->setEvent('updated')
             ->performedOn($receive)
             ->withProperties(['Reveieve' => $receive , 'ReceiveDetail' => $createdTransactionDetail])
-            ->log('{$userName} updated the Receive (Voucher_no'.$receive->voucher_no.')');
+            ->log('{userName} updated the Receive (Voucher_no'.$receive->voucher_no.')');
 
             DB::commit();
             $message = 'Voucher Number ('.$receive->voucher_no.") is updated.";
@@ -141,11 +143,12 @@ class ReceiveController extends ApiBaseController
             DB::beginTransaction();
 
             activity()
+            ->useLog('RECEIVE')
             ->causedBy(Auth::user())
             ->setEvent('deleted')
             ->performedOn($issue)
             ->withProperties(['Reveieve' => $issue , 'ReceiveDetail' => $issue->transfer_details])
-            ->log('{$userName} deleted the Receive (Voucher_no -'.$issue->voucher_no.')');
+            ->log('{userName} deleted the Receive (Voucher_no -'.$issue->voucher_no.')');
 
             $deleteTransactionDetail = $this->deductItemFromBranch($issue->transfer_details, $issue->to_branch_id);
             $issue->transfer_details()->delete();
