@@ -68,7 +68,7 @@ class DamageRequest extends FormRequest
                             
                             $checkInventroies = Inventory::where('item_id', $item['item_id'])->where('unit_id', $item['unit_id'])->where('branch_id', $branchId)->first();
                             if(!$checkInventroies){
-                                $fail("Invalid for item_id: {$item['item_id']}, unit_id: {$item['unit_id']}");
+                                $fail("There is no stocks for item_id: {$item['item_id']}, unit_id: {$item['unit_id']}");
                                 continue; // Skip further checks for this item
                             }
 
