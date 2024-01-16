@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Inventory;
 use App\Models\Issue;
+use App\Models\Item;
 use App\Models\TransferDetail;
 use Exception;
 use Illuminate\Http\Request;
@@ -62,13 +63,16 @@ class TransferObserver
                 ->where('unit_id', $detail['unit_id'])
                 ->where('branch_id', $fromBranchId)
                 ->first();
-
                 // $deductQuantity = min($deductFromInventory->quantity, $detail['quantity']);
                 if($deductFromInventory)
                 {
                     $deductFromInventory->decrement('quantity', $detail['quantity']);
                 }else{
-                    throw new Exception('Failed to deduct quantity from inventories');
+                    $unit_id = $detail['unit_id'];
+                    $item = Item::with(['itemUnitDetails' => function ($q) use ($unit_id) {
+                        $q->where('unit_id', $unit_id);
+                    }])->where('id', $detail['item_id'])->first();
+                    throw new Exception("This branch doesn't has ");
                 }
             }
         }catch(Exception $e)

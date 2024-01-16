@@ -38,7 +38,7 @@ class DamageRequest extends FormRequest
     public function rules(): array
     {
         $rules =  [  
-            // 'remark' => 'required|string',
+            'remark' => 'required|string',
             'item_details.*.item_id' => 'required|integer',
             'item_details.*.unit_id' => 'required|integer',
             'item_details.*.quantity' => 'required|integer|min:1',
@@ -65,10 +65,17 @@ class DamageRequest extends FormRequest
                                 $fail("Invalid quantity for item_id: {$item['item_id']}, unit_id: {$item['unit_id']}");
                                 continue; // Skip further checks for this item
                             }
-        
+                            
+                            $checkInventroies = Inventory::where('item_id', $item['item_id'])->where('unit_id', $item['unit_id'])->where('branch_id', $branchId)->first();
+                            if(!$checkInventroies){
+                                $fail("Invalid for item_id: {$item['item_id']}, unit_id: {$item['unit_id']}");
+                                continue; // Skip further checks for this item
+                            }
+
                             if($this->isMethod('put') || $this->isMethod('patch'))
                             {
-                                $detail = TransferDetail::where('item_id', $item['item_id'])->where('unit_id', $item['unit_id'])->where('voucher_no', $damageData->voucher_no )->first();
+                                $detail = TransferDetail::where('item_id', $item['item_id'])->where('unit_id', $item['unit_id'])->where('voucher_no', $damageData->voucher_no)->first();
+
                                 if($detail){
                                     $totalQuantity =  $quantity - $detail->quantity;
                                     $itemExists = Inventory::where('item_id', $item['item_id'])

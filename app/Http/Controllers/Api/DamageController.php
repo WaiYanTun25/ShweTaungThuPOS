@@ -147,7 +147,7 @@ class DamageController extends ApiBaseController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(DamageRequest $request, string $id)
     {
         $updateDamage = Damage::with('transfer_details')->findOrFail($id);
         try {

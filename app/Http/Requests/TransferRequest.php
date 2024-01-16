@@ -39,8 +39,8 @@ class TransferRequest extends FormRequest
     public function rules(): array
     {
         $rules =  [  
-            'item_details.*.item_id' => 'required|integer',
-            'item_details.*.unit_id' => 'required|integer',
+            'item_details.*.item_id' => 'required|integer| exists:items,id',
+            'item_details.*.unit_id' => 'required|integer| exists:units,id',
             'item_details.*.quantity' => 'required|integer|min:1',
             'item_details' => [
                 'required',
@@ -63,6 +63,15 @@ class TransferRequest extends FormRequest
                                 $fail("Invalid quantity for item_id: {$item['item_id']}, unit_id: {$item['unit_id']}");
                                 continue; // Skip further checks for this item
                             }
+
+                            // check item and unit-id exists in inventrory
+                            $checkInventroies = Inventory::where('item_id', $item['item_id'])->where('unit_id', $item['unit_id'])->where('branch_id', $fromBranchId)->first();
+
+                            if(!$checkInventroies){
+                                $fail("Invalid for item_id: {$item['item_id']}, unit_id: {$item['unit_id']}");
+                                continue; // Skip further checks for this item
+
+                            }
         
                             if($this->isMethod('put') || $this->isMethod('patch'))
                             {
@@ -82,7 +91,6 @@ class TransferRequest extends FormRequest
                                 $itemExists = Inventory::where('item_id', $item['item_id'])
                                 ->where('unit_id', $item['unit_id'])
                                 ->where('branch_id', $fromBranchId)
-                                ->where('quantity', '>=', $quantity)
                                 ->exists();
                             }
                            
