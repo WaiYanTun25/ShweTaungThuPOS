@@ -20,6 +20,15 @@ if (!function_exists('formatToCustomDate')) {
         return $dateTime->format('d/m/y');
     }
 }
+
+if (!function_exists('formatToCustomDate_FullYear')) {
+    function formatToCustomDate_FullYear($inputDate)
+    {
+        $dateTime = new DateTime($inputDate);
+        return $dateTime->format('d/m/Y');
+    }
+}
+
 if (!function_exists('convertToMyanmarDate')) {
     function convertToMyanmarDate($englishDate)
     {

@@ -26,7 +26,7 @@ class IssueReceiveDetailResource extends JsonResource
             'type' => $this->resourceType,
             'voucher_no' => $this->voucher_no,
             'transaction_date_mm' => convertToMyanmarDate($this->transaction_date),
-            'transaction_date_eng' => formatToCustomDate($this->transaction_date),
+            'transaction_date_eng' => formatToCustomDate_FullYear($this->transaction_date),
             'branch_name' => $this->resourceType == "ISSUE" ? $this->issuesTo->name : $this->receiveFrom->name, 
             'total_quantity' => $this->total_quantity,
             'item_details' => TransferDetailResource::collection($this->transfer_details),
