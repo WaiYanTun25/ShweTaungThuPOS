@@ -271,7 +271,14 @@ class InventoryController extends ApiBaseController
         $currentMonth = Carbon::now();
         $currentYear = Carbon::now()->year;
 
-        $countItem = Item::count();
+        $user_branch_id = Auth::user()->branch_id;
+        if ($user_branch_id != 0)
+        {
+            $countItem = Inventory::where('branch_id', $user_branch_id)->sum('quantity');
+        }else{
+            $countItem = Inventory::sum('quantity');
+        }
+
         $countIssueWithinOneMonth = Issue::whereYear('transaction_date', $currentYear)
             ->whereMonth('transaction_date', $currentMonth)
             ->count();
