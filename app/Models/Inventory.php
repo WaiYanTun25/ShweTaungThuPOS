@@ -44,20 +44,20 @@ class Inventory extends Model
             ->latest('purchases.purchase_date')
             ->first();
         
-        $lastReceiveDetail = $this->receives()
-        ->join('receives', 'transfer_details.voucher_no', '=', 'receives.voucher_no')
-            ->where('receives.to_branch_id', $this->branch_id)
-            ->latest('receives.transaction_date')
-            ->first();
+        // $lastReceiveDetail = $this->receives()
+        // ->join('receives', 'transfer_details.voucher_no', '=', 'receives.voucher_no')
+        //     ->where('receives.to_branch_id', $this->branch_id)
+        //     ->latest('receives.transaction_date')
+        //     ->first();
 
-        return max($lastPurchaseDetail?->purchase_date, $lastReceiveDetail?->transaction_date) ?? null;
+        return $lastPurchaseDetail->purchase_date ?? null;
+        // return max($lastPurchaseDetail?->purchase_date, $lastReceiveDetail?->transaction_date) ?? null;
     }
 
     // Relationship with PurchaseDetail model
     public function purchaseDetails()
     {
-        return $this->hasMany(PurchaseDetail::class, 'item_id', 'item_id')
-            ->where('unit_id', $this->unit_id);
+        return $this->hasMany(PurchaseDetail::class, 'item_id', 'item_id');
     }
 
     public function receives()

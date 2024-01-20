@@ -36,6 +36,61 @@ class ItemController extends ApiBaseController
     /**
      * Display a listing of the resource.
      */
+    // public function index(Request $request)
+    // {
+    //     // Filter
+    //     $supplier_id = $request->query('supplier_id');
+    //     $category_id = $request->query('category_id');
+        
+    //     $perPage = $request->query('perPage', 10);
+    //     $search = $request->query('searchBy');
+    //     $order = $request->query('order', 'asc');
+    //     $column = $request->query('column', 'id');
+
+    //     $branchId = Auth::user()->branch_id;
+    //     $getItems = Inventory::with('item');
+
+    //     if($supplier_id){
+    //         $getItems->whereHas('item', function ($q) use ($supplier_id){
+    //             $q->where('supplier_id', $supplier_id);
+    //         });
+    //     }
+
+    //     if($category_id){
+    //         $getItems->whereHas('item', function ($q) use ($category_id){
+    //             $q->where('category_id', $category_id);
+    //         });
+    //     }
+        
+    //     if ($branchId != 0) {
+    //         $getItems->where('branch_id', $branchId);
+    //     }
+
+    //     if ($search) {
+    //         $getItems->whereHas('item', function ($query) use ($search) {
+    //             $query->where('item_name', 'like', "%$search%")
+    //                 ->orWhere('item_code', 'like', "%$search%");
+    //         });
+    //     }
+
+    //     if($column == 'quantity'){
+    //         $getItems->orderBy('quantity', $order);
+    //     }
+
+    //     if($request->query('report') == "True")
+    //     {
+    //         $results = $getItems->get();
+    //         $resourceCollection = new ItemListResource($results, true);
+
+    //         return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+    //     }
+
+    //     $items = $getItems->paginate($perPage);
+    //     $resourceCollection = new ItemListResource($items);
+
+    //     return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+    // }
+
     public function index(Request $request)
     {
         // Filter
@@ -48,33 +103,35 @@ class ItemController extends ApiBaseController
         $column = $request->query('column', 'id');
 
         $branchId = Auth::user()->branch_id;
-        $getItems = Inventory::with('item');
+        // $getItems = Inventory::with('item');
+        $getItems = Item::with(['inventories' => function ($query) use ($branchId) {
+            if ($branchId != 0) {
+                $query->where('branch_id', $branchId);
+            }
+        }])->withSum('inventories', 'quantity');
 
         if($supplier_id){
-            $getItems->whereHas('item', function ($q) use ($supplier_id){
-                $q->where('supplier_id', $supplier_id);
-            });
+            $getItems->where('supplier_id', $supplier_id);
         }
 
         if($category_id){
-            $getItems->whereHas('item', function ($q) use ($category_id){
-                $q->where('category_id', $category_id);
-            });
-        }
-        
-        if ($branchId != 0) {
-            $getItems->where('branch_id', $branchId);
+            $getItems->where('category_id', $category_id);
         }
 
         if ($search) {
-            $getItems->whereHas('item', function ($query) use ($search) {
-                $query->where('item_name', 'like', "%$search%")
+            $getItems->where('item_name', 'like', "%$search%")
                     ->orWhere('item_code', 'like', "%$search%");
-            });
         }
 
-        if($column == 'quantity'){
-            $getItems->orderBy('quantity', $order);
+        if ($column == 'quantity') {
+            // Order by total quantity for each item
+            // $getItems->withCount(['inventories as total_quantity' => function ($query) use ($branchId) {
+            //     if ($branchId != 0) {
+            //         $query->where('branch_id', $branchId);
+            //     }
+            // }])
+            // ->orderBy('total_quantity', $order);
+            $getItems->orderBy('inventories_sum_quantity', $order);
         }
 
         if($request->query('report') == "True")
