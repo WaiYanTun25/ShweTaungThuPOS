@@ -100,7 +100,7 @@ Route::post('/central_links', function () {
             "purchase_requests" =>[
                 "purchase" => [
                 "အလုံးစုံစာရင်း" => "UNDER CONSTRUCTION",
-                "ဝယ်ယူမှုမှတ်တမ်း" => "UNDER CONSTRUCTION",
+                "ဝယ်ယူမှုမှတ်တမ်း" => config('app.url') . "/api/purchases?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=&endDate=&supplier_id=&payment=",
             ],
             "purchase detail" => config('app.url') . "/api/purchases/{id}",
             "create purchase" => config('app.url') . "/api/purchases",
@@ -187,6 +187,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     Route::prefix('purchase_orders')->group(function () {
         Route::get('', [PurchaseOrderController::class, 'index']);
         Route::post('', [PurchaseOrderController::class, 'create']);
+        Route::get('{id}', [PurchaseOrderController::class, 'detail']);
         Route::put('{id}', [PurchaseOrderController::class, 'update']);
         Route::delete('{id}', [PurchaseOrderController::class, 'delete']);
     });

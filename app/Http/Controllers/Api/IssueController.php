@@ -186,7 +186,9 @@ class IssueController extends ApiBaseController
 
         $withDateFilter = function ($query) use ($startDate, $endDate) {
             if ($startDate && $endDate) {
-                $query->whereBetween('transaction_date', [$startDate, $endDate]);
+                // $query->whereBetween('transaction_date', [$startDate, $endDate]);
+                $query->whereDate('transaction_date', '>=', $startDate)
+                ->whereDate('transaction_date', '<=', $endDate);
             }
         };
 

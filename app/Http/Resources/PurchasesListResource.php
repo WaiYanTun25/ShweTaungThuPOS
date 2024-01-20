@@ -7,6 +7,14 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class PurchasesListResource extends JsonResource
 {
+    private $report;
+    private $purchase_history;
+    public function __construct($resource, $purchase_history = false, $report = false)
+    {
+        parent::__construct($resource);
+        $this->report = $report;
+        $this->purchase_history = $purchase_history;
+    }
     /**
      * Transform the resource into an array.
      *
@@ -14,10 +22,14 @@ class PurchasesListResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
-            'total_purchase_amount' => $this->total_purchase_amount,
-            'total_pay_amount' => $this->total_pay_amount,
-            'total_remain_amount' => $this->total_remain_amount,
+        $response = [];
+        if (!$this->purchase_history) {
+            $response['total_purchase_amount'] = $this->total_purchase_amount;
+            $response['total_pay_amount'] = $this->total_pay_amount;
+            $response['total_remain_amount'] = $this->total_remain_amount;
+        }
+
+        $response += [
             'total_purchases_list' => $this->data->map(function ($purchase) {
                 return [
                     'id' => $purchase->id,
@@ -33,24 +45,32 @@ class PurchasesListResource extends JsonResource
                     'payment_status' => $purchase->payment_status
                 ];
             }),
-            'links' => [
-                'first' => $this->data->url(1),
-                'last' => $this->data->url($this->data->lastPage()),
-                'prev' => $this->data->previousPageUrl(),
-                'next' => $this->data->nextPageUrl(),
-            ],
-            'meta' => [
-                'current_page' => $this->data->currentPage(),
-                'from' => $this->data->firstItem(),
-                'last_page' => $this->data->lastPage(),
-                'links' => $this->data->links(),
-                'path' => $this->data->path(),
-                'per_page' => $this->data->perPage(),
-                'to' => $this->data->lastItem(),
-                'total' => $this->data->total(),
-            ],
         ];
+
+        if(!$this->report) {
+            $response += [
+                'links' => [
+                    'first' => $this->data->url(1),
+                    'last' => $this->data->url($this->data->lastPage()),
+                    'prev' => $this->data->previousPageUrl(),
+                    'next' => $this->data->nextPageUrl(),
+                ],
+                'meta' => [
+                    'current_page' => $this->data->currentPage(),
+                    'from' => $this->data->firstItem(),
+                    'last_page' => $this->data->lastPage(),
+                    'links' => $this->data->links(),
+                    'path' => $this->data->path(),
+                    'per_page' => $this->data->perPage(),
+                    'to' => $this->data->lastItem(),
+                    'total' => $this->data->total(),
+                ],
+            ];
+        };
+    
+        return $response;
     }
+    
 
     private function getItemsName($details)
     {

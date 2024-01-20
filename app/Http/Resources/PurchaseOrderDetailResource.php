@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PurchaseDetailResource extends JsonResource
+class PurchaseOrderDetailResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -25,18 +25,13 @@ class PurchaseDetailResource extends JsonResource
             'branch_name' => $this->branch->name,
             'branch_address' => $this->branch->address,
             'branch_phone_no' => $this->branch->phone_number,
-            'payment_method_name' => $this->paymentMethod->name ?? null,
-            'payment_method_id' => $this->payment_method_id ?? null,
             'purchase_date' => formatToCustomDate($this->purchase_date),
             'total_quantity' => $this->total_amount,
             'tax_percentage' => $this->tax_percentage,
             'tax_amount' => $this->tax_amount,
             'discount_percentage' => $this->discount_percentage,
             'discount_amount' => $this->discount_amount,
-            // 'total_payment_amount' => $this->payment->pay_amount,
-            'pay_amount' => $this->pay_amount ?? 0,
-            'remain_amount' => $this->remain_amount,
-            'purchase_details' =>$this->purchase_details->map(function ($detail) {
+            'purchase_order_details' =>$this->purchase_order_details->map(function ($detail) {
                     return [
                         'item_id' => $detail->item_id,
                         'item_code' => $detail->item->item_code,

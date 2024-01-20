@@ -15,7 +15,7 @@ class PurchaseReturn extends Model
     use HasFactory, LogsActivity;
     public $timestamps = false;
 
-    protected $fillable = ['voucher_no','branch_id', 'supplier_id', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'pay_amount', 'remark', 'purchase_return_date'];
+    protected $fillable = ['voucher_no','branch_id', 'supplier_id', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'pay_amount', 'remark', 'purchase_return_date' , 'payment_method_id'];
     
     public function getActivitylogOptions(): LogOptions
     {
@@ -47,8 +47,8 @@ class PurchaseReturn extends Model
             }
 
             // Set purchase_date to current date if it's not already set
-            if (!$model->purchase_date) {
-                $model->purchase_date = now();
+            if (!$model->purchase_return_date) {
+                $model->purchase_return_date = now();
             }
         });
     }
@@ -92,9 +92,9 @@ class PurchaseReturn extends Model
         return $this->hasOne(Activity::class, 'subject_id', 'id');
     }
 
-    public function payments()
+    public function paymentMethod()
     {
-        return $this->hasMany(Payment::class, 'purchase_id', 'id');
+        // return $this->hasMany(Payment::class, 'purchase_id', 'id');
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id', 'id');
     }
-
 }

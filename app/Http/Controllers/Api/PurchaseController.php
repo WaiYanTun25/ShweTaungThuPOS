@@ -32,7 +32,70 @@ class PurchaseController extends ApiBaseController
      */
     public function index(Request $request)
     {
-        return;
+        // အရောင်းမှတ်တမ်း
+        $getPurchases = Purchase::with(['purchase_details', 'supplier']);
+
+        try {
+            $search = $request->query('searchBy');
+            if ($search) {
+                $getPurchases->where(function ($query) use ($search) {
+                    $query->where('voucher_no', 'like', "%$search%")
+                        ->orWhereHas('supplier', function ($supplierQuery) use ($search) {
+                            $supplierQuery->where('name', 'like', "%$search%");
+                        })
+                        ->orWhereHas('purchase_details', function ($detailsQuery) use ($search) {
+                            $detailsQuery->whereHas('item', function ($itemQuery) use ($search) {
+                                $itemQuery->where('item_name', 'like', "%$search%");
+                            });
+                        });
+                });
+            }
+            // Date Filtering
+            $startDate = $request->query('startDate');
+            $endDate = $request->query('endDate');
+
+            if ($startDate && $endDate) {
+                // $getPurchases->whereBetween('purchase_date', [$startDate, $endDate]);
+                $getPurchases->whereDate('purchase_date', '>=', $startDate)
+                ->whereDate('purchase_date', '<=', $endDate);
+            }
+
+            // Supplier Filtering
+            $supplierId = $request->query('supplier_id');
+            if ($supplierId) {
+                $getPurchases->where('supplier_id', $supplierId);
+            }
+            // payment Filtering
+            $payment = $request->query('payment');
+            if ($payment) {
+                $getPurchases->where('payment_status', $payment);
+            }
+
+            // Handle order and column
+            $order = $request->query('order', 'desc'); // default to asc if not provided
+            $column = $request->query('column', 'purchase_date'); // default to id if not provided
+            $perPage = $request->query('perPage', 10);
+
+            $result = new stdClass;
+            if($request->query('report') == "True"){
+                $result->data = $getPurchases->orderBy($column, $order)->get();
+                // this true is always true cause
+                // i use this resource function in two place 
+                // this controller funciton is always true
+                $resourceCollection = new PurchasesListResource($result, true, true);
+                return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+            }else{
+                $result->data = $getPurchases->orderBy($column, $order)->paginate($perPage);
+            }
+
+            $resourceCollection = new PurchasesListResource($result, true);
+
+            return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+        } catch (Exception $e) {
+            info($e->getMessage());
+            return $this->sendErrorResponse('Error getting item', Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
+        }
+
     }
 
     /**
@@ -44,7 +107,6 @@ class PurchaseController extends ApiBaseController
      */
     public function store(PurchaseRequest $request)
     {
-        
         // Validate the purchase request data
         $validatedData = $request->validated();
         // Begin a database transaction
@@ -55,7 +117,6 @@ class PurchaseController extends ApiBaseController
             // if ($validatedData['payment_status'] != 'UN_PAID') {
             //     $created_payment = $this->createPayment($validatedData);
             // }
-            
             // Create the purchase
             $createdPurchase = $this->createOrUpdatePurchase($validatedData, Auth::user()->branch_id);
 
@@ -179,11 +240,13 @@ class PurchaseController extends ApiBaseController
             $endDate = $request->query('endDate');
 
             if ($startDate && $endDate) {
-                $getPurchases->whereBetween('purchase_date', [$startDate, $endDate]);
+                // $getPurchases->whereBetween('purchase_date', [$startDate, $endDate]);
+                $getPurchases->whereDate('purchase_date', '>=', $startDate)
+                ->whereDate('purchase_date', '<=', $endDate);
             }
 
             // Supplier Filtering
-            $supplierId = $request->query('supplierId');
+            $supplierId = $request->query('supplier_id');
             if ($supplierId) {
                 $getPurchases->where('supplier_id', $supplierId);
             }
@@ -198,10 +261,20 @@ class PurchaseController extends ApiBaseController
             $perPage = $request->query('perPage', 10);
 
             $result = new stdClass;
-            $result->data = $getPurchases->orderBy($column, $order)->paginate($perPage);
+
             $result->total_purchase_amount = $total_purchase_amount;
             $result->total_pay_amount = $total_pay_amount;
             $result->total_remain_amount = $total_remain_amount;
+            if($request->query('report') == "True"){
+                $result->data = $getPurchases->orderBy($column, $order)->get();
+                // this true is always true cause
+                // i use this resource function in two place 
+                // this controller funciton is always true
+                $resourceCollection = new PurchasesListResource($result, false, true);
+                return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+            }else{
+                $result->data = $getPurchases->orderBy($column, $order)->paginate($perPage);
+            }
 
             $resourceCollection = new PurchasesListResource($result);
 

@@ -19,24 +19,24 @@ class SupplierSeeder extends Seeder
                 "prefix" => "AA",
                 "phone_number" => "0996939693",
                 "address" => "၆၀ ဘီ ကမ်းနားလမ်း အလုံ",
-                // "township" => "ကြည့်မြင်တိုင်",
-                // "city" => "Yangon"
+                "township" => 2,
+                "city" => 1
             ],
             [
                 "name" => "အောင်ကောင်းစည်2",
                 "prefix" => "BB",
                 "phone_number" => "0996939693",
                 "address" => "၆၀ ဘီ ကမ်းနားလမ်း အလုံ",
-                // "township" => "ကြည့်မြင်တိုင်",
-                // "city" => "Yangon"
+                "township" => 1,
+                "city" => 1
             ],
             [
                 "name" => "အောင်ကောင်းစည်3",
                 "prefix" => "CC",
                 "phone_number" => "0996939693",
                 "address" => "၆၀ ဘီ ကမ်းနားလမ်း အလုံ",
-                // "township" => "ကြည့်မြင်တိုင်",
-                // "city" => "Yangon"
+                "township" => 4,
+                "city" => 2
             ],
         ];
 
@@ -46,8 +46,8 @@ class SupplierSeeder extends Seeder
             $supplier->prefix = $data['prefix'];
             $supplier->phone_number = $data['phone_number'];
             $supplier->address = $data['address'];
-            // $supplier->township = $data['township'];
-            // $supplier->city = $data['city'];
+            $supplier->township = $data['township'];
+            $supplier->city = $data['city'];
             $supplier->save();
         }
     }

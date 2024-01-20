@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('purchase_returns', function (Blueprint $table) {
+        Schema::create('sales', function (Blueprint $table) {
             $table->id();
             $table->string('voucher_no');
             $table->integer('branch_id');
-            $table->integer('supplier_id');
+            $table->integer('customer_id');
+            $table->string('customer_name')->nullable();
             $table->integer('total_quantity');
             $table->integer('amount');
             $table->integer('total_amount');
@@ -25,29 +26,18 @@ return new class extends Migration
             $table->integer('discount_amount');
             $table->integer('pay_amount')->default(0);
             $table->integer('payment_method_id')->nullable();
+            $table->integer('remain_amount');
+            $table->enum('payment_status', ['PARTIALLY_PAID', 'FULLY_PAID', 'UN_PAID']);
             $table->string('remark');
-            $table->timestamp('purchase_return_date');
+            $table->timestamp('purchase_date');
         });
     }
 
-//     id integer [primary key]
-//   purchase_id integer
-//   voucher_no string
-//   supplier_id integer
-//   total_quantity integer
-//   total_amount integer
-//   pay_amount integer
-//   tax_percentage integer
-//   tax_amount integer
-//   discount_percentage integer
-//   discount_amount integer
-//   remark string
-//   purhcase_return_date date
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('purchase_returns');
+        Schema::dropIfExists('sales');
     }
 };

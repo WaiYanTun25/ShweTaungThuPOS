@@ -28,9 +28,9 @@ trait PurchaseReturnTrait
         $createPurchase->discount_percentage = $data['discount_percentage'];
         $createPurchase->discount_amount = $data['discount_amount'];
         $createPurchase->pay_amount = $data['pay_amount'];
-        $createPurchase->total_quantity = collect($data['purchase_details'])->sum('quantity');
-        $createPurchase->remain_amount = $data['total_amount'] - $data['pay_amount'];
-        $createPurchase->payment_status = $data['payment_status'];
+        $createPurchase->total_quantity = collect($data['purchase_return_details'])->sum('quantity');
+        $createPurchase->payment_method_id = $data['payment_method'];
+        $createPurchase->pay_amount = $data['pay_amount'];
         $createPurchase->remark = $data['remark'];
         $createPurchase->save();
 

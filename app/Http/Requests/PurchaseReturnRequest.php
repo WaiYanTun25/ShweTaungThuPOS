@@ -37,13 +37,16 @@ class PurchaseReturnRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pay_return_amount' => 'required | integer | min:1',
+            'supplier_id' => 'required | integer | exists:suppliers,id',
+            'amount' => 'required | integer | min:1',
+            'total_amount' => 'required | integer | min:1',
             'tax_percentage' => 'required | integer',
             'tax_amount' => 'required | integer',
             'discount_percentage' => 'required | integer',
             'discount_amount' => 'required | integer',
             'remark' => 'required | max:100',
-            'payment_method' => 'required',
+            'pay_amount' => 'required | min:1',
+            'payment_method' => 'required | exists:payment_methods,id',
             'purchase_return_details.*.item_id' => 'required|integer | exists:item_unit_details,item_id',
             'purchase_return_details.*.unit_id' => 'required|integer | exists:item_unit_details,unit_id',
             'purchase_return_details.*.item_price' => 'required|integer|min:1',

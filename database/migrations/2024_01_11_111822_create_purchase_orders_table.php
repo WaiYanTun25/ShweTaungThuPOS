@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id();
             $table->string('voucher_no');
-            $table->integer('supplier_id');
             $table->integer('branch_id');
+            $table->integer('supplier_id');
             $table->integer('total_quantity');
             $table->integer('amount');
             $table->integer('total_amount');

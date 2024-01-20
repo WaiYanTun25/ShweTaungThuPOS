@@ -189,7 +189,8 @@ class InventoryController extends ApiBaseController
 
         $withDateFilter = function ($query) use ($startDate, $endDate) {
             if ($startDate && $endDate) {
-                $query->whereBetween('transaction_date', [$startDate, $endDate]);
+                $query->whereDate('transaction_date', '>=', $startDate)
+                ->whereDate('transaction_date', '<=', $endDate);
             }
         };
 
@@ -338,7 +339,9 @@ class InventoryController extends ApiBaseController
         }
 
         if($startDate && $endDate) {
-            $purchase_products->whereBetween('purchase_date', [$startDate, $endDate]);
+            // $purchase_products->whereBetween('purchase_date', [$startDate, $endDate]);
+            $purchase_products->whereDate('purchase_date', '>=', $startDate)
+            ->whereDate('purchase_date', '<=', $endDate);
         }
         if($supplier_id) {
             $purchase_products->where('supplier_id', $supplier_id);

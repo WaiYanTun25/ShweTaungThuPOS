@@ -39,7 +39,8 @@ class DamageController extends ApiBaseController
         // filters
         if($startDate && $endDate){
             $damageItems->whereHas('damage', function ($q) use ($startDate, $endDate){
-                $q->whereBetween('transaction_date', [$startDate, $endDate]);
+                $q->whereDate('transaction_date', '>=', $startDate)
+                ->whereDate('transaction_date', '<=', $endDate);
             });
         }
         if($category_id){

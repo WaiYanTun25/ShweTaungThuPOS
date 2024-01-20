@@ -35,7 +35,7 @@ class PurchaseOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'supplier_id' => 'required | integer | exists:suppliers,id',
+            "supplier_id" => 'required | integer | exists:suppliers,id',
             "amount" => "required | integer | min: 1",
             "total_amount" => "required | integer | min: 1",
             'tax_percentage' => 'required | integer',
@@ -43,8 +43,8 @@ class PurchaseOrderRequest extends FormRequest
             'discount_percentage' => 'required | integer',
             'discount_amount' => 'required | integer',
             'remark' => 'required | max:100',
-            'purchase_order_details.*.item_id' => 'required|integer | exists:item_unit_details,item_id',
-            'purchase_order_details.*.unit_id' => 'required|integer | exists:item_unit_details,unit_id',
+            'purchase_order_details.*.item_id' => 'required|integer | exists:items,id',
+            'purchase_order_details.*.unit_id' => 'required|integer | exists:units,id',
             'purchase_order_details.*.item_price' => 'required|integer|min:1',
             'purchase_order_details.*.quantity' => 'required|integer|min:1',
             'purchase_order_details.*.discount_amount' => 'required |integer',

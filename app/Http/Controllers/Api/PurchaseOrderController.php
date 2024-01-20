@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PurchaseOrderRequest;
+use App\Http\Resources\PurchaseOrderDetailResource;
 use App\Http\Resources\PurchaseOrderListResource;
 use App\Models\PurchaseOrder;
 use Exception;
@@ -45,7 +46,9 @@ class PurchaseOrderController extends ApiBaseController
             $endDate = $request->query('endDate');
 
             if ($startDate && $endDate) {
-                $getPurhcaseOrders->whereBetween('order_date', [$startDate, $endDate]);
+                // $getPurhcaseOrders->whereBetween('order_date', [$startDate, $endDate]);
+                $getPurhcaseOrders->whereDate('order_date', '>=', $startDate)
+                ->whereDate('order_date', '<=', $endDate);
             }
 
             $supplierId = $request->query('supplierId');
@@ -58,6 +61,12 @@ class PurchaseOrderController extends ApiBaseController
             $column = $request->query('column', 'purchase_date'); // default to id if not provided
             $perPage = $request->query('perPage', 10);
 
+            if($request->query('report') == "True")
+            {
+                $result = $getPurhcaseOrders->orderBy($column, $order)->get();
+                $resourceCollection = new PurchaseOrderListResource($result, True);
+                return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+            }
             $result = $getPurhcaseOrders->orderBy($column, $order)->paginate($perPage);
 
             $resourceCollection = new PurchaseOrderListResource($result);
@@ -71,7 +80,6 @@ class PurchaseOrderController extends ApiBaseController
     public function create(PurchaseOrderRequest $request)
     {
         $validatedData = $request->validated();
-
         DB::beginTransaction();
         try {
             // LogBatch::startBatch();
@@ -87,6 +95,14 @@ class PurchaseOrderController extends ApiBaseController
             DB::rollBack();
             return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public function detail($id)
+    {
+        $purchase_order = PurchaseOrder::with('purchase_order_details')->findOrFail($id);
+        $result = new PurchaseOrderDetailResource($purchase_order);
+
+        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
     }
 
     public function update(PurchaseOrderRequest $request, string $id)

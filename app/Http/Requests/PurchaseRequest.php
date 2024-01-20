@@ -38,7 +38,7 @@ class PurchaseRequest extends FormRequest
     public function rules(): array
     {
         $rules =  [
-            'supplier_id' => 'required',
+            'supplier_id' => 'required | integer | exists:suppliers,id',
             'amount' => 'required | integer | min: 1',
             'total_amount' => 'required | integer',
             'tax_percentage' => 'required | integer',
@@ -49,8 +49,8 @@ class PurchaseRequest extends FormRequest
             'remark' => 'required | max:100',
             // 'pay_amount' => 'required | integer',
             // 'payment_method' => 'required',
-            'purchase_details.*.item_id' => 'required|integer | exists:item_unit_details,item_id',
-            'purchase_details.*.unit_id' => 'required|integer | exists:item_unit_details,unit_id',
+            'purchase_details.*.item_id' => 'required|integer | exists:items,id',
+            'purchase_details.*.unit_id' => 'required|integer | exists:units,id',
             'purchase_details.*.item_price' => 'required|integer|min:1',
             'purchase_details.*.quantity' => 'required|integer|min:1',
             'purchase_details.*.discount_amount' => 'required |integer',
@@ -102,8 +102,6 @@ class PurchaseRequest extends FormRequest
                                     $fail("Invalid for {$attribute}.{$index}.item_id: {$item['item_id']}, unit_id: {$item['unit_id']}");
                                 }
                             }
-
-                            
                         }
                     }
                 }
