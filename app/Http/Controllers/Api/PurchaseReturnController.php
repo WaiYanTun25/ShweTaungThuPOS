@@ -24,8 +24,7 @@ class PurchaseReturnController extends ApiBaseController
      */
     public function index(Request $request)
     {
-        $getPurchaseReturn = PurchaseReturn::with(['purchase_return_details', 'supplier'])->get();
-        return $getPurchaseReturn->purchase_return_details()->sum('total_amount');
+        $getPurchaseReturn = PurchaseReturn::with('purchase_return_details');
 
         try {
             $search = $request->query('searchBy');
@@ -43,7 +42,6 @@ class PurchaseReturnController extends ApiBaseController
                 });
             }
 
-
             // Date Filtering
             $startDate = $request->query('startDate');
             $endDate = $request->query('endDate');
@@ -58,11 +56,6 @@ class PurchaseReturnController extends ApiBaseController
             $supplierId = $request->query('supplier_id');
             if ($supplierId) {
                 $getPurchaseReturn->where('supplier_id', $supplierId);
-            }
-            // payment Filtering
-            $payment = $request->query('payment');
-            if ($payment) {
-                $getPurchaseReturn->where('payment_status', $payment);
             }
 
             // Handle order and column
@@ -82,7 +75,7 @@ class PurchaseReturnController extends ApiBaseController
                 $result->data = $getPurchaseReturn->orderBy($column, $order)->paginate($perPage);
             }
 
-            $resourceCollection = new PurchaseReturnListResource($result, true);
+            $resourceCollection = new PurchaseReturnListResource($result);
 
             return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
         } catch (Exception $e) {

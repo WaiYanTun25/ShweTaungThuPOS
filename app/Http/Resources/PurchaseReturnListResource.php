@@ -34,15 +34,23 @@ class PurchaseReturnListResource extends JsonResource
                 'purchase_return_date' => formatToCustomDate($purchase_return->purchase_date)
             ];
         });
-        // $total_return_item = $this->data->;
-        // $total_return_amount = ;
+        $total_return_count = $this->data->sum(function ($purchase_return) {
+            return count($purchase_return->purchase_return_details);
+        });
+        $total_return_amount = $this->data->sum(function ($purchase_return) {
+            return $purchase_return->pay_amount;
+        });
 
         if($this->report) {
             return [
+                'total_return_count' => $total_return_count,
+                'total_return_amount' => $total_return_amount,
                 'purchase_return_list' => $purchase_return_list
             ];
         }else{
             return [
+                'total_return_count' => $total_return_count,
+                'total_return_amount' => $total_return_amount,
                 'purchase_return_list' => $purchase_return_list,
                 'links' => [
                     'first' => $this->data->url(1),
