@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\{
     ReceiveController,
     SalesController,
     SalesOrderController,
+    SalesReturnController,
     SupplierController,
     UnitController,
     UnitConvertController
@@ -219,5 +220,10 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::get('{id}', [SalesOrderController::class, 'detail']);
         Route::put('{id}', [SalesOrderController::class, 'update']);
         Route::delete('{id}', [SalesOrderController::class, 'delete']);
+    });
+
+    Route::prefix('sales_returns')->group(function () {
+        Route::get('', [SalesReturnController::class, 'index']);
+        Route::post('', [SalesReturnController::class, 'create']);
     });
 });

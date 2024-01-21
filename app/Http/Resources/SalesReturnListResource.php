@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PurchaseReturnListResource extends JsonResource
+class SalesReturnListResource extends JsonResource
 {
     private $report;
     public function __construct($resource, $report = false)
@@ -20,38 +20,38 @@ class PurchaseReturnListResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $purchase_return_list = $this->data->map(function ($purchase_return) {
+        $sales_return_list = $this->data->map(function ($sales_return) {
             return [
-                'id' => $purchase_return->id,
-                'voucher_no' => $purchase_return->voucher_no,
-                'supplier_name' => $purchase_return->supplier->name,
-                'item_name' => $this->getItemsName($purchase_return->purchase_return_details),
-                'branch_name' => $purchase_return->branch->name,
-                'total_quantity' => $purchase_return->total_quantity,
-                'total_amount' => $purchase_return->total_amount,
-                'pay_amount' => $purchase_return->pay_amount,
-                'causer_name' => $purchase_return->createActivity->causer->name ?? "",
-                'purchase_return_date' => formatToCustomDate($purchase_return->purchase_return_date)
+                'id' => $sales_return->id,
+                'voucher_no' => $sales_return->voucher_no,
+                'customer_name' => $sales_return->customer->name,
+                'item_name' => $this->getItemsName($sales_return->sales_return_details),
+                'branch_name' => $sales_return->branch->name,
+                'total_quantity' => $sales_return->total_quantity,
+                'total_amount' => $sales_return->total_amount,
+                'pay_amount' => $sales_return->pay_amount,
+                'causer_name' => $sales_return->createActivity->causer->name ?? "",
+                'sales_return_date' => formatToCustomDate($sales_return->sales_return_date)
             ];
         });
-        $total_return_count = $this->data->sum(function ($purchase_return) {
-            return count($purchase_return->purchase_return_details);
+        $total_return_count = $this->data->sum(function ($sales_return) {
+            return count($sales_return->sales_return_details);
         });
-        $total_return_amount = $this->data->sum(function ($purchase_return) {
-            return $purchase_return->pay_amount;
+        $total_return_amount = $this->data->sum(function ($sales_return) {
+            return $sales_return->pay_amount;
         });
 
         if($this->report) {
             return [
                 'total_return_count' => $total_return_count,
                 'total_return_amount' => $total_return_amount,
-                'purchase_return_list' => $purchase_return_list
+                'sales_return_list' => $sales_return_list
             ];
         }else{
             return [
                 'total_return_count' => $total_return_count,
                 'total_return_amount' => $total_return_amount,
-                'purchase_return_list' => $purchase_return_list,
+                'sales_return_list' => $sales_return_list,
                 'links' => [
                     'first' => $this->data->url(1),
                     'last' => $this->data->url($this->data->lastPage()),
@@ -70,8 +70,6 @@ class PurchaseReturnListResource extends JsonResource
                 ],
             ];
         }
-
-        return parent::toArray($request);
     }
 
     private function getItemsName($details)

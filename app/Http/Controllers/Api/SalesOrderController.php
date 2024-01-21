@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SalesOrderRequest;
+use App\Http\Resources\SalesOrderDetailResource;
 use App\Http\Resources\SalesOrderListResource;
 use App\Models\SalesOrder;
 use Illuminate\Http\Request;
@@ -94,28 +95,28 @@ class SalesOrderController extends ApiBaseController
 
     public function detail($id)
     {
-        $purchase_order = PurchaseOrder::with('purchase_order_details')->findOrFail($id);
-        $result = new PurchaseOrderDetailResource($purchase_order);
+        $sales_order = SalesOrder::with('Sales_order_details')->findOrFail($id);
+        $result = new SalesOrderDetailResource($sales_order);
 
         return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
     }
 
-    public function update(PurchaseOrderRequest $request, string $id)
+    public function update(SalesOrderRequest $request, string $id)
     {
-        $updatePurchaseOrder = PurchaseOrder::findOrFail($id);
+        $updatedSalesOrder = SalesOrder::findOrFail($id);
         DB::beginTransaction();
         try {
             // LogBatch::startBatch();
             $validatedData = $request->validated();
             // update the purchase
-            $this->createOrUpdatePurchaseOrder($validatedData, Auth::user()->branch_id, true, $updatePurchaseOrder);
+            $this->createOrUpdateSalesOrder($validatedData, Auth::user()->branch_id, true, $updatedSalesOrder);
             // delete prev purchase order details
-            $updatePurchaseOrder->purchase_order_details()->delete();
+            $updatedSalesOrder->sales_order_details()->delete();
             // create new purchase order details
-            $updatePurchaseOrder->purchase_order_details()->createMany($validatedData['purchase_order_details']);
+            $updatedSalesOrder->sales_order_details()->createMany($validatedData['sales_order_details']);
             DB::commit();
             // LogBatch::endBatch();
-            $message = 'Purchase Order (' . $updatePurchaseOrder->voucher_no . ') is updated successfully';
+            $message = 'Sales Order (' . $updatedSalesOrder->voucher_no . ') is updated successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
         } catch (Exception $e) {
             DB::rollBack();
@@ -133,7 +134,7 @@ class SalesOrderController extends ApiBaseController
     public function delete(string $id)
     {
         // Find the purchase order by ID
-        $deletePurchaseOrder = PurchaseOrder::findOrFail($id);
+        $deleteSalesOrder = SalesOrder::findOrFail($id);
 
         // Start a database transaction
         DB::beginTransaction();
@@ -141,19 +142,19 @@ class SalesOrderController extends ApiBaseController
         try {
             // LogBatch::startBatch();
             // Delete the purchase order details
-            $deletePurchaseOrder->purchase_order_details()->delete();
+            $deleteSalesOrder->sales_order_details()->delete();
 
-            // foreach ($deletePurchaseOrder->purchase_order_details as $detail) {
+            // foreach ($deleteSalesOrder->purchase_order_details as $detail) {
             //     $detail->delete();
             // }
             // Delete the purchase order
-            $deletePurchaseOrder->delete();
+            $deleteSalesOrder->delete();
 
             // Commit the transaction
             DB::commit();
             // LogBatch::endBatch();
             // Build the success message
-            $message = 'Purchase Order (' . $deletePurchaseOrder->voucher_no . ') is deleted successfully';
+            $message = 'Sales Order (' . $deleteSalesOrder->voucher_no . ') is deleted successfully';
 
             // Return the success response
             return $this->sendSuccessResponse($message, Response::HTTP_OK);

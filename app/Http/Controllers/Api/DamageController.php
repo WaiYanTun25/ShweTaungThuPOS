@@ -61,9 +61,12 @@ class DamageController extends ApiBaseController
         }
 
         if ($search) {
-            $damageItems->whereHas('item', function ($itemQuery) use ($search) {
-                $itemQuery->where('item_name', 'like', '%' . $search . '%')
-                            ->orWhere('item_code', 'like', '%' . $search . '%');
+            $damageItems->where(function ($query) use ($search) {
+                $query->whereHas('item', function ($itemQuery) use ($search) {
+                        $itemQuery->where('item_name', 'like', '%' . $search . '%')
+                                    ->orWhere('item_code', 'like', '%' . $search . '%');
+                    })
+                    ->orWhere('transfer_details.voucher_no', 'like', '%' . $search . '%');
             });
         }
 

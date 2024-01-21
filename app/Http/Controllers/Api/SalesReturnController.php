@@ -3,38 +3,28 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\PurchaseReturnRequest;
-use App\Http\Resources\PurchaseReturnListResource;
-use App\Models\PurchaseReturn;
+use App\Http\Resources\SalesReturnListResource;
+use App\Models\SalesReturn;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use App\Traits\PurchaseReturnTrait;
-use App\Traits\TransactionTrait;
-use App\Traits\PaymentTrait;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 use stdClass;
 
-class PurchaseReturnController extends ApiBaseController
+class SalesReturnController extends ApiBaseController
 {
-    use PurchaseReturnTrait, TransactionTrait, PaymentTrait;
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
-        $getPurchaseReturn = PurchaseReturn::with('purchase_return_details');
+        $getPurchaseReturn = SalesReturn::with('sales_return_details');
 
         try {
             $search = $request->query('searchBy');
             if ($search) {
                 $getPurchaseReturn->where(function ($query) use ($search) {
                     $query->where('voucher_no', 'like', "%$search%")
-                        ->orWhereHas('supplier', function ($supplierQuery) use ($search) {
+                        ->orWhereHas('customer', function ($supplierQuery) use ($search) {
                             $supplierQuery->where('name', 'like', "%$search%");
                         })
-                        ->orWhereHas('purchase_return_details', function ($detailsQuery) use ($search) {
+                        ->orWhereHas('sales_return_details', function ($detailsQuery) use ($search) {
                             $detailsQuery->whereHas('item', function ($itemQuery) use ($search) {
                                 $itemQuery->where('item_name', 'like', "%$search%");
                             });
@@ -48,16 +38,17 @@ class PurchaseReturnController extends ApiBaseController
 
             if ($startDate && $endDate) {
                 // $getPurchaseReturn->whereBetween('purchase_date', [$startDate, $endDate]);
-               $getPurchaseReturn->whereDate('purchase_return_date', '>=', $startDate)
-                ->whereDate('purchase_return_date', '<=', $endDate);
+               $getPurchaseReturn->whereDate('sales_return_date', '>=', $startDate)
+                ->whereDate('sales_return_date', '<=', $endDate);
             }
 
             // Supplier Filtering
-            $supplierId = $request->query('supplier_id');
-            if ($supplierId) {
-                $getPurchaseReturn->where('supplier_id', $supplierId);
+            $customer_id = $request->query('customer_id');
+            if ($customer_id) {
+                $getPurchaseReturn->where('customer_id', $customer_id);
             }
 
+           
             // Handle order and column
             $order = $request->query('order', 'desc'); // default to asc if not provided
             $column = $request->query('column', 'purchase_date'); // default to id if not provided
@@ -69,13 +60,13 @@ class PurchaseReturnController extends ApiBaseController
                 // this true is always true cause
                 // use this resource function in two place 
                 // this controller funciton is always true
-                $resourceCollection = new PurchaseReturnListResource($result, true);
+                $resourceCollection = new SalesReturnListResource($result, true);
                 return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
             }else{
                 $result->data = $getPurchaseReturn->orderBy($column, $order)->paginate($perPage);
             }
 
-            $resourceCollection = new PurchaseReturnListResource($result);
+            $resourceCollection = new SalesReturnListResource($result);
 
             return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
         } catch (Exception $e) {
@@ -106,29 +97,5 @@ class PurchaseReturnController extends ApiBaseController
             DB::rollBack();
             return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        return $id;
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }
