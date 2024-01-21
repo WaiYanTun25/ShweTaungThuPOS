@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sales', function (Blueprint $table) {
+        Schema::create('sales_orders', function (Blueprint $table) {
             $table->id();
             $table->string('voucher_no');
             $table->integer('branch_id');
@@ -24,12 +24,8 @@ return new class extends Migration
             $table->integer('tax_amount');
             $table->decimal('discount_percentage', 5, 2)->nullable();
             $table->integer('discount_amount');
-            $table->integer('pay_amount')->default(0);
-            $table->integer('payment_method_id')->nullable();
-            $table->integer('remain_amount');
-            $table->enum('payment_status', ['PARTIALLY_PAID', 'FULLY_PAID', 'UN_PAID']);
             $table->string('remark');
-            $table->timestamp('sales_date');
+            $table->timestamp('order_date');
         });
     }
 
@@ -38,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sales');
+        Schema::dropIfExists('sales_orders');
     }
 };

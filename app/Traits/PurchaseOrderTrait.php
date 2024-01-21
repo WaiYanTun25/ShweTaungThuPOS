@@ -32,21 +32,21 @@ trait PurchaseOrderTrait
         return $createPurchase;
     }
 
-    public function createPurchaseDetail($data, $purchaseId)
-    {
-        $createdDetails = [];
-        foreach ($data['purchase_details'] as $detail) {
-            $createPurchaseDetail = new PurchaseDetail();
-            $createPurchaseDetail->purchase_id = $purchaseId;
-            $createPurchaseDetail->item_id = $detail['item_id'];
-            $createPurchaseDetail->unit_id = $detail['unit_id'];
-            $createPurchaseDetail->item_price = $detail['item_price'];
-            $createPurchaseDetail->quantity = $detail['quantity'];
-            $createPurchaseDetail->discount_amount = $detail['discount_amount'];
-            $createPurchaseDetail->amount = $detail['amount'];
-            $createPurchaseDetail->save();
-            $createdDetails[] = $createPurchaseDetail;
-        }
-        return $createdDetails;
-    }
+    // public function createPurchaseDetail($data, $purchaseId)
+    // {
+    //     $createdDetails = [];
+    //     foreach ($data['purchase_details'] as $detail) {
+    //         $createPurchaseDetail = new PurchaseDetail();
+    //         $createPurchaseDetail->purchase_id = $purchaseId;
+    //         $createPurchaseDetail->item_id = $detail['item_id'];
+    //         $createPurchaseDetail->unit_id = $detail['unit_id'];
+    //         $createPurchaseDetail->item_price = $detail['item_price'];
+    //         $createPurchaseDetail->quantity = $detail['quantity'];
+    //         $createPurchaseDetail->discount_amount = $detail['discount_amount'];
+    //         $createPurchaseDetail->amount = $detail['amount'];
+    //         $createPurchaseDetail->save();
+    //         $createdDetails[] = $createPurchaseDetail;
+    //     }
+    //     return $createdDetails;
+    // }
 }

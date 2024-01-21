@@ -5,16 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class SaleDetail extends Model
+class SalesOrderDetail extends Model
 {
     use HasFactory;
     public $timestamps = false;
 
-    protected $fillable = ['sale_id', 'item_id', 'unit_id','discount_amount', 'item_price', 'quantity', 'amount'];
+    protected $fillable = ['sale_order_id', 'item_id', 'unit_id', 'discount_amount', 'item_price', 'quantity', 'amount'];
 
-    public function sale()
+    public function salesOrder()
     {
-        return $this->belongsTo(Sale::class, 'sale_id', 'id');
+        return $this->belongsTo(SalesOrder::class, 'sale_order_id', 'id');
     }
 
     public function item()

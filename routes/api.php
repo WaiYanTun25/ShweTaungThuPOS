@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\{
     PurchaseOrderController,
     PurchaseReturnController,
     ReceiveController,
+    SalesController,
+    SalesOrderController,
     SupplierController,
     UnitController,
     UnitConvertController
@@ -97,28 +99,28 @@ Route::post('/central_links', function () {
             ],
         ],
         "PURCHASE_MODULE" => [
-            "purchase_requests" =>[
+            "purchase_requests" => [
                 "purchase" => [
-                "အလုံးစုံစာရင်း" => "UNDER CONSTRUCTION",
-                "ဝယ်ယူမှုမှတ်တမ်း" => config('app.url') . "/api/purchases?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=&endDate=&supplier_id=&payment=",
-            ],
-            "purchase detail" => config('app.url') . "/api/purchases/{id}",
-            "create purchase" => config('app.url') . "/api/purchases",
-            "total purchase List" => config('app.url') . "/api/purchases/total_purchase_list?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=2024-01-01 00:00:00&endDate=2024-01-09 23:59:59&supplierId=1",
-            "total order List" => config('app.url') . "/api/purchase_orders",
-            "create_purchase_orders (POST)" => config('app.url') . "/api/purchase_orders",
-            "update_purchase_orders (PUT)" => config('app.url') . "/api/purchase_orders/{id}",
-            "delete_purchase_orders (DELETE)" => config('app.url') . "/api/purchase_orders/{id}",
-            "purchase return list" => "UNDER CONSTRUCTION",
-            "purchase return detail" => "UNDER CONSTRUCTION",
-            "create purchase return" => [
-                "pre_form (GET)" => config('app.url') . "/api/purchases/{id}/pre_return_form_data",
-                "Create form (POST)" => config('app.url'). '/api/purchase_returns',
-            ],
-            "update purchase return (PUT)" => "UNDER CONSTRUCTION",
-            "delete purchase return (DELETE)" => "UNDER CONSTRUCTION",
+                    "အလုံးစုံစာရင်း" => "UNDER CONSTRUCTION",
+                    "ဝယ်ယူမှုမှတ်တမ်း" => config('app.url') . "/api/purchases?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=&endDate=&supplier_id=&payment=",
+                ],
+                "purchase detail" => config('app.url') . "/api/purchases/{id}",
+                "create purchase" => config('app.url') . "/api/purchases",
+                "total purchase List" => config('app.url') . "/api/purchases/total_purchase_list?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=2024-01-01 00:00:00&endDate=2024-01-09 23:59:59&supplierId=1",
+                "total order List" => config('app.url') . "/api/purchase_orders",
+                "create_purchase_orders (POST)" => config('app.url') . "/api/purchase_orders",
+                "update_purchase_orders (PUT)" => config('app.url') . "/api/purchase_orders/{id}",
+                "delete_purchase_orders (DELETE)" => config('app.url') . "/api/purchase_orders/{id}",
+                "purchase return list" => "UNDER CONSTRUCTION",
+                "purchase return detail" => "UNDER CONSTRUCTION",
+                "create purchase return" => [
+                    "pre_form (GET)" => config('app.url') . "/api/purchases/{id}/pre_return_form_data",
+                    "Create form (POST)" => config('app.url') . '/api/purchase_returns',
+                ],
+                "update purchase return (PUT)" => "UNDER CONSTRUCTION",
+                "delete purchase return (DELETE)" => "UNDER CONSTRUCTION",
             ]
-        ]
+        ],
         // "product_detail (GET)" => config('app.url') . "/api/items",
         // "unit_converts" => [
         //     "get_last_5_rows_convert (GET)" => config('app.url') . "/api/unit_converts",
@@ -128,6 +130,16 @@ Route::post('/central_links', function () {
         // "purchases" => [
         //     "create_purchase (POST)" => config('app.url') . "/api/purchases",
         // ]
+        "Sale Module" => [
+            "sales_requests" => [
+                "sales" => [
+                    "အလုံးစုံစာရင်း" => "UNDER CONSTRUCTION",
+                    "အရောင်းမှတ်တမ်း" => config('app.url') . "/api/sales?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=&endDate=&supplier_id=&payment=",
+                ],
+                "sale_detail" => config('app.url') . "/api/sales/{id}",
+                "create sales (POST)" => config('app.url') . "/api/sales",
+            ]
+        ]
     ];
 });
 
@@ -178,7 +190,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     Route::apiResource('unit_converts', UnitConvertController::class);
 
     // core modules
-    Route::prefix('purchases')->group(function () { 
+    Route::prefix('purchases')->group(function () {
         Route::get('total_purchase_list', [PurchaseController::class, 'getTotalPurchaseList']);
         Route::get('{id}/pre_return_form_data', [PurchaseController::class, 'getPreReturnFormData']);
     });
@@ -193,4 +205,19 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     });
 
     Route::apiResource('purchase_returns', PurchaseReturnController::class);
+
+    // sales
+    Route::prefix('sales')->group(function () {
+        Route::get('total_sales_list', [SalesController::class, 'getTotalSalesList']);
+        Route::get('{id}/pre_return_form_data', [PurchaseController::class, 'getPreReturnFormData']);
+    });
+    Route::apiResource('sales', SalesController::class);
+    // sales order
+    Route::prefix('sales_orders')->group(function () {
+        Route::get('', [SalesOrderController::class, 'index']);
+        Route::post('', [SalesOrderController::class, 'create']);
+        Route::get('{id}', [SalesOrderController::class, 'detail']);
+        Route::put('{id}', [SalesOrderController::class, 'update']);
+        Route::delete('{id}', [SalesOrderController::class, 'delete']);
+    });
 });

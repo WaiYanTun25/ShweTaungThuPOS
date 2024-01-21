@@ -5,36 +5,14 @@ namespace App\Models;
 use App\Models\Scopes\BranchScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
-use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
-use Spatie\Activitylog\Traits\LogsActivity;
 
-class PurchaseOrder extends Model
+class SalesOrder extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected $fillable = ['voucher_no', 'branch_id', 'supplier_id', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'remark', 'order_date'];
-
-    // public function getActivitylogOptions(): LogOptions
-    // {
-    //     $logOptions = LogOptions::defaults()
-    //         ->setDescriptionForEvent(function (string $eventName) {
-    //             $userName = Auth::user()->name ?? 'Unknown User';
-    //             return "{$userName} {$eventName} the Purchase Order (Voucher_no {$this->voucher_no})";
-    //         });
-            
-        
-    //     $logOptions->logName = 'PURCHASE_ORDER';
-
-    //     return $logOptions;
-    // }
-
-     /**
-     * The "booting" method of the model.
-     *
-     * @return void
-     */
+    protected $fillable = ['voucher_no', 'branch_id', 'customer_id', 'customer_name', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'remark', 'order_date'];
+    
     protected static function boot()
     {
         parent::boot();
@@ -56,15 +34,10 @@ class PurchaseOrder extends Model
         });
     }
 
-    /**
-     * Generates a voucher number for the purchase.
-     *
-     * @return string The generated voucher number.
-     */
     private function generateVoucherNo()
     {
         // Get the last voucher number without the branch scope
-        $lastVoucherNo = static::withoutGlobalScope(BranchScope::class)->where('voucher_no', 'like', 'PUR-O-%')->max('voucher_no');
+        $lastVoucherNo = static::withoutGlobalScope(BranchScope::class)->where('voucher_no', 'like', 'SAL-O-%')->max('voucher_no');
 
         // Generate a new voucher number based on the last voucher number
         if ($lastVoucherNo) {
@@ -74,7 +47,7 @@ class PurchaseOrder extends Model
             $count = static::count() + 1;
 
             // Generate a formatted voucher number with leading zeros
-            $voucherNo = "PUR-O-" . str_pad($count, 10, '0', STR_PAD_LEFT);
+            $voucherNo = "SAL-O-" . str_pad($count, 10, '0', STR_PAD_LEFT);
         }
 
         return $voucherNo;
@@ -85,14 +58,14 @@ class PurchaseOrder extends Model
         return $this->hasOne(Branch::class, 'id', 'branch_id');
     }
 
-    public function purchase_order_details()
+    public function sales_order_details()
     {
-        return $this->hasMany(PurchaseOrderDetail::class, 'purchase_order_id', 'id');
+        return $this->hasMany(SalesOrderDetail::class, 'sale_order_id', 'id');
     }
 
-    public function supplier()
+    public function customer()
     {
-        return $this->hasOne(Supplier::class, 'id', 'supplier_id');
+        return $this->hasOne(Customer::class, 'id', 'customer_id');
     }
 
     public function createActivity()

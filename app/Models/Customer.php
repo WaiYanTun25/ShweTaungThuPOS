@@ -10,6 +10,8 @@ class Customer extends Model
     use HasFactory;
     public $timestamps = false;
 
+    protected $fillable = ['name', 'phone_number', 'address' , 'township', 'city', 'customer_type'];
+
     public const SPECIFIC = "Specific";
     public const GENERAL = "General";
 

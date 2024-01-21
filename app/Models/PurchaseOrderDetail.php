@@ -14,11 +14,11 @@ class PurchaseOrderDetail extends Model
     use HasFactory;
     public $timestamps = false;
 
-    protected $fillable = ['purchase_id', 'item_id', 'unit_id', 'discount_amount', 'item_price', 'quantity', 'amount'];
+    protected $fillable = ['purchase_order_id', 'item_id', 'unit_id', 'discount_amount', 'item_price', 'quantity', 'amount'];
 
     public function purchaseOrder()
     {
-        return $this->belongsTo(PurchaseOrder::class, 'purchase_id', 'id');
+        return $this->belongsTo(PurchaseOrder::class, 'purchase_order_id', 'id');
     }
 
     public function item()

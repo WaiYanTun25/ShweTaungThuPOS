@@ -32,7 +32,7 @@ class PurchaseController extends ApiBaseController
      */
     public function index(Request $request)
     {
-        // အရောင်းမှတ်တမ်း
+        // အဝယ်မှတ်တမ်း
         $getPurchases = Purchase::with(['purchase_details', 'supplier']);
 
         try {

@@ -25,11 +25,12 @@ class DamageItemListResource extends ResourceCollection
         $damageList = $this->collection->map(function ($transferDetail) {
             return [
                 'id' => $transferDetail->id,
+                'voucher_no' => $transferDetail->voucher_no,
                 // 'type' => "Damage", // issue or recieve depend on comming rows
                 'item_code' => $transferDetail->item->item_code,
                 'item_name' => $transferDetail->item->item_name ?? "",
                 'category_name' => $transferDetail->item->category->name,
-                // 'voucher_no' => $transferDetail->voucher_no,
+                
                 'branch_name' => $transferDetail->damage->branch->name,
                 'quantity' => $transferDetail->quantity,
                 'transaction_date' => Carbon::parse($transferDetail->damage->transaction_date)->format('d/m/y'),
