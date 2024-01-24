@@ -169,6 +169,7 @@ class PurchaseController extends ApiBaseController
             // update the purchase
             $this->createOrUpdatePurchase($validatedData, Auth::user()->branch_id, true, $updatePurchase);
             
+            $this->addItemToBranch($validatedData['purchase_details']);
             // deduct prev quantity from branch
             $this->deductItemFromBranch($updatePurchase->purchase_details, Auth::user()->branch_id);
             $updatePurchase->purchase_details()->delete();
@@ -176,15 +177,15 @@ class PurchaseController extends ApiBaseController
             // create many purchase details
             $updatePurchase->purchase_details()->createMany($validatedData['purchase_details']);
             // Add the items to the branch
-            $this->addItemToBranch($validatedData['purchase_details']);
+            
 
             DB::commit();
-            $message = 'Issue (' . $updatePurchase->voucher_no . ') is updated successfully';
+            $message = 'Puchases (' . $updatePurchase->voucher_no . ') is updated successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
         } catch (Exception $e) {
             DB::rollBack();
             info($e->getMessage());
-            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -203,7 +204,7 @@ class PurchaseController extends ApiBaseController
         $deletePurchase = Purchase::findOrFail($id);
         DB::beginTransaction();
         try {
-            $this->addItemtoBranch($deletePurchase->purchase_details);
+            $this->deductItemFromBranch($deletePurchase->purchase_details, Auth::user()->branch_id);
             $deletePurchase->purchase_details()->delete();
             $deletePurchase->delete();
 
@@ -212,7 +213,7 @@ class PurchaseController extends ApiBaseController
             return $this->sendSuccessResponse($message, Response::HTTP_OK);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->sendErrorResponse('Something went wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
 

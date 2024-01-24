@@ -3,15 +3,15 @@
 namespace App\Http\Requests;
 
 use App\Models\Inventory;
-use App\Models\ItemUnitDetail;
-use App\Models\Purchase;
-use App\Models\PurchaseDetail;
+use App\Models\SalesReturn;
+use App\Models\SalesReturnDetail;
 use Illuminate\Foundation\Http\FormRequest;
+
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Facades\Auth;
 
-class PurchaseRequest extends FormRequest
+class SalesReturnRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -22,6 +22,7 @@ class PurchaseRequest extends FormRequest
             ], 422)
         );
     }
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -37,32 +38,32 @@ class PurchaseRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules =  [
-            'supplier_id' => 'required | integer | exists:suppliers,id',
-            'amount' => 'required | integer | min: 1',
-            'total_amount' => 'required | integer',
+        return [
+            'customer_id' => 'required | integer | exists:customers,id',
+            'customer_name' => 'nullable',
+            'amount' => 'required | integer | min:1',
+            'total_amount' => 'required | integer | min:1',
             'tax_percentage' => 'required | integer',
             'tax_amount' => 'required | integer',
             'discount_percentage' => 'required | integer',
             'discount_amount' => 'required | integer',
-            'payment_status' => 'required | in:PARTIALLY_PAID,FULLY_PAID,UN_PAID',
             'remark' => 'required | max:100',
-            // 'pay_amount' => 'required | integer',
-            // 'payment_method' => 'required',
-            'purchase_details.*.item_id' => 'required|integer | exists:items,id',
-            'purchase_details.*.unit_id' => 'required|integer | exists:units,id',
-            'purchase_details.*.item_price' => 'required|integer|min:1',
-            'purchase_details.*.quantity' => 'required|integer|min:1',
-            'purchase_details.*.discount_amount' => 'required |integer',
-            'purchase_details.*.amount' => 'required | integer | min:1',
-            'purchase_details' => [
+            'pay_amount' => 'required | min:1',
+            'payment_method' => 'required | exists:payment_methods,id',
+            'sales_return_details.*.item_id' => 'required|integer | exists:items,item_id',
+            'sales_return_details.*.unit_id' => 'required|integer | exists:units,unit_id',
+            'sales_return_details.*.item_price' => 'required|integer|min:1',
+            'sales_return_details.*.quantity' => 'required|integer|min:1',
+            'sales_return_details.*.discount_amount' => 'required |integer',
+            'sales_return_details.*.amount' => 'required | integer | min:1',
+            'sales_return_details' => [
                 'required',
                 'array',
                 function ($attribute, $value, $fail) {
 
                     if ($this->isMethod('put') || $this->isMethod('patch')) {
-                        $requestId = $this->route('purchase');
-                        $purchaseData = Purchase::find($requestId);
+                        $requestId = $this->route('sales_returns');
+                        $salesReturnData = SalesReturn::find($requestId);
                     }
 
                     foreach ($value as $index => $item)
@@ -78,15 +79,14 @@ class PurchaseRequest extends FormRequest
                             // check item and unit exists or not
                             if($this->isMethod('put') || $this->isMethod('patch'))
                             {
-                                $checkPurchase = Purchase::findOrFail($requestId);
+                                $checkSaleReturn = SalesReturn::findOrFail($requestId);
 
-                                $detail = PurchaseDetail::where('item_id', $item['item_id'])->where('unit_id', $item['unit_id'])->where('purchase_id', $checkPurchase->id)->first();
+                                $detail = SalesReturnDetail::where('item_id', $item['item_id'])->where('unit_id', $item['unit_id'])->where('sale_return_id', $checkSaleReturn->id)->first();
                                 if($detail){
-                                    $totalQuantity =  $detail->quantity - $quantity;
-                                    info($totalQuantity);
+                                    $totalQuantity =  $quantity - $detail->quantity;
                                     $itemExists = Inventory::where('item_id', $item['item_id'])
                                     ->where('unit_id', $item['unit_id'])
-                                    ->where('branch_id', $checkPurchase->branch_id)
+                                    ->where('branch_id', $checkSaleReturn->branch_id)
                                     ->where('quantity', '>=', $totalQuantity)
                                     ->exists();
                                 }else{
@@ -97,32 +97,17 @@ class PurchaseRequest extends FormRequest
                                     ->where('quantity', '>=', $quantity)
                                     ->exists();
                                 }
-                            }else{
-                                $itemExists = Inventory::where('item_id', $item['item_id'])
-                                ->where('unit_id', $item['unit_id'])
-                                ->where('branch_id', Auth::user()->branch_id)
-                                ->where('quantity', '>=', $quantity)
-                                ->exists();
-                            }
 
-                            if (!$itemExists) {
-                                $fail("Insufficient Quantity for {$index}.item_id: {$item['item_id']}, unit_id: {$item['unit_id']}");
+                                
+
+                                if (!$itemExists) {
+                                    $fail("Invalid for {$attribute}.{$index}.item_id: {$item['item_id']}, unit_id: {$item['unit_id']}");
+                                }
                             }
                         }
                     }
                 }
             ]
         ];
-
-        if ($this->input('payment_status') === 'UN_PAID') {
-            $rules['payment_method'] = 'nullable';
-            $rules['pay_amount'] = 'nullable|integer';
-        } else {
-            // If payment_status is not UN_PAID, ensure payment_method and pay_amount are required
-            $rules['payment_method'] = 'required';
-            $rules['pay_amount'] = 'required|integer';
-        }
-
-        return $rules;
     }
 }

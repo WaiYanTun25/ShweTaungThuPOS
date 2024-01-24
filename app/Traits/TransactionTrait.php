@@ -68,37 +68,35 @@ trait TransactionTrait
    
 
    // damage functions
-   public function deductItemFromBranch($item_details, $branchId)
+   public function deductItemFromBranch($item_details, $branchId , $sales = false)
    {
       try{
          // info($this->request->item_detail);
-         foreach($item_details as $detail)
+         foreach($item_details as $index=>$detail)
          {
              $deductFromInventory = Inventory::where('item_id', $detail['item_id'])
              ->where('unit_id', $detail['unit_id'])
              ->where('branch_id', $branchId)
              ->first();
-             // $deductQuantity = min($deductFromInventory->quantity, $detail['quantity']);
-            //  if($deductFromInventory)
-            //  {
-            //      $deductFromInventory->decrement('quantity', $detail['quantity']);
-            //  }else{
-            //      throw new Exception('Failed to deduct quantity from inventories');
-            //  }
 
-             if ($deductFromInventory && $deductFromInventory->quantity >= $detail['quantity']) {
+            if ($deductFromInventory && $deductFromInventory->quantity >= $detail['quantity']) {
                // Perform the decrement
                $deductFromInventory->decrement('quantity', $detail['quantity']);
-            } else {
+            } else if ($sales) 
+            {
+               $deductFromInventory->quantity = $deductFromInventory->quantity - $detail['quantity'];
+               $deductFromInventory->save();
+            }
+            else {
                   // Handle insufficient quantity or other logic
                   // You might want to throw an exception, log a message, or take appropriate action
                   throw new \Exception('Insufficient quantity to deduct.');
+                  // throw new \Exception("Insufficient Quantity for {$index}.item_id: {$detail['item_id']}, unit_id: {$detail['unit_id']}");
             }
          }
      }catch(Exception $e)
      {
-         info($e->getMessage());
-         throw new \Exception('Insufficient quantity to deduct.');
+         throw new \Exception($e->getMessage());
      }
    }
 

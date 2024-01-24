@@ -3,15 +3,25 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SalesReturnRequest;
+use App\Http\Resources\SalesReturnDetailResource;
 use App\Http\Resources\SalesReturnListResource;
 use App\Models\SalesReturn;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use stdClass;
+
+use App\Traits\{
+    SalesReturnTrait,
+    TransactionTrait
+};
 
 class SalesReturnController extends ApiBaseController
 {
+    use SalesReturnTrait , TransactionTrait;
     public function index(Request $request)
     {
         $getPurchaseReturn = SalesReturn::with('sales_return_details');
@@ -21,8 +31,8 @@ class SalesReturnController extends ApiBaseController
             if ($search) {
                 $getPurchaseReturn->where(function ($query) use ($search) {
                     $query->where('voucher_no', 'like', "%$search%")
-                        ->orWhereHas('customer', function ($supplierQuery) use ($search) {
-                            $supplierQuery->where('name', 'like', "%$search%");
+                        ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                            $customerQuery->where('name', 'like', "%$search%");
                         })
                         ->orWhereHas('sales_return_details', function ($detailsQuery) use ($search) {
                             $detailsQuery->whereHas('item', function ($itemQuery) use ($search) {
@@ -42,7 +52,7 @@ class SalesReturnController extends ApiBaseController
                 ->whereDate('sales_return_date', '<=', $endDate);
             }
 
-            // Supplier Filtering
+            // customer Filtering
             $customer_id = $request->query('customer_id');
             if ($customer_id) {
                 $getPurchaseReturn->where('customer_id', $customer_id);
@@ -79,23 +89,38 @@ class SalesReturnController extends ApiBaseController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(PurchaseReturnRequest $request)
+    public function create(SalesReturnRequest $request)
     {
         $validatedData = $request->validated();
         DB::beginTransaction();
         try{
             // Create the purchase return
-            $createdPurchaseReturn = $this->createOrUpdatePurchaseReturn($validatedData, Auth::user()->branch_id);
+            $createdSalesReturn = $this->createOrUpdateSalesReturn($validatedData, Auth::user()->branch_id);
 
-            $createdPurchaseReturn->purchase_return_details()->createMany($validatedData['purchase_return_details']);
-            $this->deductItemFromBranch($validatedData['purchase_return_details'], Auth::user()->branch_id);
+            $createdSalesReturn->sales_return_details()->createMany($validatedData['sales_return_details']);
+            $this->addItemtoBranch($validatedData['sales_return_details']);
             DB::commit();
 
-            $message = 'Purchase Return (' . $createdPurchaseReturn->voucher_no . ') is created successfully';
+            $message = 'Sales Return (' . $createdSalesReturn->voucher_no . ') is created successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
          }catch(Exception $e){
             DB::rollBack();
             return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public function show($id)
+    {
+        $getSalesReturn = SalesReturn::with('sales_return_details')->findOrFail($id);
+
+        $getCollection = new SalesReturnDetailResource($getSalesReturn);
+
+
+        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $getCollection);
+    }
+
+    public function update(SalesReturnRequest $request, $id)
+    {
+
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PurchaseReturnRequest;
+use App\Http\Resources\PurchaseReturnDetailResource;
 use App\Http\Resources\PurchaseReturnListResource;
 use App\Models\PurchaseReturn;
 use Exception;
@@ -113,7 +114,12 @@ class PurchaseReturnController extends ApiBaseController
      */
     public function show(string $id)
     {
-        return $id;
+        $getPurchaseReturn = PurchaseReturn::with('purchase_return_details')->findOrFail($id);
+
+        $getCollection = new PurchaseReturnDetailResource($getPurchaseReturn);
+
+
+        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $getCollection);
     }
 
     /**

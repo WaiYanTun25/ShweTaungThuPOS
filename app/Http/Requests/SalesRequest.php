@@ -48,11 +48,11 @@ class SalesRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     $branchId = Auth::user()->branch_id;
 
-                    if($this->isMethod('put') || $this->isMethod('patch'))
-                    {
-                        $requestId = $this->route('damage');
-                        $saleData = Sale::find($requestId);  
-                    }
+                    // if($this->isMethod('put') || $this->isMethod('patch'))
+                    // {
+                    //     $requestId = $this->route('damage');
+                    //     $saleData = Sale::find($requestId);  
+                    // }
                     
                     foreach ($value as $item) {
                         // Check if 'quantity' key is present in the item array
@@ -71,30 +71,31 @@ class SalesRequest extends FormRequest
                                 continue; // Skip further checks for this item
                             }
 
-                            if($this->isMethod('put') || $this->isMethod('patch'))
-                            {
-                                $detail = SaleDetail::where('item_id', $item['item_id'])->where('unit_id', $item['unit_id'])->where('voucher_no', $saleData->voucher_no)->first();
+                            // if($this->isMethod('put') || $this->isMethod('patch'))
+                            // {
+                            //     $detail = SaleDetail::where('item_id', $item['item_id'])->where('unit_id', $item['unit_id'])->where('voucher_no', $saleData->voucher_no)->first();
 
-                                if($detail){
-                                    $totalQuantity =  $quantity - $detail->quantity;
-                                    $itemExists = Inventory::where('item_id', $item['item_id'])
-                                    ->where('unit_id', $item['unit_id'])
-                                    ->where('branch_id', $branchId)
-                                    ->where('quantity', '>=', $totalQuantity)
-                                    ->exists();
-                                }else{
-                                    $itemExists = true;
-                                }
-                            }else{
-                                $itemExists = Inventory::where('item_id', $item['item_id'])
-                                ->where('unit_id', $item['unit_id'])
-                                ->where('branch_id', $branchId)
-                                ->where('quantity', '>=', $quantity)
-                                ->exists();
-                            }
-                            if (!$itemExists) {
-                                $fail("Insufficient quantity for item_id: {$item['item_id']}, unit_id: {$item['unit_id']} for quantity: {$quantity}");
-                            }
+                            //     if($detail){
+                            //         $totalQuantity =  $quantity - $detail->quantity;
+                            //         $itemExists = Inventory::where('item_id', $item['item_id'])
+                            //         ->where('unit_id', $item['unit_id'])
+                            //         ->where('branch_id', $branchId)
+                            //         ->where('quantity', '>=', $totalQuantity)
+                            //         ->exists();
+                            //     }else{
+                            //         $itemExists = true;
+                            //     }
+                            // }else{
+                            //     $itemExists = Inventory::where('item_id', $item['item_id'])
+                            //     ->where('unit_id', $item['unit_id'])
+                            //     ->where('branch_id', $branchId)
+                            //     ->where('quantity', '>=', $quantity)
+                            //     ->exists();
+                            // }
+                            
+                            // if (!$itemExists) {
+                            //     $fail("Insufficient quantity for item_id: {$item['item_id']}, unit_id: {$item['unit_id']} for quantity: {$quantity}");
+                            // }
                         }
                     }
                 },

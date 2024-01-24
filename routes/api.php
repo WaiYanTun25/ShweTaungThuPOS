@@ -139,6 +139,20 @@ Route::post('/central_links', function () {
                 ],
                 "sale_detail" => config('app.url') . "/api/sales/{id}",
                 "create sales (POST)" => config('app.url') . "/api/sales",
+                "total sales List" => config('app.url') . "/api/sales/total_sales_list?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=2024-01-01 00:00:00&endDate=2024-01-09 23:59:59&supplierId=1",
+                "total order List" => config('app.url') . "/api/sales_orders",
+                "create_sales_orders (POST)" => config('app.url') . "/api/sales_orders",
+                "update_sales_orders (PUT)" => config('app.url') . "/api/sales_orders/{id}",
+                "delete_sales_orders (DELETE)" => config('app.url') . "/api/sales_orders/{id}",
+                "sales return list" => config('app.url') . "/api/sales_returns?searchBy=&order=desc&column=pay_amount&startDate&endDate&customer_id&report=",
+                "sales return detail" => config('app.url') . "/api/sales_returns/1",
+                "create purchase return" => [
+                    "pre_form (GET)" => config('app.url') . "/api/purchases/{id}/pre_return_form_data",
+                    "Create form (POST)" => config('app.url') . '/api/purchase_returns',
+                ],
+                "update sales return (PUT)" => "UNDER CONSTRUCTION",
+                "delete sales return (DELETE)" => "UNDER CONSTRUCTION",
+                
             ]
         ]
     ];
@@ -225,5 +239,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     Route::prefix('sales_returns')->group(function () {
         Route::get('', [SalesReturnController::class, 'index']);
         Route::post('', [SalesReturnController::class, 'create']);
+        Route::get('{id}', [SalesReturnController::class, 'show']);
+        Route::post('{id}', [SalesReturnController::class, 'update']);
     });
 });

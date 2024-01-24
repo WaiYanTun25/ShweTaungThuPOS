@@ -107,7 +107,7 @@ class SalesController extends ApiBaseController
             $createdSales->sales_details()->createMany($validatedData['sales_details']);
 
             // Add the items to the branch
-            $this->deductItemFromBranch($validatedData['sales_details'], $branch_id);
+            $this->deductItemFromBranch($validatedData['sales_details'], $branch_id , true);
 
             // Commit the database transaction
             DB::commit();
@@ -134,9 +134,28 @@ class SalesController extends ApiBaseController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(SalesRequest $request, string $id)
     {
-        //
+        $updatedSales = Sale::findOrFail($id);
+        DB::beginTransaction();
+
+        try{
+            $validatedData = $request->validated();
+            $this->createOrUpdateSales($validatedData, Auth::user()->branch_id, true, $updatedSales);
+
+            $this->addItemToBranch($validatedData['sales_details']);
+
+            // deduct prev quantity from branch
+            $this->deductItemFromBranch($updatedSales->sales_details, Auth::user()->branch_id, true);
+
+            DB::commit();
+            $message = 'Puchases (' . $updatedSales->voucher_no . ') is updated successfully';
+            return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
+        }catch(Exception $e){
+            DB::rollBack();
+            info($e->getMessage());
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
     }
 
     /**
