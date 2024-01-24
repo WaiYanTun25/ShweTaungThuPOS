@@ -116,7 +116,7 @@ class SalesController extends ApiBaseController
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
         }catch(Exception $e){
             DB::rollBack();
-            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
 

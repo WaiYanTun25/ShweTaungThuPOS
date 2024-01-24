@@ -17,6 +17,11 @@ class Purchase extends Model
     public $timestamps = false;
     protected $fillable = ['voucher_no', 'payment_id', 'branch_id', 'supplier_id', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'pay_amount', 'remain_amount', 'payment_status', 'remark', 'purchase_date'];
 
+    // const
+    public const UN_PAID = "UN_PAID";
+    public const PARTIALLY_PAID = "PARTIALLY_PAID";
+    public const FULLY_PAID = "FULLY_PAID";
+
     public function getActivitylogOptions(): LogOptions
     {
         $logOptions = LogOptions::defaults()

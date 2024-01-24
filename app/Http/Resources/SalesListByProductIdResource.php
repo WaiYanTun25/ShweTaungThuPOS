@@ -5,9 +5,8 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PurchaseListByProductIdResource extends JsonResource
+class SalesListByProductIdResource extends JsonResource
 {
-
     private $report;
     public function __construct($resource, $report = false)
     {
@@ -21,12 +20,13 @@ class PurchaseListByProductIdResource extends JsonResource
      */
     public function toArray(Request $request): array
     {   
-        $purchase_product_list =  $this->map(function ($purchase) {
+        $sales_product_list =  $this->map(function ($purchase) {
             return [
                 'id' => $purchase->id,
                 'voucher_no' => $purchase->voucher_no,
-                'supplier_name' => $purchase->supplier->name,
-                'supplier_id' => $purchase->supplier_id,
+                'customer_name' => $purchase->customer->name,
+                'customer_id' => $purchase->customer_id,
+                'customer_type' => $purchase->customer->customer_type,
                 'total_quantity' => $purchase->total_quantity,
                 'purchase_date' => formatToCustomDate($purchase->purchase_date),
                 'total_amount' => $purchase->total_amount,
@@ -38,11 +38,11 @@ class PurchaseListByProductIdResource extends JsonResource
 
         if($this->report){
             return [
-                'product_list' => $purchase_product_list
+                'sales_list' => $sales_product_list
             ];
         }else{
             return [
-                'purchase_list' => $purchase_product_list,
+                'sales_list' => $sales_product_list,
                 'links' => [
                     'first' => $this->url(1),
                     'last' => $this->url($this->lastPage()),

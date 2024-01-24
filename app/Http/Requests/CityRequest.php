@@ -6,8 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
 
-
-class BranchRequest extends FormRequest
+class CityRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -34,9 +33,7 @@ class BranchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "name" => 'required | unique:branches',
-            "phone_number" => "required",
-            "address" => 'required'
+            'name' => 'required | unique:cities',
         ];
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\IssueReceiveDamageResource;
 use App\Http\Resources\LowStockResource;
 use App\Http\Resources\PurchaseListByProductIdResource;
+use App\Http\Resources\SalesListByProductIdResource;
 use App\Http\Resources\StockHistroyResource;
 use App\Models\Inventory;
 use App\Models\Item;
@@ -23,6 +24,7 @@ use App\Models\Damage;
 use App\Models\Receive;
 use App\Models\Purchase;
 use App\Models\PurchaseDetail;
+use App\Models\Sale;
 use App\Models\Scopes\BranchScope;
 use Carbon\Carbon;
 
@@ -333,6 +335,7 @@ class InventoryController extends ApiBaseController
         $supplier_id = $request->query('supplier_id');
         $startDate = $request->query('startDate');
         $endDate = $request->query('endDate');
+        $payment_status = $request->query('payment_status');
 
         $purchase_products = Purchase::with(['purchase_details' => function ($query) use ($id) {
             $query->where('item_id', $id);
@@ -354,6 +357,15 @@ class InventoryController extends ApiBaseController
             $purchase_products->where('supplier_id', $supplier_id);
         }
 
+        if (!empty($payment_status)) {
+            $paymentArray = explode(",", $payment_status);
+        
+            // Check if $paymentArray is not empty
+            if (!empty($paymentArray)) {
+                $purchase_products->whereIn('payment_status', $paymentArray);
+            }
+        }
+
         if($search) {
             $purchase_products->where(function ($query) use ($search) {
                 $query->whereHas('supplier', function ($subquery) use ($search) {
@@ -372,6 +384,69 @@ class InventoryController extends ApiBaseController
         $results = $purchase_products->orderBy($column, $order)->paginate($perPage);
 
         $resourceCollection = new PurchaseListByProductIdResource($results);
+
+        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+    }
+
+    public function productSalesListById(Request $request , $id)
+    {
+        $perPage = $request->query('perPage', 10);
+        $search = $request->query('searchBy');
+        $order = $request->query('order', 'asc');
+        $column = $request->query('column', 'id');
+
+        // filter
+        $customer_id = $request->query('customer_id');
+        $startDate = $request->query('startDate');
+        $endDate = $request->query('endDate');
+        $payment_status = $request->query('payment_status');
+
+        $sales_products = Sale::with(['sales_details' => function ($query) use ($id) {
+            $query->where('item_id', $id);
+        }])->whereHas('sales_details', function ($query) use ($id) {
+            $query->where('item_id', $id);
+        })->withSum('sales_details as total_product_quantity', 'quantity');
+
+        if(Auth::user()->branch_id != 0)
+        {
+            $sales_products->where('branch_id', Auth::user()->branch_id);
+        }
+
+        if($startDate && $endDate) {
+            $sales_products->whereDate('sales_date', '>=', $startDate)
+            ->whereDate('sales_date', '<=', $endDate);
+        }
+        if($customer_id) {
+            $sales_products->where('customer_id', $customer_id);
+        }
+
+        if (!empty($payment_status)) {
+            $paymentArray = explode(",", $payment_status);
+        
+            // Check if $paymentArray is not empty
+            if (!empty($paymentArray)) {
+                $sales_products->whereIn('payment_status', $paymentArray);
+            }
+        }
+
+        if($search) {
+            $sales_products->where(function ($query) use ($search) {
+                $query->whereHas('customer', function ($subquery) use ($search) {
+                    $subquery->where('name', 'like', '%' . $search . '%');
+                })
+                ->orWhere('voucher_no', 'like', '%' . $search . '%');
+            });
+        }
+
+        if($request->query('report') == "True") {
+            $results = $sales_products->orderBy($column, $order)->get();
+            $resourceCollection = new SalesListByProductIdResource($results, True);
+            return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+        }
+
+        $results = $sales_products->orderBy($column, $order)->paginate($perPage);
+
+        $resourceCollection = new SalesListByProductIdResource($results);
 
         return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
     }

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\{
     InventoryController,
     IssueController,
     ItemController,
+    LocationController,
     PurchaseController,
     PurchaseOrderController,
     PurchaseReturnController,
@@ -75,7 +76,7 @@ Route::post('/central_links', function () {
             ],
             "product detail" => config('app.url') . "/api/items/{id}",
             "product purchase list" => config('app.url') . "/api/products/{id}/purchase_list",
-            "product sale list" => "UNDER CONSTRUCTION",
+            "product sale list" => config('app.url') . "/api/products/{id}/sales_list",
             "stock history" =>  config('app.url') . "/api/products/{id}/stock_history_list",
             "Unit Conversion" => [
                 "get Item By Code" => config('app.url') . '/api/items/code/{item_code}',
@@ -154,6 +155,13 @@ Route::post('/central_links', function () {
                 "delete sales return (DELETE)" => "UNDER CONSTRUCTION",
                 
             ]
+        ],
+        "Customer Module" => [
+            "customers_requests" => [
+                "customers" => [
+                    "customers List" => config('app.url') . "/api/customers"
+                ]
+            ]
         ]
     ];
 });
@@ -193,6 +201,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::get('summary', [InventoryController::class, 'getInventorySummary']);
         Route::get('products/{id}/stock_history_list', [InventoryController::class, 'getStockHistory']);
         Route::get('products/{id}/purchase_list', [InventoryController::class, 'productPurchaseListById']);
+        Route::get('products/{id}/sales_list', [InventoryController::class, 'productSalesListById']);
     });
     Route::apiResource('issues', IssueController::class);
     Route::apiResource('receives', ReceiveController::class);
@@ -240,6 +249,22 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::get('', [SalesReturnController::class, 'index']);
         Route::post('', [SalesReturnController::class, 'create']);
         Route::get('{id}', [SalesReturnController::class, 'show']);
-        Route::post('{id}', [SalesReturnController::class, 'update']);
+        Route::put('{id}', [SalesReturnController::class, 'update']);
+    });
+
+    Route::prefix('cities')->group(function () {
+        Route::get('', [LocationController::class, 'getCities']);
+        Route::post('', [LocationController::class, 'createCities']);
+        Route::get('{id}', [LocationController::class, 'getCityById']);
+        Route::put('{id}', [LocationController::class, 'updateCities']);
+        Route::delete('{id}', [LocationController::class, 'deleteCities']);
+    });
+
+    Route::prefix('townships')->group(function () {
+        Route::get('', [LocationController::class, 'getTownships']);
+        Route::post('', [LocationController::class, 'createTownships']);
+        Route::get('{id}', [LocationController::class, 'getTownshipById']);
+        Route::put('{id}', [LocationController::class, 'updateTownships']);
+        Route::delete('{id}', [LocationController::class, 'deleteTownships']);
     });
 });
