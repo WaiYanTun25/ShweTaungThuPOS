@@ -257,7 +257,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::post('', [LocationController::class, 'createCities']);
         Route::get('{id}', [LocationController::class, 'getCityById']);
         Route::put('{id}', [LocationController::class, 'updateCities']);
-        Route::delete('{id}', [LocationController::class, 'deleteCities']);
+        Route::delete('{id}', [LocationController::class, 'deleteCity']);
     });
 
     Route::prefix('townships')->group(function () {

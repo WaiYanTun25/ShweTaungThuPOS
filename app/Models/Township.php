@@ -9,6 +9,7 @@ class Township extends Model
 {
     use HasFactory;
     public $timestamps = false;
+    protected $fillable = ['city_id', 'name'];
 
     protected static function boot()
     {
@@ -20,5 +21,10 @@ class Township extends Model
                 $model->created_date = now();
             }
         });
+    }
+
+    public function customers()
+    {
+        return $this->hasMany(Customer::class, 'city', 'id');
     }
 }

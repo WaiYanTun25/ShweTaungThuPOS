@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CityRequest;
+use App\Http\Requests\TownshipRequest;
 use App\Models\City;
+use App\Models\Township;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -43,38 +45,80 @@ class LocationController extends ApiBaseController
 
     public function updateCities(Request $request, $id)
     {
+        $getCity = City::findOrFail($id);
+        $getCity->update($request->all());
 
+        return $this->sendSuccessResponse('Success', Response::HTTP_CREATED);
     }
 
-    public function deleteCities($id)
+    public function deleteCity($id)
     {
+        $getCity = City::findOrfail($id);
 
+        // Check if there are related records in the customer or township table
+        $hasRelatedRecords = $getCity->customers()->exists() || $getCity->townships()->exists();
+
+        // If there are related records, do not delete the city
+        if ($hasRelatedRecords) {
+            return $this->sendErrorResponse('City has related records in customer or township table. Cannot delete.', Response::HTTP_CONFLICT);
+        }
+        $getCity->delete();
+        $getCity->townships()->delete();
+        $message = 'City (' . $getCity->name . ') is Deleted successfully';
+        return $this->sendSuccessResponse($message, Response::HTTP_OK);
     }
 
     // townships functions
 
     public function getTownships(Request $request)
     {
+        $getTownships = Township::get();
 
+        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $getTownships);
     }
 
-    public function createTownships(Request $request)
+    public function createTownships(TownshipRequest $request)
     {
+        $validatedData = $request->validated();
+        try{
+            $createdTownship = Township::create($validatedData);
 
+            $message = 'Township (' . $createdTownship->name . ') is created successfully';
+            return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
+        }catch(Exception $e) {
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
-    public function getTownshipById(Request $request)
+    public function getTownshipById(Request $request, $id)
     {
-        
+        $getTownship = Township::findOrFail($id);
+
+        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $getTownship);
     }
 
     public function updateTownships(Request $request, $id)
     {
+        $getTownship = Township::findOrFail($id);
+        $getTownship->update($request->all());
 
+        $message = 'Township (' . $getTownship->name . ') is updated successfully';
+        return $this->sendSuccessResponse($message, Response::HTTP_CREATED, $getTownship);
     }
 
     public function deleteTownships($id)
     {
+        $getTownship = Township::findOrFail($id);
 
+        // Check if there are related records in the customer or township table
+        $hasRelatedRecords = $getTownship->customers()->exists();
+
+        // If there are related records, do not delete the city
+        if ($hasRelatedRecords) {
+            return $this->sendErrorResponse('Townships has related records in customer. Cannot delete.', Response::HTTP_CONFLICT);
+        }
+        $getTownship->delete();
+        $message = 'Township (' . $getTownship->name . ') is Deleted successfully';
+        return $this->sendSuccessResponse($message, Response::HTTP_OK);
     }
 }
