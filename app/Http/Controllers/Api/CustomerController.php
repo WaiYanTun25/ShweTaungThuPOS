@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomerRequet;
+use App\Http\Resources\CustomerListResource;
 use App\Models\Customer;
 use Exception;
 use Illuminate\Http\{
@@ -12,6 +13,7 @@ use Illuminate\Http\{
 };
 
 use App\Traits\CustomerTrait;
+use Illuminate\Support\Facades\DB;
 
 class CustomerController extends ApiBaseController
 {
@@ -30,27 +32,58 @@ class CustomerController extends ApiBaseController
      */
     public function index(Request $request)
     {
-        $getCustomers = Customer::select('*');
-        $search = $request->query('searchBy');
+        $getCustomers = Customer::select('*',
+                    DB::raw('COALESCE((SELECT SUM(COALESCE(s.remain_amount, 0)) - SUM(COALESCE(p.pay_amount, 0)) FROM sales s
+                    LEFT JOIN payments p ON customers.id = p.subject_id AND p.type = "Customer"
+                    WHERE customers.id = s.customer_id GROUP BY customers.id), 0) as debt_amount')
+                    );
 
+        // filters
+        $cityID = $request->query('city_id');
+        $townshipID = $request->query('township_id');
+        $hasDebt = $request->query('hasDebt');
+        $hasNoDebt = $request->query('hasNoDebt');
+
+        // report 
+        $report = $request->query('report');
+
+        if ($cityID) {
+            $getCustomers->where('city', $cityID);
+        }
+        if ($townshipID) {
+            $getCustomers->where('township', $townshipID);
+        }
+
+        if($hasDebt && $hasNoDebt || !$hasDebt && !$hasNoDebt){ 
+          
+        } elseif ($hasDebt && !$hasNoDebt) {
+            $getCustomers->having('debt_amount', '>' , 0);
+        } else if(!$hasDebt && $hasNoDebt) {
+            $getCustomers->having('debt_amount', '=' , 0);
+        }
+
+        $search = $request->query('searchBy');
         if ($search)
         {
-            $getCustomers->where('name', 'like', "%$search%")
-                    ->orWhere('phone_number', 'like', "%$search%")
-                    ->orWhere('address', 'like', "%$search%")
-                    ->orWhere('township', 'like', "%$search%")
-                    ->orWhere('city', 'like', "%$search%")
-                    ->orWhere('join_date', 'like', "%$search%");
+            $getCustomers->where('name', 'like', "%$search%");
         }
         // Handle order and column
         $order = $request->query('order', 'asc'); // default to asc if not provided
-        $column = $request->query('column', 'id'); // default to id if not provided
-
+        $column = $request->query('column', 'join_date'); // default to id if not provided
+        $perPage = $request->query('perPage', 10);
         $getCustomers->orderBy($column, $order);
+        
+        if ($report == 'True') {
+            $customers = $getCustomers->get();
+            $getCollection = new CustomerListResource($customers, true);
+            return $this->sendSuccessResponse('success', Response::HTTP_OK, $getCollection);
+        }
+        
+        $customers = $getCustomers->paginate($perPage);
 
-        $customers = $getCustomers->get();
+        $getCollection = new CustomerListResource($customers);
 
-        return $this->sendSuccessResponse('success', Response::HTTP_OK, $customers);
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $getCollection);
     }
 
     /**
