@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('phone_number');
             $table->text('address');
-            $table->string('township');
-            $table->string('city');
+            $table->integer('township');
+            $table->integer('city');
             $table->timestamp('join_date');
             $table->enum('customer_type', ['General', 'Specific']);
             // $table->timestamps();

@@ -42,7 +42,7 @@ class CustomerRequet extends FormRequest
         ];
 
         if ($this->isMethod('post')) {
-            $rules['customer_type'] = 'required|in:1,2';
+            $rules['customer_type'] = 'required|in:General,Specific';
         }
 
         // If it's a PUT or PATCH request (update), only add the 'required' rule for the 'name' field

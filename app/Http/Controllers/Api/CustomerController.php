@@ -98,7 +98,7 @@ class CustomerController extends ApiBaseController
             $createCustomer->phone_number = $request->phone_number;
             $createCustomer->township = $request->township;
             $createCustomer->city = $request->city;
-            $createCustomer->customer_type = $request->customer_type == 1 ? Customer::SPECIFIC : Customer::GENERAL;
+            $createCustomer->customer_type = $request->customer_type == "General" ? Customer::GENERAL : Customer::SPECIFIC;
             $createCustomer->save();
 
             $message = 'Customer ('.$createCustomer->name.') is created successfully';
@@ -146,14 +146,15 @@ class CustomerController extends ApiBaseController
     public function destroy(string $id)
     {
         $customer = Customer::findOrFail($id);
+
         try{
-            if($this->checkCustomerHasRelatedData($customer->id))
+            if($this->checkCustomerHasRelatedData($customer))
             {
                 return $this->sendErrorResponse('There are related data with '.$customer->name, Response::HTTP_CONFLICT);
             }
             $customer->delete();
 
-            $message = 'Supplier ('.$customer->name.') is deleted successfully';
+            $message = 'Customer ('.$customer->name.') is deleted successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_OK);
         }catch(Exception $e){
             info($e->getMessage());

@@ -6,8 +6,11 @@ use App\Models\Branch;
 
 trait CustomerTrait
 {
-   public function checkCustomerHasRelatedData($itemId)
+   public function checkCustomerHasRelatedData($customer)
    {
-    return true;
+      if($customer->sales()->exists() || $customer->customerPayments()->exists()){
+         return true;
+      }
+      return false;
    }
 }

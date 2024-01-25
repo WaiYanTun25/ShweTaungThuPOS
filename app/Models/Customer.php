@@ -4,16 +4,33 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Customer extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
     public $timestamps = false;
 
     protected $fillable = ['name', 'phone_number', 'address', 'township', 'city', 'customer_type'];
 
     public const SPECIFIC = "Specific";
     public const GENERAL = "General";
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        $logOptions = LogOptions::defaults()
+            ->setDescriptionForEvent(function (string $eventName) {
+                $userName = "{userName}";
+                return "{$userName} {$eventName} the Customer ({$this->name})";
+            });
+
+
+        $logOptions->logName = 'CUSTOMER';
+
+        return $logOptions;
+    }
 
     protected static function boot()
     {
@@ -51,10 +68,20 @@ class Customer extends Model
         return $this->belongsTo(City::class, 'city');
     }
 
-    public function scopeCustomerPayments($query)
+    // public function scopeCustomerPayments($query)
+    // {
+    //     return $query->whereHas('payments', function ($query) {
+    //         $query->where('type', 'Customer')->where('subject_id', $this->id);
+    //     });
+    // }
+
+    public function customerPayments()
     {
-        return $query->whereHas('payments', function ($query) {
-            $query->where('type', 'Customer')->where('subject_id', $this->id);
-        });
+        return $this->hasMany(Payment::class, 'subject_id')->where('type', 'Customer');
+    }
+
+    public function sales()
+    {
+        return $this->hasMany(Sale::class, 'customer_id');
     }
 }
