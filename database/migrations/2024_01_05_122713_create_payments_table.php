@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
+            $table->string('voucher_no');
             $table->enum('type',['Supplier', 'Customer']);
             $table->integer('subject_id');
             $table->integer('payment_method_id');

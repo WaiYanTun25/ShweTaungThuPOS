@@ -17,7 +17,7 @@ class LocationController extends ApiBaseController
     // cities functions
     public function getCities(Request $request)
     {
-        $getCities = City::get();
+        $getCities = City::with('townships')->get();
 
         return $this->sendSuccessResponse('Success', Response::HTTP_OK, $getCities);
     }

@@ -2,11 +2,10 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class StockHistroyResource extends JsonResource
+class CustomerRecentPaymentListResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,18 +15,15 @@ class StockHistroyResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'stock_history_list' => $this->map(function ($transfer) {
-                $branchName = $this->getBranchName($transfer->branch_id);
+            "recent_payemnt_list" => $this->map(function ($payment) {
                 return [
-                    'id' => $transfer->id,
-                    'type' => $transfer->type, // issue or recieve depend on comming rows
-                    'causer_name' => $transfer->createActivity->causer->name,
-                    // 'total_quantity' =>  optional($transfer->transfer_details)->sum('quantity'),
-                    'total_quantity' => (int)$transfer->total_quantity,
-                    'branch_name' => $branchName,
-                    'transaction_date' => formatToCustomDate($transfer->transaction_date),
-                    'voucher_no' => $transfer->voucher_no,
-                    // 'item_names' => $this->getItemNames($transfer->transfer_details),
+                    'id' => $payment->id,
+                    'voucher_no' => $payment->voucher_no,
+                    'pay_amount' => $payment->pay_amount,
+                    'payment_method_id' => $payment->payment_method_id,
+                    'pyament_method_name' => $payment->payment_method->name ?? "",
+                    'causer_name' => $payment->createActivity->causer->name ?? "",
+                    'payment_date' => formatToCustomDate($payment->payment_date)
                 ];
             }),
             'links' => [
@@ -47,10 +43,5 @@ class StockHistroyResource extends JsonResource
                 'total' => $this->total(),
             ],
         ];
-    }
-
-    private function getBranchName($branchId)
-    {
-        return Branch::find($branchId)->name;
     }
 }

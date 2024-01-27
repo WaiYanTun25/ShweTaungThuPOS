@@ -49,30 +49,28 @@ class InventoryController extends ApiBaseController
             $itemDetails = ItemUnitDetail::with('item');
 
             // filter data
-            if($reorder_from && $reorder_to){
+            if ($reorder_from && $reorder_to) {
                 $itemDetails->where('reorder_period', '>=', $reorder_from)
-                        ->where('reorder_period', '<=', $reorder_to);
+                    ->where('reorder_period', '<=', $reorder_to);
             }
-            if($category_id)
-            {
-               $itemDetails->whereHas('item' , function ($q) use ($category_id) {
-                $q->where('category_id', $category_id);
-               }); 
+            if ($category_id) {
+                $itemDetails->whereHas('item', function ($q) use ($category_id) {
+                    $q->where('category_id', $category_id);
+                });
             }
-            if($supplier_id)
-            {
-               $itemDetails->whereHas('item' , function ($q) use ($supplier_id) {
-                $q->where('supplier_id', $supplier_id);
-               }); 
+            if ($supplier_id) {
+                $itemDetails->whereHas('item', function ($q) use ($supplier_id) {
+                    $q->where('supplier_id', $supplier_id);
+                });
             }
 
             $itemDetails->join('inventories', function ($join) {
-                    $join->on('item_unit_details.item_id', '=', 'inventories.item_id')
-                        ->on('item_unit_details.unit_id', '=', 'inventories.unit_id')
-                        ->where('inventories.branch_id', Auth::user()->branch_id)
-                        ->where('inventories.quantity', '<', DB::raw('item_unit_details.reorder_level'));
-                })
-               
+                $join->on('item_unit_details.item_id', '=', 'inventories.item_id')
+                    ->on('item_unit_details.unit_id', '=', 'inventories.unit_id')
+                    ->where('inventories.branch_id', Auth::user()->branch_id)
+                    ->where('inventories.quantity', '<', DB::raw('item_unit_details.reorder_level'));
+            })
+
 
                 ->leftJoin('transfer_details', function ($join) {
                     $join->on('item_unit_details.item_id', '=', 'transfer_details.item_id')
@@ -80,7 +78,7 @@ class InventoryController extends ApiBaseController
                         ->where('transfer_details.voucher_no', 'like', 'INV-R%')
                         ->whereRaw('transfer_details.id = (SELECT MAX(id) FROM transfer_details WHERE item_unit_details.item_id = transfer_details.item_id AND item_unit_details.unit_id = transfer_details.unit_id AND transfer_details.voucher_no LIKE "INV-R%")');
                 })
-                
+
 
                 ->leftJoin('receives', function ($join) {
                     $join->on('transfer_details.voucher_no', '=', 'receives.voucher_no');
@@ -103,43 +101,40 @@ class InventoryController extends ApiBaseController
 
                 ->orderBy($column, $order);
 
-                if($request->query('report') == "True")
-                {
-                    $results = $itemDetails->get();
-                    $resourceCollection = new LowStockResource($results, true);
-        
-                    return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
-                }
+            if ($request->query('report') == "True") {
+                $results = $itemDetails->get();
+                $resourceCollection = new LowStockResource($results, true);
 
-                $itemDetails =  $itemDetails->paginate($perPage);
+                return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+            }
+
+            $itemDetails =  $itemDetails->paginate($perPage);
 
             $result = new LowStockResource($itemDetails);
         } else {
             $itemDetails = ItemUnitDetail::with('item');
 
             // filter Data
-            if($reorder_from && $reorder_to){
+            if ($reorder_from && $reorder_to) {
                 $itemDetails->where('reorder_period', '>=', $reorder_from)
-                        ->where('reorder_period', '<=', $reorder_to);
+                    ->where('reorder_period', '<=', $reorder_to);
             }
-            if($category_id)
-            {
-               $itemDetails->whereHas('item' , function ($q) use ($category_id) {
-                $q->where('category_id', $category_id);
-               }); 
+            if ($category_id) {
+                $itemDetails->whereHas('item', function ($q) use ($category_id) {
+                    $q->where('category_id', $category_id);
+                });
             }
-            if($category_id)
-            {
-               $itemDetails->whereHas('item' , function ($q) use ($category_id) {
-                $q->where('category_id', $category_id);
-               }); 
+            if ($category_id) {
+                $itemDetails->whereHas('item', function ($q) use ($category_id) {
+                    $q->where('category_id', $category_id);
+                });
             }
 
             $itemDetails->join('inventories', function ($join) {
-                    $join->on('item_unit_details.item_id', '=', 'inventories.item_id')
-                        ->on('item_unit_details.unit_id', '=', 'inventories.unit_id')
-                        ->where('inventories.quantity', '<', DB::raw('item_unit_details.reorder_level'));
-                })
+                $join->on('item_unit_details.item_id', '=', 'inventories.item_id')
+                    ->on('item_unit_details.unit_id', '=', 'inventories.unit_id')
+                    ->where('inventories.quantity', '<', DB::raw('item_unit_details.reorder_level'));
+            })
 
                 ->leftJoin('transfer_details', function ($join) {
                     $join->on('item_unit_details.item_id', '=', 'transfer_details.item_id')
@@ -165,14 +160,13 @@ class InventoryController extends ApiBaseController
                     'inventories.branch_id as branch_id'
                 );
 
-                if($request->query('report') == "True")
-                {
-                    $results = $itemDetails->get();
-                    $resourceCollection = new LowStockResource($results, true);
-        
-                    return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
-                }
-                $itemDetails->paginate($perPage);
+            if ($request->query('report') == "True") {
+                $results = $itemDetails->get();
+                $resourceCollection = new LowStockResource($results, true);
+
+                return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+            }
+            $itemDetails->paginate($perPage);
             // return $itemDetails;
             $result = new LowStockResource($itemDetails);
         }
@@ -192,7 +186,7 @@ class InventoryController extends ApiBaseController
         $withDateFilter = function ($query) use ($startDate, $endDate) {
             if ($startDate && $endDate) {
                 $query->whereDate('transaction_date', '>=', $startDate)
-                ->whereDate('transaction_date', '<=', $endDate);
+                    ->whereDate('transaction_date', '<=', $endDate);
             }
         };
 
@@ -274,10 +268,9 @@ class InventoryController extends ApiBaseController
         $currentYear = Carbon::now()->year;
 
         $user_branch_id = Auth::user()->branch_id;
-        if ($user_branch_id != 0)
-        {
+        if ($user_branch_id != 0) {
             $countItem = Inventory::where('branch_id', $user_branch_id)->sum('quantity');
-        }else{
+        } else {
             $countItem = Inventory::sum('quantity');
         }
 
@@ -304,8 +297,8 @@ class InventoryController extends ApiBaseController
             })->count();
 
         $countOutOfStock = Inventory::when(Auth::user()->branch_id !== 0, function ($query) {
-                $query->where('inventories.branch_id', Auth::user()->branch_id);
-            })
+            $query->where('inventories.branch_id', Auth::user()->branch_id);
+        })
             ->where('quantity', 0)
             ->count();
 
@@ -324,7 +317,7 @@ class InventoryController extends ApiBaseController
 
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $result);
     }
-    public function productPurchaseListById(Request $request , $id)
+    public function productPurchaseListById(Request $request, $id)
     {
         $perPage = $request->query('perPage', 10);
         $search = $request->query('searchBy');
@@ -343,39 +336,38 @@ class InventoryController extends ApiBaseController
             $query->where('item_id', $id);
         })->withSum('purchase_details as total_product_quantity', 'quantity');
 
-        if(Auth::user()->branch_id != 0)
-        {
+        if (Auth::user()->branch_id != 0) {
             $purchase_products->where('branch_id', Auth::user()->branch_id);
         }
 
-        if($startDate && $endDate) {
+        if ($startDate && $endDate) {
             // $purchase_products->whereBetween('purchase_date', [$startDate, $endDate]);
             $purchase_products->whereDate('purchase_date', '>=', $startDate)
-            ->whereDate('purchase_date', '<=', $endDate);
+                ->whereDate('purchase_date', '<=', $endDate);
         }
-        if($supplier_id) {
+        if ($supplier_id) {
             $purchase_products->where('supplier_id', $supplier_id);
         }
 
         if (!empty($payment_status)) {
             $paymentArray = explode(",", $payment_status);
-        
+
             // Check if $paymentArray is not empty
             if (!empty($paymentArray)) {
                 $purchase_products->whereIn('payment_status', $paymentArray);
             }
         }
 
-        if($search) {
+        if ($search) {
             $purchase_products->where(function ($query) use ($search) {
                 $query->whereHas('supplier', function ($subquery) use ($search) {
                     $subquery->where('name', 'like', '%' . $search . '%');
                 })
-                ->orWhere('voucher_no', 'like', '%' . $search . '%');
+                    ->orWhere('voucher_no', 'like', '%' . $search . '%');
             });
         }
 
-        if($request->query('report') == "True") {
+        if ($request->query('report') == "True") {
             $results = $purchase_products->orderBy($column, $order)->get();
             $resourceCollection = new PurchaseListByProductIdResource($results, True);
             return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
@@ -388,7 +380,7 @@ class InventoryController extends ApiBaseController
         return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
     }
 
-    public function productSalesListById(Request $request , $id)
+    public function productSalesListById(Request $request, $id)
     {
         $perPage = $request->query('perPage', 10);
         $search = $request->query('searchBy');
@@ -407,38 +399,37 @@ class InventoryController extends ApiBaseController
             $query->where('item_id', $id);
         })->withSum('sales_details as total_product_quantity', 'quantity');
 
-        if(Auth::user()->branch_id != 0)
-        {
+        if (Auth::user()->branch_id != 0) {
             $sales_products->where('branch_id', Auth::user()->branch_id);
         }
 
-        if($startDate && $endDate) {
+        if ($startDate && $endDate) {
             $sales_products->whereDate('sales_date', '>=', $startDate)
-            ->whereDate('sales_date', '<=', $endDate);
+                ->whereDate('sales_date', '<=', $endDate);
         }
-        if($customer_id) {
+        if ($customer_id) {
             $sales_products->where('customer_id', $customer_id);
         }
 
         if (!empty($payment_status)) {
             $paymentArray = explode(",", $payment_status);
-        
+
             // Check if $paymentArray is not empty
             if (!empty($paymentArray)) {
                 $sales_products->whereIn('payment_status', $paymentArray);
             }
         }
 
-        if($search) {
+        if ($search) {
             $sales_products->where(function ($query) use ($search) {
                 $query->whereHas('customer', function ($subquery) use ($search) {
                     $subquery->where('name', 'like', '%' . $search . '%');
                 })
-                ->orWhere('voucher_no', 'like', '%' . $search . '%');
+                    ->orWhere('voucher_no', 'like', '%' . $search . '%');
             });
         }
 
-        if($request->query('report') == "True") {
+        if ($request->query('report') == "True") {
             $results = $sales_products->orderBy($column, $order)->get();
             $resourceCollection = new SalesListByProductIdResource($results, True);
             return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
@@ -455,36 +446,128 @@ class InventoryController extends ApiBaseController
     {
         $selectedYear = $request->query('selectedYear', now()->year);
 
-        $getIssue = Issue::
-            select(['id', 'voucher_no', 'transaction_date', DB::raw("from_branch_id as branch_id"), DB::raw("'ISSUE' as type")])
-            ->with(['transfer_details' => function ($query) use ($id) {
-                $query->where('item_id', $id);
-            }])
-            ->whereHas('transfer_details', function ($query) use ($id) {
-                $query->where('item_id', $id);
-            })->whereYear('transaction_date', $selectedYear);
+        $getIssue = Issue::select([
+            'issues.id', 
+            'issues.voucher_no', 
+            'issues.transaction_date', 
+            DB::raw("issues.from_branch_id as branch_id"), 
+            DB::raw("'ISSUE' as type"),
+            DB::raw('SUM(transfer_details.quantity) as total_quantity')
+            ])
+            ->join('transfer_details', function ($join) use ($id) {
+                $join->on('issues.voucher_no', '=', 'transfer_details.voucher_no')
+                     ->where('transfer_details.item_id', '=', $id);
+            })
+            // ->with(['transfer_details' => function ($query) use ($id) {
+            //     $query->where('item_id', $id);
+            // }])
+            // ->whereHas('transfer_details', function ($query) use ($id) {
+            //     $query->where('item_id', $id);
+            // })
+            ->whereYear('transaction_date', $selectedYear)
+            ->groupBy('issues.id', 'issues.voucher_no', 'issues.transaction_date', 'issues.from_branch_id');
 
-        $getReceive = Receive::
-            select(['id', 'voucher_no', 'transaction_date', DB::raw("to_branch_id as branch_id"), DB::raw("'RECEIVE' as type")])
-            ->with(['transfer_details' => function ($query) use ($id) {
-                $query->where('item_id', $id);
-            }])
-            ->whereHas('transfer_details', function ($query) use ($id) {
-                $query->where('item_id', $id);
-            })->whereYear('transaction_date', $selectedYear);
 
-        $getDamage = Damage::
-            select(['id', 'voucher_no', 'transaction_date', DB::raw("branch_id as branch_id"), DB::raw("'DAMAGE' as type")])
-            ->with(['transfer_details' => function ($query) use ($id) {
-                $query->where('item_id', $id);
-            }])
-            ->whereHas('transfer_details', function ($query) use ($id) {
-                $query->where('item_id', $id);
-            })->whereYear('transaction_date', $selectedYear);
-        // ->addSelect(DB::raw("branch_id as branch_id"));
+        // old structure
+        // $getReceive = Receive::select([
+        //     'id', 'voucher_no', 'transaction_date', DB::raw("to_branch_id as branch_id"), 
+        //     DB::raw("'RECEIVE' as type"),
+        //     DB::raw('SUM(transfer_details.quantity) as total_quantity')
+        //     ])
+        //     ->with(['transfer_details' => function ($query) use ($id) {
+        //         $query->where('item_id', $id);
+        //     }])
+        //     ->whereHas('transfer_details', function ($query) use ($id) {
+        //         $query->where('item_id', $id);
+        //     })->whereYear('transaction_date', $selectedYear);
 
-        // $search = $request->query('searchBy');
+        $getReceive = Receive::select([
+            'receives.id',
+            'receives.voucher_no',
+            'receives.transaction_date',
+            DB::raw('receives.to_branch_id as branch_id'),
+            DB::raw("'RECEIVE' as type"),
+            DB::raw('SUM(transfer_details.quantity) as total_quantity')
+        ])
+        ->join('transfer_details', function ($join) use ($id) {
+            $join->on('receives.voucher_no', '=', 'transfer_details.voucher_no')
+                 ->where('transfer_details.item_id', '=', $id);
+        })
+        ->whereYear('receives.transaction_date', $selectedYear)
+        ->groupBy('receives.id', 'receives.voucher_no', 'receives.transaction_date', 'receives.to_branch_id');
+        
 
+        // old structure
+        // $getDamage = Damage::select([
+        //     'id', 'voucher_no', 'transaction_date', DB::raw("branch_id as branch_id"), 
+        //     DB::raw("'DAMAGE' as type"),
+        //     DB::raw('SUM(transfer_details.quantity) as total_quantity')
+        //     ])
+        //     ->with(['transfer_details' => function ($query) use ($id) {
+        //         $query->where('item_id', $id);
+        //     }])
+        //     ->whereHas('transfer_details', function ($query) use ($id) {
+        //         $query->where('item_id', $id);
+        //     })->whereYear('transaction_date', $selectedYear);
+
+        $getDamage = Damage::select([
+            'damages.id',
+            'damages.voucher_no',
+            'damages.transaction_date',
+            DB::raw('damages.branch_id as branch_id'),
+            DB::raw("'DAMAGE' as type"),
+            DB::raw('SUM(transfer_details.quantity) as total_quantity')
+        ])
+        ->join('transfer_details', function ($join) use ($id) {
+            $join->on('damages.voucher_no', '=', 'transfer_details.voucher_no')
+                 ->where('transfer_details.item_id', '=', $id);
+        })
+        ->whereYear('damages.transaction_date', $selectedYear)
+        ->groupBy('damages.id', 'damages.voucher_no', 'damages.transaction_date', 'damages.branch_id');
+        
+        // old
+        // $getPurchase = Purchase::
+        //     select([
+        //         'id', 'voucher_no', 'purchase_date as transaction_date', DB::raw("branch_id as branch_id"), 
+        //         DB::raw("'PURCHASE' as type"),
+        //         ])
+        //     ->with(['purchase_details' => function ($query) use ($id) {
+        //         $query->where('item_id', $id);
+        //     }])
+        //     ->whereHas('purchase_details', function ($query) use ($id) {
+        //         $query->where('item_id', $id);
+        //     })
+        //     ->whereYear('purchase_date', $selectedYear);
+
+        $getPurchase = Purchase::select([
+            'purchases.id',
+            'purchases.voucher_no',
+            'purchases.purchase_date as transaction_date',
+            DB::raw('purchases.branch_id as branch_id'),
+            DB::raw("'PURCHASE' as type"),
+            DB::raw('SUM(purchase_details.quantity) as total_quantity')
+        ])
+        ->join('purchase_details', function ($join) use ($id) {
+            $join->on('purchases.id', '=', 'purchase_details.purchase_id')
+                 ->where('purchase_details.item_id', '=', $id);
+        })
+        ->whereYear('purchases.purchase_date', $selectedYear)
+        ->groupBy('purchases.id', 'purchases.voucher_no', 'purchases.purchase_date', 'purchases.branch_id');
+
+        $getSale = Sale::select([
+            'sales.id',
+            'sales.voucher_no',
+            'sales.sales_date as transaction_date',
+            DB::raw('sales.branch_id as branch_id'),
+            DB::raw("'SALES' as type"),
+            DB::raw('SUM(sale_details.quantity) as total_quantity')
+        ])
+        ->join('sale_details', function ($join) use ($id) {
+            $join->on('sales.id', '=', 'sale_details.sale_id')
+                 ->where('sale_details.item_id', '=', $id);
+        })
+        ->whereYear('sales.sales_date', $selectedYear)
+        ->groupBy('sales.id', 'sales.voucher_no', 'sales.sales_date', 'sales.branch_id');
         // if ($search) {
         //     $getIssue->where('voucher_no', 'like', "%$search%")
         //         // ->orWhere('transaction_date', 'like', "%$search%")
@@ -508,19 +591,21 @@ class InventoryController extends ApiBaseController
         //         });
         // }
 
+        
+
         // Handle order and column
         $order = $request->query('order', 'asc'); // default to asc if not provided
         $column = $request->query('column', 'transaction_date'); // default to id if not provided
         // Combine the results using union
         $perPage = $request->query('perPage', 10);
         // $results = $getIssue->union($getReceive)->orderBy($column, $order)->paginate($perPage);
-        $results = $getIssue->union($getReceive)->union($getDamage)->orderBy($column, $order)->paginate($perPage);
+        $results = $getIssue->union($getReceive)->union($getDamage)
+            ->union($getPurchase)
+            ->union($getSale)
+            ->orderBy($column, $order)->paginate($perPage);
 
         $resourceCollection = new StockHistroyResource($results);
 
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
-
     }
-
 }
-

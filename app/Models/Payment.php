@@ -4,11 +4,34 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
+use Spatie\Activitylog\Models\Activity;
 class Payment extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
     public $timestamps = false;
+    
+    public const Customer = 'Customer';
+    public const Supplier = 'Supplier';
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        $type = "";
+        $logOptions = LogOptions::defaults()
+            ->setDescriptionForEvent(function (string $eventName) {
+                $userName = "{userName}";
+                $type = $this->type == "customer" ? self::Customer : self::Supplier;
+                return "{$userName} {$eventName} the {$type} Payment (Voucher_no {$this->voucher_no})";
+            });
+
+
+        $logOptions->logName = $type .'_PAYMENT';
+
+        return $logOptions;
+    }
 
     protected static function boot()
     {
@@ -54,5 +77,11 @@ class Payment extends Model
     {
         return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
     }
+
+    public function createActivity()
+    {
+        return $this->hasOne(Activity::class, 'subject_id', 'id');
+    }
+
     
 }

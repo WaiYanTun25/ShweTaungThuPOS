@@ -91,7 +91,13 @@ class Purchase extends Model
         return $this->hasOne(Branch::class, 'id', 'branch_id');
     }
 
+    // this purchase_details and transfer_details are same and transfer_details is used in stock history for transform 
     public function purchase_details()
+    {
+        return $this->hasMany(PurchaseDetail::class, 'purchase_id', 'id');
+    }
+
+    public function transfer_details()
     {
         return $this->hasMany(PurchaseDetail::class, 'purchase_id', 'id');
     }

@@ -2,11 +2,10 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class StockHistroyResource extends JsonResource
+class CustomerRecentOrdersListResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,18 +15,15 @@ class StockHistroyResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'stock_history_list' => $this->map(function ($transfer) {
-                $branchName = $this->getBranchName($transfer->branch_id);
+            "recent_orders_list" => $this->map(function ($orders) {
                 return [
-                    'id' => $transfer->id,
-                    'type' => $transfer->type, // issue or recieve depend on comming rows
-                    'causer_name' => $transfer->createActivity->causer->name,
-                    // 'total_quantity' =>  optional($transfer->transfer_details)->sum('quantity'),
-                    'total_quantity' => (int)$transfer->total_quantity,
-                    'branch_name' => $branchName,
-                    'transaction_date' => formatToCustomDate($transfer->transaction_date),
-                    'voucher_no' => $transfer->voucher_no,
-                    // 'item_names' => $this->getItemNames($transfer->transfer_details),
+                    'id' => $orders->id,
+                    'voucher_no' => $orders->voucher_no,
+                    'item_name' => $this->getItemsName($orders->sales_order_details),
+                    'branch_name' => $orders->branch->name,
+                    'total_quantity' => $orders->total_quantity,
+                    'total_amount' => $orders->total_amount,
+                    'causer_name' => $orders->createActivity->causer->name ?? "",
                 ];
             }),
             'links' => [
@@ -49,8 +45,12 @@ class StockHistroyResource extends JsonResource
         ];
     }
 
-    private function getBranchName($branchId)
+    private function getItemsName($details)
     {
-        return Branch::find($branchId)->name;
+        $itemsName = [];
+        foreach ($details as $detail) {
+            $itemsName[] = $detail->item->item_name;
+        }
+        return implode(', ', $itemsName);
     }
 }

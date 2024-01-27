@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\{
     IssueController,
     ItemController,
     LocationController,
+    PaymentMethodController,
     PurchaseController,
     PurchaseOrderController,
     PurchaseReturnController,
@@ -159,8 +160,17 @@ Route::post('/central_links', function () {
         "Customer Module" => [
             "customers_requests" => [
                 "customers" => [
-                    "customers List" => config('app.url') . "/api/customers"
-                ]
+                    "customers List" => config('app.url') . "/api/customers",
+                    "customers Create (POST)" => config('app.url') . "/api/customers",
+                    "customer_update (PUT) " => config('app.url') . "/api/customers/{id}",
+                    "customer_delete (DELETE)" => config('app.url') . "/api/customers/{id}",
+                ],
+                "customer detail" => [
+                    "customer_detail (GET)" => config('app.url') . "/api/customers/{id}",
+                ],
+                "customer recent sale" => config('app.url') . "/api/customers/{customer_id}/recent_sales_list?order=asc&column=remain_amount&searchBy=&page=1&perPage=10",
+                "customer recent order" => config('app.url') . "/api/customers/{customer_id}/recent_orders_list?order=asc&column=total_quantity&searchBy=&page=1&perPage=10",
+                "customer payment history" => config('app.url') . "/api/customers/{customer_id}/recent_payment_history",
             ]
         ]
     ];
@@ -180,10 +190,19 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::get('{branch_id}/user-list', [BranchController::class, 'getUserLists']);
     });
     Route::apiResource('categories', CategoryController::class);
-    // Route::apiResource('subcategories', CategoryController::class);
+    Route::apiResource('payment_methods', PaymentMethodController::class);
 
     Route::apiResource('suppliers', SupplierController::class);
+
+    Route::prefix('customers')->group(function() {
+        Route::get('{id}/recent_sales_list', [CustomerController::class, 'getCustomerSales']);
+        Route::get('{id}/recent_orders_list', [CustomerController::class, 'getCustomerOrders']);
+        Route::get('{id}/recent_payment_history', [CustomerController::class, 'getPaymentHistory']);
+        
+    });
     Route::apiResource('customers', CustomerController::class);
+
+    Route::post('{type}/payment', [CustomerController::class, 'createCustomerPayment']);
 
     // item, unit
     Route::apiResource('units', UnitController::class);

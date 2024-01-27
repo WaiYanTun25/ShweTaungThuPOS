@@ -2,11 +2,10 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class StockHistroyResource extends JsonResource
+class CustomerRecentSalesListResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,18 +15,18 @@ class StockHistroyResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'stock_history_list' => $this->map(function ($transfer) {
-                $branchName = $this->getBranchName($transfer->branch_id);
+            "recent_sales_list" => $this->map(function ($sales) {
                 return [
-                    'id' => $transfer->id,
-                    'type' => $transfer->type, // issue or recieve depend on comming rows
-                    'causer_name' => $transfer->createActivity->causer->name,
-                    // 'total_quantity' =>  optional($transfer->transfer_details)->sum('quantity'),
-                    'total_quantity' => (int)$transfer->total_quantity,
-                    'branch_name' => $branchName,
-                    'transaction_date' => formatToCustomDate($transfer->transaction_date),
-                    'voucher_no' => $transfer->voucher_no,
-                    // 'item_names' => $this->getItemNames($transfer->transfer_details),
+                    'id' => $sales->id,
+                    'voucher_no' => $sales->voucher_no,
+                    'item_name' => $this->getItemsName($sales->sales_details),
+                    'branch_name' => $sales->branch->name,
+                    'total_quantity' => $sales->total_quantity,
+                    'total_amount' => $sales->total_amount,
+                    'pay_amount' => $sales->pay_amount,
+                    'remain_amount' => $sales->remain_amount,
+                    'causer_name' => $sales->createActivity->causer->name ?? "",
+                    'payment_status' => $sales->payment_status
                 ];
             }),
             'links' => [
@@ -49,8 +48,12 @@ class StockHistroyResource extends JsonResource
         ];
     }
 
-    private function getBranchName($branchId)
+    private function getItemsName($details)
     {
-        return Branch::find($branchId)->name;
+        $itemsName = [];
+        foreach ($details as $detail) {
+            $itemsName[] = $detail->item->item_name;
+        }
+        return implode(', ', $itemsName);
     }
 }

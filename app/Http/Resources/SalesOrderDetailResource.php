@@ -17,7 +17,7 @@ class SalesOrderDetailResource extends JsonResource
         return [
             'id' => $this->id,
             'voucher_no' => $this->voucher_no,
-            'payment_status' => $this->payment_status,
+            // 'payment_status' => $this->payment_status,
             'customer_name' => $this->customer->name,
             'customer_address' => $this->customer->address,
             'causer_name' => $this->createActivity->causer->name,

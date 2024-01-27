@@ -4,8 +4,16 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomerRequet;
+use App\Http\Requests\PaymentRequest;
+use App\Http\Resources\CustomerDetailResource;
 use App\Http\Resources\CustomerListResource;
+use App\Http\Resources\CustomerRecentOrdersListResource;
+use App\Http\Resources\CustomerRecentPaymentListResource;
+use App\Http\Resources\CustomerRecentSalesListResource;
 use App\Models\Customer;
+use App\Models\Payment;
+use App\Models\Sale;
+use App\Models\SalesOrder;
 use Exception;
 use Illuminate\Http\{
     Request,
@@ -13,6 +21,7 @@ use Illuminate\Http\{
 };
 
 use App\Traits\CustomerTrait;
+use DateTime;
 use Illuminate\Support\Facades\DB;
 
 class CustomerController extends ApiBaseController
@@ -33,11 +42,11 @@ class CustomerController extends ApiBaseController
     public function index(Request $request)
     {
         $getCustomers = Customer::select('*',
-                    DB::raw('COALESCE((SELECT SUM(COALESCE(s.remain_amount, 0)) - SUM(COALESCE(p.pay_amount, 0)) FROM sales s
-                    LEFT JOIN payments p ON customers.id = p.subject_id AND p.type = "Customer"
-                    WHERE customers.id = s.customer_id GROUP BY customers.id), 0) as debt_amount')
+                    DB::raw('COALESCE(
+                        (SELECT SUM(COALESCE(s.remain_amount, 0)) FROM sales s WHERE s.customer_id = customers.id) -
+                        (SELECT COALESCE(SUM(p.pay_amount), 0) FROM payments p WHERE p.subject_id = customers.id AND p.type = "Customer")
+                    , 0) as debt_amount')
                     );
-
         // filters
         $cityID = $request->query('city_id');
         $townshipID = $request->query('township_id');
@@ -114,7 +123,10 @@ class CustomerController extends ApiBaseController
      */
     public function show(string $id)
     {
-        //
+        $getCustomer = Customer::findOrFail($id);
+        $getCollection = new CustomerDetailResource($getCustomer);
+
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $getCollection);
     }
 
     /**
@@ -143,10 +155,9 @@ class CustomerController extends ApiBaseController
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
         $customer = Customer::findOrFail($id);
-
         try{
             if($this->checkCustomerHasRelatedData($customer))
             {
@@ -159,6 +170,116 @@ class CustomerController extends ApiBaseController
         }catch(Exception $e){
             info($e->getMessage());
             return $this->sendErrorResponse('Something went wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function getCustomerSales(Request $request, $id)
+    {
+        $customer = Customer::findOrFail($id);
+        try {
+            $customerSales = Sale::where('customer_id', $id);
+
+            $search = $request->query('searchBy');
+            if ($search)
+            {
+                $customerSales->where(function ($query) use ($search) {
+                    $query->where('voucher_no', 'like', "%$search%")
+                        ->orWhereHas('sales_details', function ($detailsQuery) use ($search) {
+                            $detailsQuery->whereHas('item', function ($itemQuery) use ($search) {
+                                $itemQuery->where('item_name', 'like', "%$search%");
+                            });
+                        });
+                });
+            }
+    
+            $order = $request->query('order', 'desc'); // default to asc if not provided
+            $column = $request->query('column', 'id'); // default to id if not provided
+            $perPage = $request->query('perPage', 10);
+    
+            $customerSales = $customerSales->orderBy($column, $order)->paginate($perPage);
+            // return $customerSales;
+            $resourceCollection = new CustomerRecentSalesListResource($customerSales);
+
+            return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+        }catch(Exception $e){
+            return $this->sendErrorResponse('Error getting item', Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
+        }
+    }
+
+    public function getCustomerOrders(Request $request, $id)
+    {
+        $customer = Customer::findOrFail($id);
+
+        try {
+            $customerOrders = SalesOrder::where('customer_id', $id);
+
+            $search = $request->query('searchBy');
+            if ($search)
+            {
+                $customerOrders->where(function ($query) use ($search) {
+                    $query->where('voucher_no', 'like', "%$search%")
+                        ->orWhereHas('sales_order_details', function ($detailsQuery) use ($search) {
+                            $detailsQuery->whereHas('item', function ($itemQuery) use ($search) {
+                                $itemQuery->where('item_name', 'like', "%$search%");
+                            });
+                        });
+                });
+            }
+    
+            $order = $request->query('order', 'desc'); // default to asc if not provided
+            $column = $request->query('column', 'id'); // default to id if not provided
+            $perPage = $request->query('perPage', 10);
+    
+            $customerOrders = $customerOrders->orderBy($column, $order)->paginate($perPage);
+            $resourceCollection = new CustomerRecentOrdersListResource($customerOrders);
+
+            return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+        }catch(Exception $e){
+            return $this->sendErrorResponse('Error getting item', Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
+        }
+    }
+
+    public function getPaymentHistory(Request $request, $id)
+    {
+        $customer = Customer::findOrFail($id);
+        try{
+            $getPayments = Payment::where([
+                'subject_id' => $id,
+                'type' => Payment::Customer
+            ]);
+
+            $order = $request->query('order', 'desc'); // default to asc if not provided
+            $column = $request->query('column', 'payment_date'); // default to id if not provided
+            $perPage = $request->query('perPage', 10);
+
+            $getPayments = $getPayments->orderBy($column, $order)->paginate($perPage);
+            $resourceCollection = new CustomerRecentPaymentListResource($getPayments);
+
+            return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+        }catch(Exception $e){
+            return $this->sendErrorResponse('Error getting item', Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
+        }
+    }
+
+    public function createCustomerPayment(PaymentRequest $request, $type)
+    {
+        $validatedData = $request->validated();
+
+        try{
+            $createPayment = new Payment();
+            $createPayment->type = $type == "customers" ? Payment::Customer : Payment::Supplier;
+            $createPayment->subject_id = $validatedData['customer_id'] ? $validatedData['customer_id'] : $validatedData['supplier_id'];
+            $createPayment->payment_method_id = $validatedData['payment_method_id'];
+
+            $timestamp = DateTime::createFromFormat('j/n/y', $validatedData['payment_date']);
+            $mysqlTimestamp = $timestamp->format('Y-m-d H:i:s');
+
+            $createPayment->payment_date = $mysqlTimestamp;
+            $createPayment->pay_amount = $validatedData['amount'];
+            $createPayment->save();
+            return $this->sendSuccessResponse('Success', Response::HTTP_CREATED);
+        }catch(Exception $e) {
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

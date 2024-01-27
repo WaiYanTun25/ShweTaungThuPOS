@@ -32,7 +32,7 @@ class CustomerListResource extends JsonResource
                 'city_id' => $customer->city,
                 'city_name' => $customer->cityData->name,
                 'join_date' => formatToCustomDate($customer->join_date),
-                'debt_amount' => $customer->getDebtAmount(),
+                'debt_amount' => $customer->debt_amount,
             ];
         });
 

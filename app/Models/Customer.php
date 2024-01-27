@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
@@ -43,21 +44,27 @@ class Customer extends Model
     }
 
     // customer debt
-    public function getDebtAmount()
-    {
-        $debtAmount = self::leftJoin('sales', 'customers.id', '=', 'sales.customer_id')
-            ->leftJoin('payments', function ($join) {
-                $join->on('customers.id', '=', 'payments.subject_id')
-                    ->where('payments.type', '=', 'Customer');
-            })
-            ->where('customers.id', $this->id)
-            ->selectRaw('COALESCE(SUM(sales.remain_amount), 0) - COALESCE(SUM(payments.pay_amount), 0) as debt_amount')
-            ->groupBy('customers.id')
-            ->first();
 
-        return $debtAmount ? $debtAmount->debt_amount : 0;
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'subject_id')->where('type', 'Customer');
     }
 
+    public function sales()
+    {
+        return $this->hasMany(Sale::class, 'customer_id');
+    }
+    public function getDebtAmount()
+    {
+        // Get the total remaining amount from sales
+        $totalRemainAmount = $this->sales()->sum('remain_amount');
+
+        // Get the total payment amount
+        $totalPaymentAmount = $this->payments()->sum('pay_amount');
+
+        // Calculate and return the debt amount
+        return $totalRemainAmount - $totalPaymentAmount;
+    }
     public function townshipData()
     {
         return $this->belongsTo(Township::class, 'township', 'id');
@@ -78,10 +85,5 @@ class Customer extends Model
     public function customerPayments()
     {
         return $this->hasMany(Payment::class, 'subject_id')->where('type', 'Customer');
-    }
-
-    public function sales()
-    {
-        return $this->hasMany(Sale::class, 'customer_id');
     }
 }
