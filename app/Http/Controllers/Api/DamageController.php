@@ -93,7 +93,6 @@ class DamageController extends ApiBaseController
 
         $damageItemsPaginated = $damageItems->paginate($perPage);
 
-
         $result = new DamageItemListResource($damageItemsPaginated);
 
 

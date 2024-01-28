@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SupplierRequest;
+use App\Http\Resources\SupplierDetailResource;
+use App\Http\Resources\SupplierListResource;
 use App\Models\Item;
 use App\Models\Supplier;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class SupplierController extends ApiBaseController
 {
@@ -26,32 +29,63 @@ class SupplierController extends ApiBaseController
      */
     public function index(Request $request)
     {
-        $getSupplier = Supplier::select('*');
+        $getSupplier = Supplier::select('*',
+            DB::raw('COALESCE(
+                (SELECT SUM(COALESCE(s.remain_amount, 0)) FROM purchases s WHERE s.supplier_id = suppliers.id) -
+                (SELECT COALESCE(SUM(p.pay_amount), 0) FROM payments p WHERE p.subject_id = suppliers.id AND p.type = "Supplier")
+            , 0) as debt_amount'),
+            DB::raw('COALESCE(
+                (SELECT SUM(COALESCE(s.total_amount, 0)) FROM purchases s WHERE s.supplier_id = suppliers.id)
+            , 0) as total_purchase_amount')
+        );
 
         $search = $request->query('searchBy');
 
-        if ($search)
-        {
-            $getSupplier->where('name', 'like', "%$search%")
-                    ->orWhere('phone_number', 'like', "%$search%")
-                    // ->orWhere('address', 'like', "%$search%")
-                    ->orWhere('township', 'like', "%$search%");
-                    // ->orWhere('join_date', 'like', "%$search%");
+        // filters
+        $cityID = $request->query('city_id');
+        $townshipID = $request->query('township_id');
+        $hasDebt = $request->query('hasDebt');
+        $hasNoDebt = $request->query('hasNoDebt');
+
+        // report 
+        $report = $request->query('report');
+
+        if ($cityID) {
+            $getSupplier->where('city', $cityID);
         }
-         // Handle order and column
+        if ($townshipID) {
+            $getSupplier->where('township', $townshipID);
+        }
+
+        if($hasDebt && $hasNoDebt || !$hasDebt && !$hasNoDebt){ 
+          
+        } elseif ($hasDebt && !$hasNoDebt) {
+            $getSupplier->having('debt_amount', '>' , 0);
+        } else if(!$hasDebt && $hasNoDebt) {
+            $getSupplier->having('debt_amount', '=' , 0);
+        }
+
+        if ($search) {
+            $getSupplier->where('name', 'like', "%$search%")
+                ->orWhere('phone_number', 'like', "%$search%")
+                ->orWhere('township', 'like', "%$search%");
+        }
+        // Handle order and column
         $order = $request->query('order', 'asc'); // default to asc if not provided
         $column = $request->query('column', 'id'); // default to id if not provided
-
+        $perPage = $request->query('perPage', 10);
         $getSupplier->orderBy($column, $order);
 
-        $suppliers = $getSupplier->get();
+        if ($report == 'True') {
+            $suppliers = $getSupplier->get();
+            $getCollection = new SupplierListResource($suppliers, true);
+            return $this->sendSuccessResponse('success', Response::HTTP_OK, $getCollection);
+        }
 
-        $suppliers->transform(function ($supplier) {
-            $supplier->join_date = date('d/m/Y', strtotime($supplier->join_date));
-            return $supplier;
-        });
+        $suppliers = $getSupplier->paginate($perPage);
+        $getCollection = new SupplierListResource($suppliers);
 
-        return $this->sendSuccessResponse('success', Response::HTTP_OK, $suppliers);
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $getCollection);
     }
 
     /**
@@ -59,7 +93,7 @@ class SupplierController extends ApiBaseController
      */
     public function store(SupplierRequest $request)
     {
-        try{
+        try {
             $createdSupplier = new Supplier();
             $createdSupplier->name = $request->name;
             $createdSupplier->address = $request->address;
@@ -68,9 +102,9 @@ class SupplierController extends ApiBaseController
             $createdSupplier->city = $request->city;
             $createdSupplier->save();
 
-            $message = 'Supplier ('.$createdSupplier->name.') is created successfully';
+            $message = 'Supplier (' . $createdSupplier->name . ') is created successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             info($e->getMessage());
             return $this->sendErrorResponse('Something went wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -81,7 +115,10 @@ class SupplierController extends ApiBaseController
      */
     public function show(string $id)
     {
-        //
+        $getCustomer = Supplier::findOrFail($id);
+        $getCollection = new SupplierDetailResource($getCustomer);
+
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $getCollection);
     }
 
     /**
@@ -90,17 +127,18 @@ class SupplierController extends ApiBaseController
     public function update(SupplierRequest $request, string $id)
     {
         $updatedSupplier = Supplier::findOrFail($id);
-        try{
+        try {
             $updatedSupplier->name = $request->name;
             $updatedSupplier->address = $request->address;
             $updatedSupplier->phone_number = $request->phone_number;
             $updatedSupplier->township = $request->township;
             $updatedSupplier->city = $request->city;
+            $updatedSupplier->prefix = $request->prefix;
             $updatedSupplier->save();
 
-            $message = 'Supplier ('.$updatedSupplier->name.') is updated successfully';
+            $message = 'Supplier (' . $updatedSupplier->name . ') is updated successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             info($e->getMessage());
             return $this->sendErrorResponse('Something went wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -112,18 +150,17 @@ class SupplierController extends ApiBaseController
     public function destroy(string $id)
     {
         $supplier = Supplier::findOrFail($id);
-        try{
+        try {
             $checkSupplierExist = Item::where('supplier_id', $id)->first();
-            
-            if($checkSupplierExist)
-            {
-                return $this->sendErrorResponse('There are related data with '.$supplier->name, Response::HTTP_CONFLICT);
+
+            if ($checkSupplierExist) {
+                return $this->sendErrorResponse('There are related data with ' . $supplier->name, Response::HTTP_CONFLICT);
             }
             $supplier->delete();
 
-            $message = 'Supplier ('.$supplier->name.') is deleted successfully';
+            $message = 'Supplier (' . $supplier->name . ') is deleted successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_OK);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             info($e->getMessage());
             return $this->sendErrorResponse('Something went wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
         }

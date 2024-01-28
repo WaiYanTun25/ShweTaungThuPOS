@@ -171,11 +171,19 @@ Route::post('/central_links', function () {
                 "customer recent sale" => config('app.url') . "/api/customers/{customer_id}/recent_sales_list?order=asc&column=remain_amount&searchBy=&page=1&perPage=10",
                 "customer recent order" => config('app.url') . "/api/customers/{customer_id}/recent_orders_list?order=asc&column=total_quantity&searchBy=&page=1&perPage=10",
                 "customer payment history" => config('app.url') . "/api/customers/{customer_id}/recent_payment_history",
+                "set up new Customer (POST)" => config('app.url') . "/api/customers",
+                "pay debt" => [
+                    'create_payment' => config('app.url') . "/api/customers/payment",
+                    'getPaymentMethod (GET)' => config('app.url') . "/api/payment_methods",
+                    'getCustomer List (GET)' => config('app.url') . "/api/customers?order=desc&column=join_date&searchBy=&page=1&perPage=10&city_id=&township_id=&hasDebt=&hasNoDebt=&report="
+                ],
             ]
+        ],
+        "Supplier Module" => [
+            "supplier list" => config('app.url') . "/api/"
         ]
     ];
 });
-
 
 Route::get('/testing', [TestController::class, 'testing']);
 

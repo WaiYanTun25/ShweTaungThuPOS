@@ -30,7 +30,8 @@ class DamageItemListResource extends ResourceCollection
                 'item_code' => $transferDetail->item->item_code,
                 'item_name' => $transferDetail->item->item_name ?? "",
                 'category_name' => $transferDetail->item->category->name,
-                
+                'unit_name' => $transferDetail->unit->name,
+                'unit_id' => $transferDetail->unit->id,
                 'branch_name' => $transferDetail->damage->branch->name,
                 'quantity' => $transferDetail->quantity,
                 'transaction_date' => Carbon::parse($transferDetail->damage->transaction_date)->format('d/m/y'),

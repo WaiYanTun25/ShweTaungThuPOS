@@ -37,8 +37,9 @@ class SupplierRequest extends FormRequest
             'name' => 'required',
             'address' => 'required',
             'phone_number' => 'required',
-            'township' => 'required',
-            'city' => 'required',
+            'township' => 'required | integer',
+            'city' => 'required | integer',
+            'prefix' => 'required'
         ];
 
         return $rules;
