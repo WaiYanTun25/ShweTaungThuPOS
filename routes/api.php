@@ -200,8 +200,12 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('payment_methods', PaymentMethodController::class);
 
+    Route::prefix('suppliers')->group(function() {
+        Route::get('{id}/recent_purchases_list', [SupplierController::class, 'getSupplierPurchase']);
+        Route::get('{id}/recent_purchase_remain_list', [SupplierController::class, 'getSupplierPurchaseByRemainAmount']);
+    });
     Route::apiResource('suppliers', SupplierController::class);
-
+    
     Route::prefix('customers')->group(function() {
         Route::get('{id}/recent_sales_list', [CustomerController::class, 'getCustomerSales']);
         Route::get('{id}/recent_orders_list', [CustomerController::class, 'getCustomerOrders']);

@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SupplierRequest;
 use App\Http\Resources\SupplierDetailResource;
 use App\Http\Resources\SupplierListResource;
+use App\Http\Resources\SupplierRecentPurchaseListResource;
+use App\Http\Resources\SupplierRecentRemainListResource;
 use App\Models\Item;
+use App\Models\Purchase;
 use App\Models\Supplier;
 use Exception;
 use Illuminate\Http\Request;
@@ -100,13 +103,14 @@ class SupplierController extends ApiBaseController
             $createdSupplier->phone_number = $request->phone_number;
             $createdSupplier->township = $request->township;
             $createdSupplier->city = $request->city;
+            $createdSupplier->prefix = $request->prefix;
             $createdSupplier->save();
 
             $message = 'Supplier (' . $createdSupplier->name . ') is created successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
         } catch (Exception $e) {
             info($e->getMessage());
-            return $this->sendErrorResponse('Something went wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -115,8 +119,8 @@ class SupplierController extends ApiBaseController
      */
     public function show(string $id)
     {
-        $getCustomer = Supplier::findOrFail($id);
-        $getCollection = new SupplierDetailResource($getCustomer);
+        $getSupplier = Supplier::findOrFail($id);
+        $getCollection = new SupplierDetailResource($getSupplier);
 
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $getCollection);
     }
@@ -163,6 +167,71 @@ class SupplierController extends ApiBaseController
         } catch (Exception $e) {
             info($e->getMessage());
             return $this->sendErrorResponse('Something went wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function getSupplierPurchase(Request $request, $id)
+    {
+        $supplier = Supplier::findOrFail($id);
+        try {
+            $supplierPurchase = Purchase::where('supplier_id', $id);
+
+            $search = $request->query('searchBy');
+            if ($search)
+            {
+                $supplierPurchase->where(function ($query) use ($search) {
+                    $query->where('voucher_no', 'like', "%$search%")
+                        ->orWhereHas('purchase_details', function ($detailsQuery) use ($search) {
+                            $detailsQuery->whereHas('item', function ($itemQuery) use ($search) {
+                                $itemQuery->where('item_name', 'like', "%$search%");
+                            });
+                        });
+                });
+            }
+    
+            $order = $request->query('order', 'desc'); // default to asc if not provided
+            $column = $request->query('column', 'id'); // default to id if not provided
+            $perPage = $request->query('perPage', 10);
+    
+            $supplierPurchase = $supplierPurchase->orderBy($column, $order)->paginate($perPage);
+            $resourceCollection = new SupplierRecentPurchaseListResource($supplierPurchase);
+
+            return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+        }catch(Exception $e){
+            return $this->sendErrorResponse('Error getting item', Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
+        }
+    }
+
+    public function getSupplierPurchaseByRemainAmount(Request $request, $id)
+    {
+        $supplier = Supplier::findOrFail($id);
+        try {
+            $supplierPurchase = Purchase::where('supplier_id', $id)
+                            ->where('remain_amount', '>', 0);
+
+            $search = $request->query('searchBy');
+            if ($search)
+            {
+                $supplierPurchase->where(function ($query) use ($search) {
+                    $query->where('voucher_no', 'like', "%$search%")
+                        ->orWhereHas('purchase_details', function ($detailsQuery) use ($search) {
+                            $detailsQuery->whereHas('item', function ($itemQuery) use ($search) {
+                                $itemQuery->where('item_name', 'like', "%$search%");
+                            });
+                        });
+                });
+            }
+    
+            $order = $request->query('order', 'desc'); // default to asc if not provided
+            $column = $request->query('column', 'id'); // default to id if not provided
+            $perPage = $request->query('perPage', 10);
+    
+            $supplierPurchase = $supplierPurchase->orderBy($column, $order)->paginate($perPage);
+            $resourceCollection = new SupplierRecentRemainListResource($supplierPurchase);
+
+            return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+        }catch(Exception $e){
+            return $this->sendErrorResponse('Error getting item', Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
         }
     }
 }
