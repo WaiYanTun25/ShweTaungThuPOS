@@ -55,6 +55,10 @@ class User extends Authenticatable
             // Set the join_date attribute to the current date if it's not provided
             $user->join_date = $user->join_date ?? now();
             $user->user_code = static::generateItemCode();
+            
+            $updatedUserToRelatedBranch = Branch::find($user->branch_id);
+            $updatedUserToRelatedBranch->total_employee += 1;
+            $updatedUserToRelatedBranch->save();
         });
     }
 
@@ -72,6 +76,21 @@ class User extends Authenticatable
         $newNumericPart = str_pad($numericPart + 1, 6, '0', STR_PAD_LEFT);
     
         return $userPrefix . '-' . $newNumericPart;
+    }
+
+    public function branch()
+    {
+        return $this->hasOne(Branch::class, 'id', 'branch_id');
+    }
+
+    public function townshipData()
+    {
+        return $this->belongsTo(Township::class, 'township', 'id');
+    }
+
+    public function cityData()
+    {
+        return $this->belongsTo(City::class, 'city');
     }
 
     // public function getDefaultGuardName()

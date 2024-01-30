@@ -10,6 +10,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 use stdClass;
 
@@ -83,10 +84,51 @@ class AuthenticationController extends ApiBaseController
         return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
     }
 
+    public function logoutUser(Request $request)
+    {
+        $user = Auth::user();
+
+        // Revoke the current user's access token
+        $user->currentAccessToken()->delete();
+
+        return $this->sendSuccessResponse('User logged out successfully', Response::HTTP_OK);
+    }
+
     public function getCurrentUserRoleAndPermission()
     {
         $userId = Auth::user()->id;
         
         return $this->getUserRoleAndPermission($userId);
+    }
+
+    public function changeUserPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'old_password' => 'required',
+            'new_password' => [
+                'required',
+                'min:6',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'
+            ],
+        ]);
+
+        if($validator->fails())
+        {
+            return $this->sendErrorResponse("Validation Error", Response::HTTP_INTERNAL_SERVER_ERROR, $validator->errors());
+        }
+        $user = User::findOrFail(Auth::user()->id);
+
+        // Check if the provided old password is correct
+        if (!Hash::check($request->old_password, $user->password)) {
+            return $this->sendErrorResponse("Validation Error", Response::HTTP_INTERNAL_SERVER_ERROR, ['old_password' => ['Incorrect old password']]);
+            // throw ValidationException::withMessages(['old_password' => ['Incorrect old password']]);
+        }
+
+        // Update the user's password with the new one
+        // Update the user's password with the new one
+        $user->update(['password' => Hash::make($request->new_password)]);
+
+        return $this->sendSuccessResponse('Change password successfully', Response::HTTP_OK);
     }
 }

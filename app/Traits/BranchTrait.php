@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Models\Branch;
+use App\Models\Inventory;
 use App\Models\User;
 
 trait BranchTrait
@@ -10,6 +11,12 @@ trait BranchTrait
     public function getBranch($id)
     {
         return Branch::findOrFail($id);
+    }
+
+    public function getBranchStocks($branchId)
+    {
+        $getBranchStocks = Inventory::where('branch_id', $branchId)->sum('quantity');
+        return (int)$getBranchStocks;
     }
 
     public function createBranch($request)

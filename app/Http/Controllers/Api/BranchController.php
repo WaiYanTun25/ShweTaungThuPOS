@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Validator;
 
 use App\Traits\BranchTrait;
 use Illuminate\Support\Facades\Auth;
+use stdClass;
 
 class BranchController extends ApiBaseController
 {
@@ -73,10 +74,13 @@ class BranchController extends ApiBaseController
     public function show(string $id)
     {
         $branch_id = $id;
-        $getBranch = $this->getBranch($branch_id);
+
+        $data = new stdClass;
+        $data->branch = $this->getBranch($branch_id);;
+        $data->stocks = $this->getBranchStocks($branch_id);
         // info($branch_id);
         // $getBranch['user_list'] = $this->getBranchUsers($branch_id);
-        return $this->sendSuccessResponse('success', Response::HTTP_OK, $getBranch);
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $data);
     }
 
     /**

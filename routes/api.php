@@ -20,7 +20,8 @@ use App\Http\Controllers\Api\{
     SalesReturnController,
     SupplierController,
     UnitController,
-    UnitConvertController
+    UnitConvertController,
+    UserController
 };
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\RoleController;
@@ -180,7 +181,17 @@ Route::post('/central_links', function () {
             ]
         ],
         "Supplier Module" => [
-            "supplier list" => config('app.url') . "/api/"
+            "supplier list" => config('app.url') . "/api/suppliers?order=asc&column=join_date&searchBy=&page=1&perPage=10&city_id=&township_id=&hasDebt=&hasNoDebt=&report=",
+            "Supplier Recent Purchase List" => config('app.url') . "/api/suppliers/{supplier_id}/recent_purchases_list?order=asc&column=remain_amount&searchBy=&page=1&perPage=10",
+            "Supplier Recent Purchase Remain List" => config('app.url') . "/api/suppliers/{supplier_id}/recent_purchase_remain_list?order=asc&column=remain_amount&searchBy=&page=1&perPage=10",
+            "Supplier Support API" => [
+                "Supplier Detail" => config('app.url') . "/api/suppliers/{supplier_id}",
+                "Supplier Create (POST)" => config('app.url') . "/api/suppliers",
+                "Supplier Delete (DELETE)" => config('app.url') . "/api/suppliers"
+            ],
+        ],
+        "User Profile and Settings" => [
+            "Acc Setting" => config('app.url') . "/api/"
         ]
     ];
 });
@@ -191,6 +202,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
 
     Route::post('/register', [AuthenticationController::class, 'registerUser']);
     Route::get('/get-current-user', [AuthenticationController::class, 'getCurrentUserRoleAndPermission']);
+    Route::post('/change_password', [AuthenticationController::class, 'changeUserPassword']);
 
     Route::apiResource('roles', RoleController::class);
     Route::apiResource('branches', BranchController::class);
@@ -297,5 +309,17 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::get('{id}', [LocationController::class, 'getTownshipById']);
         Route::put('{id}', [LocationController::class, 'updateTownships']);
         Route::delete('{id}', [LocationController::class, 'deleteTownships']);
+    });
+
+    Route::post('/logout', [AuthenticationController::class, 'logoutUser']);
+
+    Route::prefix('users')->group(function() {
+        Route::get('account_setting', [UserController::class, 'getAccountSetting']);
+        Route::get('activity_history', [UserController::class, 'getActivityHistory']);
+        
+        // user management
+        Route::get('', [UserController::class, 'index']);
+        Route::post('', [UserController::class, 'create']);
+        Route::put('{id}', [UserController::class, 'update']);
     });
 });
