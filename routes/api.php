@@ -275,6 +275,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
 
     // sales
     Route::prefix('sales')->group(function () {
+        Route::get('summary', [SalesController::class , 'getSalesSummary']);
         Route::get('total_sales_list', [SalesController::class, 'getTotalSalesList']);
         Route::get('{id}/pre_return_form_data', [PurchaseController::class, 'getPreReturnFormData']);
     });

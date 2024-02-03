@@ -264,8 +264,8 @@ class InventoryController extends ApiBaseController
 
     public function getInventorySummary(Request $request)
     {
-        $currentMonth = Carbon::now();
-        $currentYear = Carbon::now()->year;
+        // $currentMonth = Carbon::now()->month;
+        // $currentYear = Carbon::now()->year;
 
         $user_branch_id = Auth::user()->branch_id;
         if ($user_branch_id != 0) {

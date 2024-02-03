@@ -7,6 +7,8 @@ use App\Http\Requests\SalesRequest;
 use App\Http\Resources\SalesDetailResource;
 use App\Http\Resources\SalesListResource;
 use App\Models\Sale;
+use App\Models\SalesOrder;
+use App\Models\SalesReturn;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -17,6 +19,8 @@ use App\Traits\{
     SalesTrait,
     TransactionTrait
 };
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
 use stdClass;
 
 class SalesController extends ApiBaseController
@@ -25,71 +29,129 @@ class SalesController extends ApiBaseController
     /**
      * Display a listing of the resource.
      */
+
+
+    public function getSalesSummary(Request $request)
+    {
+        $currentMonth = Carbon::now()->month;
+        $currentYear = Carbon::now()->year;
+
+        try {
+            // sales report
+            $getTotalSales = Sale::whereMonth('sales_date', $currentMonth)->whereYear('sales_date', $currentYear)->sum('total_amount');
+            $getTotalSalesCount = Sale::whereMonth('sales_date', $currentMonth)->whereYear('sales_date', $currentYear)->count();
+
+            // sales financial report
+            $getTotalSalesPay = Sale::whereMonth('sales_date', $currentMonth)->whereYear('sales_date', $currentYear)->sum('pay_amount');
+            $getTotalSalesDebt = Sale::whereMonth('sales_date', $currentMonth)->whereYear('sales_date', $currentYear)->sum('remain_amount');
+
+            // sales order report
+            $getTotalOrderCount = SalesOrder::whereMonth('order_date', $currentMonth)->whereYear('order_date', $currentYear)->count();
+
+            // sales return reports
+            $getTotalSalesReturnProduct = SalesReturn::with('sales_return_details')
+                ->whereMonth('sales_return_date', $currentMonth)
+                ->whereYear('sales_return_date', $currentYear)
+                ->withSum('sales_return_details', 'quantity')
+                ->get()
+                ->sum('sales_return_details_sum_quantity');
+
+            $getTotalSalesReturnAmount = SalesReturn::with('sales_return_details')
+                ->whereMonth('sales_return_date', $currentMonth)
+                ->whereYear('sales_return_date', $currentYear)
+                ->sum('pay_amount');
+
+            $result = new stdClass;
+            $result->total_sales = [
+                'total_sales_amount' => $getTotalSales,
+                'total_sales_count' => $getTotalSalesCount,
+            ];
+
+            $result->financial_report = [
+                'total_pay_amount' => $getTotalSalesPay,
+                'total_remain_amount' => $getTotalSalesDebt
+            ];
+
+            $result->order = [
+                'total_order_count' => $getTotalOrderCount,
+            ];
+
+            $result->sales_return = [
+                'total_return_product' => $getTotalSalesReturnProduct || "0",
+                'total_return_amount' => $getTotalSalesReturnAmount
+            ];
+
+            return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
+        } catch (Exception $e) {
+            return $this->sendErrorResponse('Something Went Wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
     public function index(Request $request)
     {
-         // အဝယ်မှတ်တမ်း
-         $getSales = Sale::with(['sales_details', 'customer']);
+        // အဝယ်မှတ်တမ်း
+        $getSales = Sale::with(['sales_details', 'customer']);
 
-         try {
-             $search = $request->query('searchBy');
-             if ($search) {
-                 $getSales->where(function ($query) use ($search) {
-                     $query->where('voucher_no', 'like', "%$search%")
-                         ->orWhereHas('customer', function ($supplierQuery) use ($search) {
-                             $supplierQuery->where('name', 'like', "%$search%");
-                         })
-                         ->orWhereHas('sales_details', function ($detailsQuery) use ($search) {
-                             $detailsQuery->whereHas('item', function ($itemQuery) use ($search) {
-                                 $itemQuery->where('item_name', 'like', "%$search%");
-                             });
-                         });
-                 });
-             }
-             // Date Filtering
-             $startDate = $request->query('startDate');
-             $endDate = $request->query('endDate');
- 
-             if ($startDate && $endDate) {
-                 // $getSales->whereBetween('purchase_date', [$startDate, $endDate]);
-                 $getSales->whereDate('sales_date', '>=', $startDate)
-                 ->whereDate('sales_date', '<=', $endDate);
-             }
- 
-             // Supplier Filtering
-             $customer_id = $request->query('customer_id');
-             if ($customer_id) {
-                 $getSales->where('customer_id', $customer_id);
-             }
-             // payment Filtering
-             $payment = $request->query('payment');
-             if ($payment) {
-                 $getSales->where('payment_status', $payment);
-             }
- 
-             // Handle order and column
-             $order = $request->query('order', 'desc'); // default to asc if not provided
-             $column = $request->query('column', 'purchase_date'); // default to id if not provided
-             $perPage = $request->query('perPage', 10);
- 
-             $result = new stdClass;
-             if($request->query('report') == "True"){
-                 $result->data = $getSales->orderBy($column, $order)->get();
-                 // this true is always true cause
-                 // i use this resource function in two place 
-                 // this controller funciton is always true
-                 $resourceCollection = new SalesListResource($result, true, true);
-                 return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
-             }else{
-                 $result->data = $getSales->orderBy($column, $order)->paginate($perPage);
-             }
- 
-             $resourceCollection = new SalesListResource($result, true);
- 
-             return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
-         } catch (Exception $e) {
-             info($e->getMessage());
-             return $this->sendErrorResponse('Error getting item', Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
-         }
+        try {
+            $search = $request->query('searchBy');
+            if ($search) {
+                $getSales->where(function ($query) use ($search) {
+                    $query->where('voucher_no', 'like', "%$search%")
+                        ->orWhereHas('customer', function ($supplierQuery) use ($search) {
+                            $supplierQuery->where('name', 'like', "%$search%");
+                        })
+                        ->orWhereHas('sales_details', function ($detailsQuery) use ($search) {
+                            $detailsQuery->whereHas('item', function ($itemQuery) use ($search) {
+                                $itemQuery->where('item_name', 'like', "%$search%");
+                            });
+                        });
+                });
+            }
+            // Date Filtering
+            $startDate = $request->query('startDate');
+            $endDate = $request->query('endDate');
+
+            if ($startDate && $endDate) {
+                // $getSales->whereBetween('purchase_date', [$startDate, $endDate]);
+                $getSales->whereDate('sales_date', '>=', $startDate)
+                    ->whereDate('sales_date', '<=', $endDate);
+            }
+
+            // Supplier Filtering
+            $customer_id = $request->query('customer_id');
+            if ($customer_id) {
+                $getSales->where('customer_id', $customer_id);
+            }
+            // payment Filtering
+            $payment = $request->query('payment');
+            if ($payment) {
+                $getSales->where('payment_status', $payment);
+            }
+
+            // Handle order and column
+            $order = $request->query('order', 'desc'); // default to asc if not provided
+            $column = $request->query('column', 'purchase_date'); // default to id if not provided
+            $perPage = $request->query('perPage', 10);
+
+            $result = new stdClass;
+            if ($request->query('report') == "True") {
+                $result->data = $getSales->orderBy($column, $order)->get();
+                // this true is always true cause
+                // i use this resource function in two place 
+                // this controller funciton is always true
+                $resourceCollection = new SalesListResource($result, true, true);
+                return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+            } else {
+                $result->data = $getSales->orderBy($column, $order)->paginate($perPage);
+            }
+
+            $resourceCollection = new SalesListResource($result, true);
+
+            return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
+        } catch (Exception $e) {
+            info($e->getMessage());
+            return $this->sendErrorResponse('Error getting item', Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
+        }
     }
 
     /**
@@ -101,20 +163,20 @@ class SalesController extends ApiBaseController
         $validatedData = $request->validated();
         $branch_id = Auth::user()->branch_id;
         DB::beginTransaction();
-        try{
+        try {
             $createdSales = $this->createOrUpdateSales($validatedData, $branch_id);
 
             $createdSales->sales_details()->createMany($validatedData['sales_details']);
 
             // Add the items to the branch
-            $this->deductItemFromBranch($validatedData['sales_details'], $branch_id , true);
+            $this->deductItemFromBranch($validatedData['sales_details'], $branch_id, true);
 
             // Commit the database transaction
             DB::commit();
 
             $message = 'Sale (' . $createdSales->voucher_no . ') is created successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             DB::rollBack();
             return $this->sendErrorResponse($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
@@ -139,7 +201,7 @@ class SalesController extends ApiBaseController
         $updatedSales = Sale::findOrFail($id);
         DB::beginTransaction();
 
-        try{
+        try {
             $validatedData = $request->validated();
             $this->createOrUpdateSales($validatedData, Auth::user()->branch_id, true, $updatedSales);
 
@@ -151,7 +213,7 @@ class SalesController extends ApiBaseController
             DB::commit();
             $message = 'Puchases (' . $updatedSales->voucher_no . ') is updated successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             DB::rollBack();
             info($e->getMessage());
             return $this->sendErrorResponse($e->getMessage(), Response::HTTP_BAD_REQUEST);
@@ -193,7 +255,7 @@ class SalesController extends ApiBaseController
             if ($startDate && $endDate) {
                 // $getSales->whereBetween('purchase_date', [$startDate, $endDate]);
                 $getSales->whereDate('sales_date', '>=', $startDate)
-                ->whereDate('sales_date', '<=', $endDate);
+                    ->whereDate('sales_date', '<=', $endDate);
             }
 
             // Supplier Filtering
@@ -216,14 +278,14 @@ class SalesController extends ApiBaseController
             $result->total_sales_amount = $total_sales_amount;
             $result->total_pay_amount = $total_pay_amount;
             $result->total_remain_amount = $total_remain_amount;
-            if($request->query('report') == "True"){
+            if ($request->query('report') == "True") {
                 $result->data = $getSales->orderBy($column, $order)->get();
                 // this true is always true cause
                 // i use this resource function in two place 
                 // this controller funciton is always true
                 $resourceCollection = new SalesListResource($result, false, true);
                 return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
-            }else{
+            } else {
                 $result->data = $getSales->orderBy($column, $order)->paginate($perPage);
             }
 
