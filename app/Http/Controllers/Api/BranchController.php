@@ -32,9 +32,9 @@ class BranchController extends ApiBaseController
      */
     public function index(Request $request)
     {
-        $branches = Branch::select(['id', 'name', 'phone_number', 'total_employee', 'address']);
+        $branches = Branch::select(['id', 'branch_code', 'name', 'phone_number', 'total_employee', 'address']);
 
-        $search = $request->query('search');
+        $search = $request->query('searchBy');
         if ($search) {
             $branches->where('name', 'like', "%$search%")
                      ->orWhere('phone_number', 'like', "%$search%")

@@ -52,7 +52,7 @@ class UserController extends ApiBaseController
     {
         $validatedData = $request->validated();
 
-        try{
+        try {
             DB::beginTransaction();
             $createdUser = User::create([
                 'name' => $validatedData['name'],
@@ -62,13 +62,13 @@ class UserController extends ApiBaseController
                 'branch_id' => $validatedData['branch_id'],
             ]);
 
-             // Assign the role
+            // Assign the role
             $createdUser->assignRole($validatedData['role_id']);
-           
+
             DB::commit();
             $message = 'User (' . $createdUser->name . ') is created successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -78,7 +78,42 @@ class UserController extends ApiBaseController
      */
     public function show(string $id)
     {
+        $getUser = User::findOrFail($id);
 
+        try {
+            $permissions = $getUser->getPermissionsViaRoles();
+            $permissions->transform(function ($permission) {
+                return [
+                    'id' => $permission->id,
+                    'name' => $permission->name,
+                ];
+            });
+
+            $role = $getUser->roles;
+            $role->transform(function ($role) {
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                ];
+            });
+
+            $userData = new stdClass;
+            $userData->user_code = $getUser->user_code;
+            $userData->name = $getUser->name;
+            $userData->branch = [
+                'branch_id' => $getUser->branch_id,
+                'branch_name' => $getUser->branch?->name ?? "",
+            ];
+            $userData->phone_number = $getUser->phone_number;
+
+            $userData->role = $role[0];
+            // $userData->permissions = $permissions;
+            // $userData->role->permissions = $permissions;
+
+            return $this->sendSuccessResponse("Success", Response::HTTP_OK, $userData);
+        } catch (Exception $e) {
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -88,7 +123,7 @@ class UserController extends ApiBaseController
     {
         $updateUser = User::findOrFail($id);
         $validatedData = $request->validated();
-        try{
+        try {
             DB::beginTransaction();
             $previousBranchId = $updateUser->branch_id;
             $newBranchId = $validatedData['branch_id'];
@@ -101,8 +136,7 @@ class UserController extends ApiBaseController
                 'branch_id' => $validatedData['branch_id'],
             ]);
 
-            if($previousBranchId != $newBranchId)
-            {
+            if ($previousBranchId != $newBranchId) {
                 $previousBranch = Branch::findOrFail($previousBranchId);
                 $previousBranch->decrement('total_employee');
 
@@ -113,11 +147,11 @@ class UserController extends ApiBaseController
 
             // Assign the role
             $updateUser->assignRole($validatedData['role_id']);
-           
+
             DB::commit();
             $message = 'User (' . $updateUser->name . ') is updated successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -129,18 +163,16 @@ class UserController extends ApiBaseController
     {
         $deleteUser = User::findOrFail($id);
 
-        try{
-        // check delete user has action in acivity logs
-        if( count($deleteUser->actions) > 0 ) 
-        {
-            return $this->sendErrorResponse('There are related data with '.$deleteUser->name, Response::HTTP_CONFLICT);
-        }else{
-            $message = 'User (' . $deleteUser->name . ') is deleted successfully';
-            $deleteUser->delete();
-            return $this->sendSuccessResponse($message, Response::HTTP_OK);
-        }
-
-        }catch(Exception $e){
+        try {
+            // check delete user has action in acivity logs
+            if (count($deleteUser->actions) > 0) {
+                return $this->sendErrorResponse('There are related data with ' . $deleteUser->name, Response::HTTP_CONFLICT);
+            } else {
+                $message = 'User (' . $deleteUser->name . ') is deleted successfully';
+                $deleteUser->delete();
+                return $this->sendSuccessResponse($message, Response::HTTP_OK);
+            }
+        } catch (Exception $e) {
             return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -157,7 +189,7 @@ class UserController extends ApiBaseController
                 'name' => $permission->name,
             ];
         });
-        
+
         $role = $user->roles;
         $role->transform(function ($role) {
             return [
@@ -167,15 +199,19 @@ class UserController extends ApiBaseController
         });
 
         $userData = new stdClass;
+        $userData->user_code = $user->user_code;
         $userData->name = $user->name;
-        $userData->branch_name = $user->branch->name;
+        $userData->branch = [
+            'branch_id' => $user->branch_id,
+            'branch_name' => $user->branch?->name ?? "",
+        ];
         $userData->phone_number = $user->phone_number;
 
         $userData->role = $role[0];
         // $userData->permissions = $permissions;
         // $userData->role->permissions = $permissions;
 
-        return $this->sendSuccessResponse("Success", Response::HTTP_OK,$userData);
+        return $this->sendSuccessResponse("Success", Response::HTTP_OK, $userData);
     }
 
     public function getActivityHistory()
@@ -187,7 +223,20 @@ class UserController extends ApiBaseController
 
         $resourceCollection = new UserActivityHistoryResource($userActivities);
 
-        return $this->sendSuccessResponse("Success", Response::HTTP_OK,$resourceCollection);
+        return $this->sendSuccessResponse("Success", Response::HTTP_OK, $resourceCollection);
     }
 
+    public function getUserActivityByUserId($id)
+    {
+        $user = User::findOrFail($id);
+
+        try {
+            $userActivities = Activity::causedBy($user)->latest()->take(10)->get();
+            $resourceCollection = new UserActivityHistoryResource($userActivities);
+
+            return $this->sendSuccessResponse("Success", Response::HTTP_OK, $resourceCollection);
+        } catch (Exception $e) {
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }

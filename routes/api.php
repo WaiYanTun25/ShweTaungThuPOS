@@ -105,7 +105,7 @@ Route::post('/central_links', function () {
         "PURCHASE_MODULE" => [
             "purchase_requests" => [
                 "purchase" => [
-                    "အလုံးစုံစာရင်း" => "UNDER CONSTRUCTION",
+                    "အလုံးစုံစာရင်း" => config('app.url') . "/api/purchases/summary",
                     "ဝယ်ယူမှုမှတ်တမ်း" => config('app.url') . "/api/purchases?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=&endDate=&supplier_id=&payment=",
                 ],
                 "purchase detail" => config('app.url') . "/api/purchases/{id}",
@@ -137,7 +137,7 @@ Route::post('/central_links', function () {
         "Sale Module" => [
             "sales_requests" => [
                 "sales" => [
-                    "အလုံးစုံစာရင်း" => "UNDER CONSTRUCTION",
+                    "အလုံးစုံစာရင်း" => config('app.url') . "/api/sales/summary",
                     "အရောင်းမှတ်တမ်း" => config('app.url') . "/api/sales?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=&endDate=&supplier_id=&payment=",
                 ],
                 "sale_detail" => config('app.url') . "/api/sales/{id}",
@@ -191,7 +191,44 @@ Route::post('/central_links', function () {
             ],
         ],
         "User Profile and Settings" => [
-            "Acc Setting" => config('app.url') . "/api/"
+            "Acc Setting" => [
+                'Acc Setting' => config('app.url') . "/api/users/account_setting",
+                "logOut" => config('app.url') . "/api/logout",
+            ],
+            "Activity History" => config('app.url') . "/api/users/activity_history",
+            "Change passowrd" => config('app.url') . "/api/change_password"
+        ],
+        "User Management" => [
+            "Role And Permission (admin view)" => [
+                "Get Users (admin view)" => [
+                    "User List (GET)" => config('app.url') . "/api/users?searchBy=",
+                    "Create User (POST)" => config('app.url') . "/api/users",
+                    "Edit User (PUT)" => config('app.url') . "/api/users/{id}",
+                    "Delete User (DELETE)" => config('app.url') . "/api/users/{id}",
+                ],
+                "User Detail (ADMIN VIEW)" => [
+                    "User Detail (GET)" => config('app.url') . "/api/users/{id}",
+                    "User Activity" => config('app.url') . "/api/users/{id}/activity_history",
+                    "Delete User (DELETE)" => config('app.url') . "/api/users/{id}",
+                ],
+                "Create New User (POST)" => config('app.url') . "/api/users",
+                "Create New Branch (POST)" => config('app.url') . "/api/branches",
+                "Branch Detail (GET)" => [
+                    "Branch Detail (GET)" => config('app.url') . "/api/branches/{id}",
+                    "Edit Branch (PUT)" => config('app.url') . "/api/branches/{id}",
+                    "Delete Branch (DELETE)" => config('app.url') . "/api/branches/{id}"
+                ],
+                "Branch List" => [
+                    "Branch List" => config('app.url') . "/api/branches?searchBy=",
+                    "Create Branch (create)" => config('app.url') . "/api/branches",
+                    "Update Branch (PUT)" => config('app.url') . "/api/branches/{id}",
+                    "Delete Branch (DELETE)" => config('app.url') . "/api/branches/{id}",
+                ],
+                "Role List" => [
+                    "Role List" => config('app.url') . "/api/roles?searchBy=",
+                    "Delete Role (DELETE)" => config('app.url') . "/api/roles/{id}"
+                ]
+            ]
         ]
     ];
 });
@@ -205,6 +242,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     Route::post('/change_password', [AuthenticationController::class, 'changeUserPassword']);
 
     Route::apiResource('roles', RoleController::class);
+
     Route::apiResource('branches', BranchController::class);
     Route::prefix('branches')->group(function () {
         Route::get('{branch_id}/user-list', [BranchController::class, 'getUserLists']);
@@ -322,7 +360,9 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         // user management
         Route::get('', [UserController::class, 'index']);
         Route::post('', [UserController::class, 'create']);
+        Route::get('{id}', [UserController::class, 'show']);
         Route::put('{id}', [UserController::class, 'update']);
         Route::delete('{id}', [UserController::class, 'destroy']);
+        Route::get('{id}/activity_history' , [UserController::class, 'getUserActivityByUserId']);
     });
 });

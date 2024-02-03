@@ -30,9 +30,9 @@ class RoleController extends ApiBaseController
      */
     public function index(Request $request)
     {
-        $getRoles = Role::select('id', 'name')->with('permissions:id,name');
+        $getRoles = Role::select('id', 'name');
 
-        $search = $request->query('search');
+        $search = $request->query('searchBy');
         if ($search) {
             $getRoles->where('name', 'like', "%$search%");
         }
@@ -41,7 +41,11 @@ class RoleController extends ApiBaseController
         $column = $request->query('column', 'id');
 
         $getRoles->orderBy($column, $order);
-        $getRoles = $getRoles->get();
+        $getRoles = $getRoles->get()->map(function ($role) {
+            $userCount = User::role($role->name)->count();
+            $role->user_count = $userCount;
+            return $role;
+        });
         
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $getRoles);
     }
@@ -98,16 +102,6 @@ class RoleController extends ApiBaseController
              // Sync the permissions for the role
             $role->syncPermissions($request->permission_ids);
 
-            // this is commented for update the role's permission of user
-            // foreach ($users as $user) {
-            //     // Retrieve the user's existing tokens
-            //     $tokens = $user->tokens;
-                
-            //     foreach ($tokens as $token) {
-            //         $token->delete();
-            //     }
-            // }
-           
             DB::commit();
             $message = 'Role ('. $role->name .') is updated successfully';
 
@@ -126,10 +120,20 @@ class RoleController extends ApiBaseController
     {
         $role = Role::findOrFail($id);
         try{
-            if(count($role->users) > 0)
-            {
+            if ($role->users()->exists()) {
                 return $this->sendErrorResponse('There are related data with '.$role->name, Response::HTTP_CONFLICT);
             }
+
+            // for log activity
+            // this is manually log
+            activity()
+            ->useLog('ROLE')
+            ->causedBy(Auth::user())
+            ->setEvent('deleted')
+            ->performedOn($role)
+            // ->withProperties(['Reveieve' => $damage , 'ReceiveDetail' => $damage->transfer_details])
+            ->log('{userName} deleted the Role ('. $role->name. ')');
+
             $role->delete();
 
             $message = 'Role ('.$role->name.') is deleted successfully';

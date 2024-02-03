@@ -69,7 +69,6 @@ class Payment extends Model
             // Generate a formatted voucher number with leading zeros
             $voucherNo = "PAY-" . str_pad($count, 10, '0', STR_PAD_LEFT);
         }
-
         return $voucherNo;
     }
 

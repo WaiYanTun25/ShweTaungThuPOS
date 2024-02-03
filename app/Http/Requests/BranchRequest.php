@@ -40,15 +40,16 @@ class BranchRequest extends FormRequest
         ];
 
         $updateRules = [
-            "name" => 'required | unique:branches',
+            "name" => 'required|unique:branches,name,' . $this->route('branch'),
             "phone_number" => "required",
             "address" => 'required'
         ];
 
-        if ($this->method() == 'PUT') {
-            return $updateRules;
-        }else{
-            return $createRules;
-        }
+        return $this->method() === 'PUT' ? $updateRules : $createRules;
+        // if ($this->method() == 'PUT') {
+        //     return $updateRules;
+        // }else{
+        //     return $createRules;
+        // }
     }
 }
