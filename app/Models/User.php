@@ -75,9 +75,11 @@ class User extends Authenticatable
             $user->join_date = $user->join_date ?? now();
             $user->user_code = static::generateItemCode();
             
-            $updatedUserToRelatedBranch = Branch::find($user->branch_id);
-            $updatedUserToRelatedBranch->total_employee += 1;
-            $updatedUserToRelatedBranch->save();
+            if($user->branch_id !== 0){
+                $updatedUserToRelatedBranch = Branch::find($user->branch_id);
+                $updatedUserToRelatedBranch->total_employee += 1;
+                $updatedUserToRelatedBranch->save();
+            }
         });
     }
 
