@@ -21,7 +21,7 @@ class BranchUserResource extends JsonResource
                     'id' => $user->id,
                     'user_code' => $user->user_code, // issue or recieve depend on comming rows
                     'name' => $user->name,
-                    // 'branch_id' => $user->branch->name,
+                    'role' => count($user->getRoleNames()) > 0 ? $user->getRoleNames()[0]  :null,
                     'phone_number' => $user->phone_number,
                     'join_date' => formatToCustomDate($user->join_date)
                 ];

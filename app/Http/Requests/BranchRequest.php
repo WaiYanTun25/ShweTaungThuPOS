@@ -33,10 +33,22 @@ class BranchRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $createRules = [
             "name" => 'required | unique:branches',
             "phone_number" => "required",
             "address" => 'required'
         ];
+
+        $updateRules = [
+            "name" => 'required | unique:branches',
+            "phone_number" => "required",
+            "address" => 'required'
+        ];
+
+        if ($this->method() == 'PUT') {
+            return $updateRules;
+        }else{
+            return $createRules;
+        }
     }
 }

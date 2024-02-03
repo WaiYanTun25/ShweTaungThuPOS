@@ -274,17 +274,20 @@ class InventoryController extends ApiBaseController
             $countItem = Inventory::sum('quantity');
         }
 
-        $countIssueWithinOneMonth = Issue::whereYear('transaction_date', $currentYear)
-            ->whereMonth('transaction_date', $currentMonth)
-            ->count();
+        $countIssueWithinOneMonth = Issue::count();
+            // whereYear('transaction_date', $currentYear)
+            // ->whereMonth('transaction_date', $currentMonth)
+            // ->count();
 
-        $countReceiveWithinOneMonth = Receive::whereYear('transaction_date', $currentYear)
-            ->whereMonth('transaction_date', $currentMonth)
-            ->count();
+        $countReceiveWithinOneMonth = Receive::count();
+            // whereYear('transaction_date', $currentYear)
+            // ->whereMonth('transaction_date', $currentMonth)
+            // ->count();
 
-        $coutnDamgeWithingOneMonth = Damage::whereYear('transaction_date', $currentYear)
-            ->whereMonth('transaction_date', $currentMonth)
-            ->count();
+        $coutnDamgeWithingOneMonth = Damage::count();
+            // whereYear('transaction_date', $currentYear)
+            // ->whereMonth('transaction_date', $currentMonth)
+            // ->count();
 
         $countLowStockWithinOneMonth = ItemUnitDetail::with('item')
             ->join('inventories', function ($join) {

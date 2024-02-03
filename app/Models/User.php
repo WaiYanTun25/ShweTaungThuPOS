@@ -7,12 +7,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Activitylog\Traits\CausesActivity;
 
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, CausesActivity;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, CausesActivity, LogsActivity;
 
     public $timestamps = false;
     /**
@@ -46,6 +51,20 @@ class User extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        $logOptions = LogOptions::defaults()
+            ->setDescriptionForEvent(function (string $eventName) {
+                $userName = "{userName}";
+                return "{$userName} {$eventName} the User ({$this->name})";
+            });
+
+
+        $logOptions->logName = 'USER';
+
+        return $logOptions;
+    }
 
     protected static function boot()
     {
@@ -92,6 +111,17 @@ class User extends Authenticatable
     {
         return $this->belongsTo(City::class, 'city');
     }
+
+    public function activity()
+    {
+        return $this->hasMany(Activity::class, 'id', 'causer_id');
+    }
+
+    public function hasActivityLogs()
+    {
+        return $this->activity()->exists();
+    }
+
 
     // public function getDefaultGuardName()
     // {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserActivityHistoryResource;
 use App\Http\Resources\UserListResource;
+use App\Models\Branch;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
@@ -57,10 +58,12 @@ class UserController extends ApiBaseController
                 'name' => $validatedData['name'],
                 'password' => Hash::make($validatedData['password']),
                 'phone_number' => $validatedData['phone_number'],
-                'role_id' => $validatedData['role_id'],
-                'address' => $validatedData['address'],
+                // 'address' => $validatedData['address'],
                 'branch_id' => $validatedData['branch_id'],
             ]);
+
+             // Assign the role
+            $createdUser->assignRole($validatedData['role_id']);
            
             DB::commit();
             $message = 'User (' . $createdUser->name . ') is created successfully';
@@ -83,7 +86,40 @@ class UserController extends ApiBaseController
      */
     public function update(UserRequest $request, string $id)
     {
-        return $request->all();
+        $updateUser = User::findOrFail($id);
+        $validatedData = $request->validated();
+        try{
+            DB::beginTransaction();
+            $previousBranchId = $updateUser->branch_id;
+            $newBranchId = $validatedData['branch_id'];
+
+            $updateUser->update([
+                'name' => $validatedData['name'],
+                'password' => Hash::make($validatedData['password']),
+                'phone_number' => $validatedData['phone_number'],
+                // 'address' => $validatedData['address'],
+                'branch_id' => $validatedData['branch_id'],
+            ]);
+
+            if($previousBranchId != $newBranchId)
+            {
+                $previousBranch = Branch::findOrFail($previousBranchId);
+                $previousBranch->decrement('total_employee');
+
+                // Increase total_employee count of the new branch
+                $newBranch = Branch::findOrFail($newBranchId);
+                $newBranch->increment('total_employee');
+            }
+
+            // Assign the role
+            $updateUser->assignRole($validatedData['role_id']);
+           
+            DB::commit();
+            $message = 'User (' . $updateUser->name . ') is updated successfully';
+            return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
+        }catch(Exception $e){
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -91,7 +127,22 @@ class UserController extends ApiBaseController
      */
     public function destroy(string $id)
     {
-        //
+        $deleteUser = User::findOrFail($id);
+
+        try{
+        // check delete user has action in acivity logs
+        if( count($deleteUser->actions) > 0 ) 
+        {
+            return $this->sendErrorResponse('There are related data with '.$deleteUser->name, Response::HTTP_CONFLICT);
+        }else{
+            $message = 'User (' . $deleteUser->name . ') is deleted successfully';
+            $deleteUser->delete();
+            return $this->sendSuccessResponse($message, Response::HTTP_OK);
+        }
+
+        }catch(Exception $e){
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     public function getAccountSetting()

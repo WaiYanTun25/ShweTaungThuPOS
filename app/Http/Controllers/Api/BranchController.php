@@ -42,13 +42,18 @@ class BranchController extends ApiBaseController
         }
     
         // Handle order and column
-        $order = $request->query('order', 'desc '); // default to asc if not provided
+        $order = $request->query('order', 'desc'); // default to asc if not provided
         $column = $request->query('column', 'id'); // default to id if not provided
     
         $branches->orderBy($column, $order);
     
         // Get the final result
         $branches = $branches->get();
+
+        foreach($branches as $branch)
+        {
+            $branch['stocks'] = $this->getBranchStocks($branch->id);
+        }
 
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $branches);
     }

@@ -35,12 +35,18 @@ class UserRequest extends FormRequest
     {
         $rules = [
             'name' => 'required',
-            'address' => 'required',
+            // 'address' => 'required',
             'phone_number' => 'required',
-            'password' => ['required', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'],
             'role_id' => 'required | exists:roles,id',
+            'password' => ['required', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'],
             'branch_id' => 'required',
         ];
+
+        // if ($this->method() == 'PUT') {
+        //     return $this->updateRules();
+        // } else {
+        //     return $this->createRules();
+        // }
 
         return $rules;
     }

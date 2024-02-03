@@ -22,10 +22,12 @@ class UserListResource extends JsonResource
                 'phone_no' => $user->phone_number,
                 'join_date' => formatToCustomDate($user->join_date),
                 'branch_id' => $user->branch_id,
-                'role' => $user->getRoleNames()[0],
+                'role' => count($user->getRoleNames()) > 0 ? $user->getRoleNames()[0]  :null,
+                'role_id' => $user->roles->first()->id,
                 'branch_name' => $user->branch?->name ?? '-',
             ];
         });
+
         return [
             'user_list' => $user_list,
             'links' => [
