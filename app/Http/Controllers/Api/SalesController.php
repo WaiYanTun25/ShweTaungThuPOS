@@ -77,7 +77,7 @@ class SalesController extends ApiBaseController
             ];
 
             $result->sales_return = [
-                'total_return_product' => $getTotalSalesReturnProduct || "0",
+                'total_return_product' => $getTotalSalesReturnProduct,
                 'total_return_amount' => $getTotalSalesReturnAmount
             ];
 

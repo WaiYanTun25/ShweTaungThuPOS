@@ -258,6 +258,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
 
     // core modules
     Route::prefix('purchases')->group(function () {
+        Route::get('summary', [PurchaseController::class , 'getPurchaseSummary']);
         Route::get('total_purchase_list', [PurchaseController::class, 'getTotalPurchaseList']);
         Route::get('{id}/pre_return_form_data', [PurchaseController::class, 'getPreReturnFormData']);
     });

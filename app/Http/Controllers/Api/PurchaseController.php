@@ -9,6 +9,7 @@ use App\Http\Resources\PurchasesListResource;
 use App\Models\Item;
 use App\Models\Purchase;
 use App\Models\PurchaseDetail;
+use App\Models\PurchaseOrder;
 use App\Models\PurchaseReturn;
 use Exception;
 use Illuminate\Http\{
@@ -21,6 +22,7 @@ use App\Traits\{
     TransactionTrait,
     PaymentTrait,
 };
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use stdClass;
 
@@ -30,6 +32,62 @@ class PurchaseController extends ApiBaseController
     /**
      * Display a listing of the resource.
      */
+
+    public function getPurchaseSummary(Request $request)
+    {
+        $currentMonth = Carbon::now()->month;
+        $currentYear = Carbon::now()->year;
+
+        try {
+            // sales report
+            $getTotalPurchases = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('total_amount');
+            $getTotalPurchasesCount = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->count();
+
+            // sales financial report
+            $getTotalPurchasesPay = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('pay_amount');
+            $getTotalPurchasesDebt = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('remain_amount');
+
+            // sales order report
+            $getTotalOrderCount = PurchaseOrder::whereMonth('order_date', $currentMonth)->whereYear('order_date', $currentYear)->count();
+
+            // sales return reports
+            $getTotalPurchasesReturnProduct = PurchaseReturn::with('purchase_return_details')
+                ->whereMonth('purchase_return_date', $currentMonth)
+                ->whereYear('purchase_return_date', $currentYear)
+                ->withSum('purchase_return_details', 'quantity')
+                ->get()
+                ->sum('purchase_return_details_sum_quantity');
+            $getTotalPurchasesReturnAmount = PurchaseReturn::with('purchase_return_details')
+                ->whereMonth('purchase_return_date', $currentMonth)
+                ->whereYear('purchase_return_date', $currentYear)
+                ->sum('pay_amount');
+
+            $result = new stdClass;
+            $result->total_sales = [
+                'total_purchase_amount' => $getTotalPurchases,
+                'total_purchase_count' => $getTotalPurchasesCount,
+            ];
+
+            $result->financial_report = [
+                'total_pay_amount' => $getTotalPurchasesPay,
+                'total_remain_amount' => $getTotalPurchasesDebt
+            ];
+
+            $result->order = [
+                'total_order_count' => $getTotalOrderCount,
+            ];
+
+            $result->sales_return = [
+                'total_return_product' => $getTotalPurchasesReturnProduct,
+                'total_return_amount' => $getTotalPurchasesReturnAmount
+            ];
+
+            return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
+        } catch (Exception $e) {
+            return $this->sendErrorResponse('Something Went Wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
     public function index(Request $request)
     {
         // အဝယ်မှတ်တမ်း
