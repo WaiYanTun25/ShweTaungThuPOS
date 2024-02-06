@@ -22,6 +22,14 @@ class PurchaseOrderController extends ApiBaseController
 {
     use PurchaseOrderTrait;
 
+    public function __construct()
+    {
+        $this->middleware('permission:purchases:read')->only('index', 'detail');
+        $this->middleware('permission:purchases:create')->only('create');
+        $this->middleware('permission:purchases:edit')->only('update');
+        $this->middleware('permission:purchases:delete')->only('delete');
+    }
+
     public function index(Request $request)
     {
         $getPurhcaseOrders = PurchaseOrder::with('purchase_order_details');
@@ -169,23 +177,3 @@ class PurchaseOrderController extends ApiBaseController
         }
     }
 }
-
-// $purchaseOrder = PurchaseOrder::with('purchase_order_details')->find(7);
-
-        // $purchase_order_activity = Activity::inLog('PURCHASE_ORDER')
-        // ->where('subject_id', 7)
-        // ->first();
-
-        // if ($purchase_order_activity) {
-        //     $batchUuid = $purchase_order_activity->batch_uuid;
-
-        //     $purchaseDetailsActivities = Activity::inLog('PURCHASE_ORDER_DETAIL')
-        //         ->forBatch($batchUuid)
-        //         ->get();    
-        // }
-
-        // $result = new stdClass;
-        // $result->purchase_order = $purchase_order_activity;
-        // $result->purchase_order_details = $purchaseDetailsActivities;
-
-        // return $result;

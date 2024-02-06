@@ -14,15 +14,16 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         // $branchPermissionList = ['branch:get', 'branch:create', 'branch:edit','branch:detail','branch:delete'];
-        $branchPermissionList = ['branch:get', 'branch:create', 'branch:edit','branch:detail','branch:delete'];
-        $categoryPermissionList = ['category:get', 'category:create', 'category:edit','category:detail','category:delete'];
-        $supplierPermissionList = ['supplier:get', 'supplier:create', 'supplier:edit','supplier:detail','supplier:delete'];
-        $customerPermissionList = ['customer:get', 'customer:create', 'customer:edit','customer:detail','customer:delete'];
-        $rolePermissionsList = ['role:get', 'role:create', 'role:edit','role:detail', 'role:delete'];
-        $itemPermissionsList = ['item:get', 'item:create', 'item:edit', 'item:detail', 'item:delete'];
+        $branchPermissionList = ['branch:read', 'branch:create', 'branch:edit','branch:delete'];
+        // $categoryPermissionList = ['category:read', 'category:create', 'category:edit','category:delete'];
+        $supplierPermissionList = ['supplier:read', 'supplier:create', 'supplier:edit','supplier:delete'];
+        $customerPermissionList = ['customer:read', 'customer:create', 'customer:edit','customer:delete'];
+        $rolePermissionsList = ['role:read', 'role:create', 'role:edit', 'role:delete'];
+        $itemPermissionsList = ['item:read', 'item:create', 'item:edit', 'item:delete'];
+        $salesPermissionList = ['sales:read', 'sales:create', 'sales:edit','sales:delete'];
+        $purchasesPermissionList = ['purchases:read', 'purchases:create', 'purchases:edit','purchases:delete'];
         $registerPermissions = ['auth:register'];
-
-        $allPermissions = array_merge($categoryPermissionList, $supplierPermissionList,$customerPermissionList, $registerPermissions, $branchPermissionList, $rolePermissionsList, $itemPermissionsList);
+        $allPermissions = array_merge($supplierPermissionList,$customerPermissionList, $registerPermissions, $branchPermissionList, $rolePermissionsList, $itemPermissionsList, $salesPermissionList, $purchasesPermissionList);
 
         foreach($allPermissions as $permission)
         {

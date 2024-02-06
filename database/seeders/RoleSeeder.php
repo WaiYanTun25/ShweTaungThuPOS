@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use stdClass;
 
 class RoleSeeder extends Seeder
 {
@@ -14,17 +15,33 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $permissions = Permission::get();
-        
+        $adminPermissions = Permission::where('name', 'Like', '%read%')->get();
+
+        $managerPermissions = Permission::get();
+
+        $supervisorPermissions = Permission::where('name', 'Like', '%branch%')
+        ->Orwhere('name', 'Like', '%sale%')
+        ->Orwhere('name', 'Like', '%purchase%')
+        ->get();
+
+        $cashierPermissions = Permission::where('name' , 'Like', '%sale%')
+        ->OrWhere('name' , 'Like', '%purchase%')
+        ->OrWHere('name' , 'Like', '%item%')
+        ->get();
+
+        $permissionList = new stdClass;
+        $permissionList->Admin = $adminPermissions;
+        $permissionList->Manager = $managerPermissions;
+        $permissionList->Supervisor = $supervisorPermissions;
+        $permissionList->Cashier = $cashierPermissions;
+
         $roles = ['Admin', 'Manager', 'Supervisor', 'Cashier'];
 
         foreach ($roles as $role) {
             $createRole = Role::create(['name' => $role]);
-            $createRole->syncPermissions($permissions);
             
-            // $itemPermissionsList = ['item:get', 'item:create', 'item:edit', 'item:detail', 'item:delete'];
-            // $cashier_permissions = Permission::whereIn('name', $itemPermissionsList)->get();
-            // $createRole->syncPermissions($cashier_permissions);
+            $createRole->syncPermissions($permissionList->$role);
+            
         }
     }
 }

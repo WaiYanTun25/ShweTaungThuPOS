@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\{
     ItemController,
     LocationController,
     PaymentMethodController,
+    PermissionControler,
+    PermissionController,
     PurchaseController,
     PurchaseOrderController,
     PurchaseReturnController,
@@ -242,6 +244,9 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     Route::post('/change_password', [AuthenticationController::class, 'changeUserPassword']);
 
     Route::apiResource('roles', RoleController::class);
+    Route::prefix('permissions')->group(function () {
+        Route::get('', [PermissionController::class, 'index']);
+    });
 
     Route::apiResource('branches', BranchController::class);
     Route::prefix('branches')->group(function () {

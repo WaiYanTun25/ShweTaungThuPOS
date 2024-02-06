@@ -22,6 +22,7 @@ class ItemDetailResource extends JsonResource
             'item_code' => $this->item_code,
             'supplier_name' => $this->supplier->name,
             'supplier_id' => $this->supplier_id,
+            'prefix' => $this->supplier->prefix,
             'category_name' => $this->category->name,
             'category_id' => $this->category_id,
             'current_stock' => $this->current_stock($this->id),

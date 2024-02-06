@@ -22,6 +22,14 @@ use App\Traits\{
 class SalesReturnController extends ApiBaseController
 {
     use SalesReturnTrait , TransactionTrait;
+
+    public function __construct()
+    {
+        $this->middleware('permission:sales:read')->only('index', 'show');
+        $this->middleware('permission:sales:create')->only('store');
+        $this->middleware('permission:sales:edit')->only('update');
+        $this->middleware('permission:sales:delete')->only('destroy');
+    }
     public function index(Request $request)
     {
         $getPurchaseReturn = SalesReturn::with('sales_return_details');
@@ -120,6 +128,11 @@ class SalesReturnController extends ApiBaseController
     }
 
     public function update(SalesReturnRequest $request, $id)
+    {
+
+    }
+
+    public function destory($id)
     {
 
     }

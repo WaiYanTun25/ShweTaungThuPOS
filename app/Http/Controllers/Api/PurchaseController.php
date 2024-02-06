@@ -33,6 +33,14 @@ class PurchaseController extends ApiBaseController
      * Display a listing of the resource.
      */
 
+    public function __construct()
+    {
+        $this->middleware('permission:purchases:read')->only('index', 'show');
+        $this->middleware('permission:purchases:create')->only('store');
+        $this->middleware('permission:purchases:edit')->only('update');
+        $this->middleware('permission:purchases:delete')->only('destroy');
+    }
+
     public function getPurchaseSummary(Request $request)
     {
         $currentMonth = Carbon::now()->month;

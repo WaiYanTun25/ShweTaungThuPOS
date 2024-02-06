@@ -26,11 +26,10 @@ class ItemController extends ApiBaseController
 
     public function __construct()
     {
-        $this->middleware('permission:item:get')->only('index');
+        $this->middleware('permission:item:read')->only('index', 'show');
         $this->middleware('permission:item:create')->only('store');
-        $this->middleware('permission:item:detail')->only('show');
         $this->middleware('permission:item:edit')->only('update');
-        $this->middleware('permission:item:delete')->only('delete');
+        $this->middleware('permission:item:delete')->only('destroy');
     }
 
     /**

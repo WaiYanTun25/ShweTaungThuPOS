@@ -23,6 +23,14 @@ class PurchaseReturnController extends ApiBaseController
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct()
+    {
+        $this->middleware('permission:purchases:read')->only('index', 'show');
+        $this->middleware('permission:purchases:create')->only('store');
+        $this->middleware('permission:purchases:edit')->only('update');
+        $this->middleware('permission:purchases:delete')->only('destroy');
+    }
     public function index(Request $request)
     {
         $getPurchaseReturn = PurchaseReturn::with('purchase_return_details');

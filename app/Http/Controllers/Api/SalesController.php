@@ -30,6 +30,14 @@ class SalesController extends ApiBaseController
      * Display a listing of the resource.
      */
 
+    public function __construct()
+    {
+        $this->middleware('permission:sales:read')->only('index', 'show');
+        $this->middleware('permission:sales:create')->only('store');
+        $this->middleware('permission:sales:edit')->only('update');
+        $this->middleware('permission:sales:delete')->only('destroy'); // this api is still remain
+    }
+
 
     public function getSalesSummary(Request $request)
     {

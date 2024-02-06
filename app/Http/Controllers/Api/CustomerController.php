@@ -30,9 +30,8 @@ class CustomerController extends ApiBaseController
 
     public function __construct()
     {
-        $this->middleware('permission:customer:get')->only('index');
+        $this->middleware('permission:customer:read')->only('index', 'show');
         $this->middleware('permission:customer:create')->only('store');
-        $this->middleware('permission:customer:detail')->only('show');
         $this->middleware('permission:customer:edit')->only('update');
         $this->middleware('permission:customer:delete')->only('delete');
     }

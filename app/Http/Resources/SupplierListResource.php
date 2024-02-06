@@ -24,6 +24,7 @@ class SupplierListResource extends JsonResource
             return [
                 'id' => $supplier->id,
                 'supplier_code' => $supplier?->code ?? "-",
+                'prefix' => $supplier->prefix,
                 'name' => $supplier->name,
                 'phone_no' => $supplier->phone_number,
                 'township_id' => (int)$supplier->township,

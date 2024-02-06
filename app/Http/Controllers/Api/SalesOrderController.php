@@ -18,6 +18,14 @@ use Illuminate\Support\Facades\DB;
 class SalesOrderController extends ApiBaseController
 {
     use SalesOrderTrait;
+
+    public function __construct()
+    {
+        $this->middleware('permission:sales:read')->only('index', 'detail');
+        $this->middleware('permission:sales:create')->only('create');
+        $this->middleware('permission:sales:edit')->only('update');
+        $this->middleware('permission:sales:delete')->only('delete');
+    }
     public function index(Request $request)
     {
         $getSalesOrders = SalesOrder::with('sales_order_details');

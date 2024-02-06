@@ -20,9 +20,8 @@ class SupplierController extends ApiBaseController
 {
     public function __construct()
     {
-        $this->middleware('permission:supplier:get')->only('index');
+        $this->middleware('permission:supplier:read')->only('index', 'show');
         $this->middleware('permission:supplier:create')->only('store');
-        $this->middleware('permission:supplier:detail')->only('show');
         $this->middleware('permission:supplier:edit')->only('update');
         $this->middleware('permission:supplier:delete')->only('delete');
     }
