@@ -85,7 +85,9 @@ Route::post('/central_links', function () {
             "Unit Conversion" => [
                 "get Item By Code" => config('app.url') . '/api/items/code/{item_code}',
                 "ယူနစ်ကူးပြောင်းမှူမှတ်တမ်း (GET)" => config('app.url') . '/api/unit_converts',
-                "create Unit Conversion (POST)" => config('app.url') . '/api/unit_converts'
+                "create Unit Conversion (POST)" => config('app.url') . '/api/unit_converts',
+                "Update Unit Conversion (PUT)" => config('app.url') . '/api/unit_converts',
+                "Delete Unit Conversion (DELETE)" => config('app.url') . '/api/unit_converts'
             ],
             "set up new product" => [
                 "get Item By Code (GET)" => config('app.url') . '/api/items/code/{item_code}',
@@ -227,6 +229,7 @@ Route::post('/central_links', function () {
                     "Delete Branch (DELETE)" => config('app.url') . "/api/branches/{id}",
                 ],
                 "Role List" => [
+                    "Role Detail (GET)" => config('app.url') . '/api/roles/{id}',
                     "Role List" => config('app.url') . "/api/roles?searchBy=",
                     "Delete Role (DELETE)" => config('app.url') . "/api/roles/{id}"
                 ]

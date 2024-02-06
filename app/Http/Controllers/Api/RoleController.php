@@ -78,7 +78,35 @@ class RoleController extends ApiBaseController
      */
     public function show(string $id)
     {
-        $role = Role::with('permissions:id,name')->findOrFail($id);
+        $role = Role::select('id', 'name')->findOrFail($id);
+
+        $formattedPermissions = [];
+
+        foreach ($role->permissions as $permission) {
+            $nameParts = explode(':', $permission['name']);
+            
+            if (count($nameParts) === 2) {
+                $resource = $nameParts[0];
+                $action = $nameParts[1];
+                
+                if (!isset($formattedPermissions[$resource])) {
+                    $formattedPermissions[$resource] = [
+                        'name' => $resource,
+                        'permissions' => [],
+                    ];
+                }
+
+                $formattedPermissions[$resource]['permissions'][] = [
+                    'id' => $permission['id'],
+                    'name' => $action,
+                ];
+            }
+        }
+
+        // Remove the 'permissions' property from the $role object
+        unset($role->permissions);
+
+        $role->permissions_list = $formattedPermissions;
 
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $role);
     }

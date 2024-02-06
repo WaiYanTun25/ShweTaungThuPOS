@@ -30,7 +30,7 @@ class UnitConvertController extends ApiBaseController
             ->get();
 
         $unitConverts = UnitConvertResource::collection($unitConverts);
-        return $this->sendSuccessResponse('UnitConverts retrieved successfully', Response::HTTP_OK, $unitConverts);
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $unitConverts);
     }
 
     /**
