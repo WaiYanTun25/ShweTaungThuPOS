@@ -27,6 +27,8 @@ class RoleSeeder extends Seeder
         $cashierPermissions = Permission::where('name' , 'Like', '%sale%')
         ->OrWhere('name' , 'Like', '%purchase%')
         ->OrWHere('name' , 'Like', '%item%')
+        ->OrWHere('name' , 'Like', '%customer%')
+        ->OrWHere('name' , 'Like', '%supplier%')
         ->get();
 
         $permissionList = new stdClass;

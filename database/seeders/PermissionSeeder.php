@@ -23,7 +23,10 @@ class PermissionSeeder extends Seeder
         $salesPermissionList = ['sales:read', 'sales:create', 'sales:edit','sales:delete'];
         $purchasesPermissionList = ['purchases:read', 'purchases:create', 'purchases:edit','purchases:delete'];
         $registerPermissions = ['auth:register'];
-        $allPermissions = array_merge($supplierPermissionList,$customerPermissionList, $registerPermissions, $branchPermissionList, $rolePermissionsList, $itemPermissionsList, $salesPermissionList, $purchasesPermissionList);
+        $allPermissions = array_merge(
+            $supplierPermissionList,
+            $customerPermissionList, 
+            $registerPermissions, $branchPermissionList, $rolePermissionsList, $itemPermissionsList, $salesPermissionList, $purchasesPermissionList);
 
         foreach($allPermissions as $permission)
         {
