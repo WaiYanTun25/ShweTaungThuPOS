@@ -133,11 +133,46 @@ class SalesReturnController extends ApiBaseController
 
     public function update(SalesReturnRequest $request, $id)
     {
+        $validatedData = $request->validated();
+        DB::beginTransaction();
+        try{
+            /** handle prev data **/
+            // find sale returns by id
+            $salesReturn = SalesReturn::findOrFail($id);
+            // update the purchase return
+            $updatedSalesReturn = $this->createOrUpdateSalesReturn($validatedData, Auth::user()->branch_id, true, $salesReturn);
+            // deduct item from branch
+            $this->deductItemFromBranch($salesReturn->sales_return_details, Auth::user()->branch_id);
+            // delete prev sales return details
+            $salesReturn->sales_return_details()->delete(); 
 
+            $updatedSalesReturn->sales_return_details()->createMany($validatedData['sales_return_details']);
+            $this->addItemtoBranch($validatedData['sales_return_details']);
+            DB::commit();
+
+            $message = 'Sales Return (' . $updatedSalesReturn->voucher_no . ') is updated successfully';
+            return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
+         }catch(Exception $e){
+            DB::rollBack();
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     public function destory($id)
     {
+        $deleteSalesReturn = SalesReturn::findOrFail($id);
+        DB::beginTransaction();
+        try {
+            $this->deductItemFromBranch($deleteSalesReturn->sales_return_details, Auth::user()->branch_id);
+            $deleteSalesReturn->sales_return_details()->delete();
+            $deleteSalesReturn->delete();
 
+            DB::commit();
+            $message = $deleteSalesReturn->voucher_no . ' is deleted successfully';
+            return $this->sendSuccessResponse($message, Response::HTTP_OK);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
     }
 }

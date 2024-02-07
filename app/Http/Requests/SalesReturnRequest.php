@@ -62,7 +62,7 @@ class SalesReturnRequest extends FormRequest
                 function ($attribute, $value, $fail) {
 
                     if ($this->isMethod('put') || $this->isMethod('patch')) {
-                        $requestId = $this->route('sales_returns');
+                        $requestId = $this->route('id');
                         $salesReturnData = SalesReturn::find($requestId);
                     }
 

@@ -152,13 +152,13 @@ Route::post('/central_links', function () {
                 "update_sales_orders (PUT)" => config('app.url') . "/api/sales_orders/{id}",
                 "delete_sales_orders (DELETE)" => config('app.url') . "/api/sales_orders/{id}",
                 "sales return list" => config('app.url') . "/api/sales_returns?searchBy=&order=desc&column=pay_amount&startDate&endDate&customer_id&report=",
-                "sales return detail" => config('app.url') . "/api/sales_returns/1",
+                "sales return detail" => config('app.url') . "/api/sales_returns/{id}",
                 "create purchase return" => [
                     "pre_form (GET)" => config('app.url') . "/api/purchases/{id}/pre_return_form_data",
                     "Create form (POST)" => config('app.url') . '/api/purchase_returns',
                 ],
-                "update sales return (PUT)" => "UNDER CONSTRUCTION",
-                "delete sales return (DELETE)" => "UNDER CONSTRUCTION",
+                "update sales return (PUT)" => config('app.url') . "/api/sales_returns/{id}?permission=True",
+                "delete sales return (DELETE)" => config('app.url') . "/api/sales_returns/{id}?permission=True",
                 
             ]
         ],
@@ -341,6 +341,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::post('', [SalesReturnController::class, 'create']);
         Route::get('{id}', [SalesReturnController::class, 'show']);
         Route::put('{id}', [SalesReturnController::class, 'update']);
+        Route::delete('{id}', [SalesReturnController::class, 'destory']);
     });
 
     Route::prefix('cities')->group(function () {
