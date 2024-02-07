@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Inventory;
 use App\Models\ItemUnitDetail;
+use App\Models\UnitConvert;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
@@ -35,53 +36,73 @@ class UnitConvertRequest extends FormRequest
      */
     public function rules(): array
     {
+        $branch_id = Auth::user()->branch_id;
+
         return [
-            'item_id' => 'required | integer',
+            'item_id' => 'required|integer',
             'convert_details.from_unit_id' => [
-                'required', 'integer',
-                function ($attribute, $value, $fail) {
-                    $checkItemUnit = ItemUnitDetail::where('item_id', $this->item_id)->where('unit_id', $value)->first();
-                    if(!$checkItemUnit) {
-                        $fail("Invalid unit_id: {$value}");
-                    }
+                'required', 'integer', function ($attribute, $value, $fail) {
+                    $this->validateItemUnit($attribute, $value, $fail);
                 }
             ],
             'convert_details.to_unit_id' => [
-                'required', 'integer',
-                function ($attribute, $value, $fail) {
-                    $checkItemUnit = ItemUnitDetail::where('item_id', $this->item_id)->where('unit_id', $value)->first();
-                    if(!$checkItemUnit) {
-                        $fail("Invalid unit_id: {$value}");
-                    }
+                'required', 'integer', function ($attribute, $value, $fail) {
+                    $this->validateItemUnit($attribute, $value, $fail);
                 }
             ],
-            'convert_details.from_qty' => 'required | integer',
-            'convert_details.to_qty' => 'required | integer',
+            'convert_details.from_qty' => 'required|integer',
+            'convert_details.to_qty' => 'required|integer',
             'convert_details' => [
-                'required',
-                function ($attribute, $value, $fail) {
-                    $branch_id = Auth::user()->branch_id;
-
-                    // Check if the inventory exists for the given item, branch, and unit
-                    $checkInventory = Inventory::where('item_id', $this->item_id)
-                        ->where('branch_id', $branch_id)
-                        ->where('unit_id', $this->convert_details['from_unit_id'])
-                        ->first();
-                    if (!$checkInventory) {
-                        // If inventory doesn't exist, fail with an error message
-                        $fail("Invalid quantity for item_id: {$this->item_id}");
-                    } elseif($checkInventory->quantity < $this->quantity) {
-                        // If the quantity in inventory is less than the requested quantity, fail with an error message
-                        $fail("Invalid quantity for item_id: {$this->item_id}");
-
-                    } else {
-                        if ($checkInventory->quantity < $this->quantity) {
-                            // If the quantity in inventory is less than the requested quantity, fail with an error message
-                            $fail("Invalid quantity for item_id: {$this->item_id}");
-                        }
-                    }
+                'required', function ($attribute, $value, $fail) use ($branch_id) {
+                    $this->validateQuantity($attribute, $value, $fail, $branch_id);
                 }
             ]
         ];
+    }
+
+    protected function validateItemUnit($attribute, $value, $fail)
+    {
+        $checkItemUnit = ItemUnitDetail::where('item_id', $this->item_id)->where('unit_id', $value)->first();
+        if (!$checkItemUnit) {
+            $fail("Invalid {$attribute}: {$value}");
+        }
+    }
+
+    protected function validateQuantity($attribute, $value, $fail)
+    {
+        $branch_id = Auth::user()->branch_id;
+        info($this->convert_details['from_qty']);
+
+        if ($this->isMethod('put') || $this->isMethod('patch')) {
+            $requestId = $this->route('unit_convert');
+            $prevData = UnitConvert::with('convertDetail')->find($requestId);
+
+            $fromUnitId = $this->convert_details['from_unit_id'];
+            $fromQty = $this->convert_details['from_qty'];
+
+            // Calculate the sum of previous and updated quantity
+            $totalQuantity = $prevData->convertDetail->from_qty + $fromQty;
+
+            // Check if the total quantity exceeds the current inventory quantity
+            $checkInventory = Inventory::where('item_id', $this->item_id)
+                ->where('branch_id', $branch_id)
+                ->where('unit_id', $fromUnitId)
+                ->where('quantity', '>=', $totalQuantity)
+                ->exists();
+        } else {
+            $fromUnitId = $this->convert_details['from_unit_id'];
+            $fromQty = $this->convert_details['from_qty'];
+
+            // Check if the inventory exists for the given item, branch, and unit
+            $checkInventory = Inventory::where('item_id', $this->item_id)
+                ->where('branch_id', $branch_id)
+                ->where('unit_id', $fromUnitId)
+                ->where('quantity', '>', $fromQty)
+                ->exists();
+        }
+
+        if (!$checkInventory) {
+            $fail("Invalid quantity for item_id: {$this->item_id}");
+        }
     }
 }

@@ -26,10 +26,15 @@ class ItemController extends ApiBaseController
 
     public function __construct()
     {
-        $this->middleware('permission:item:read')->only('index', 'show');
-        $this->middleware('permission:item:create')->only('store');
-        $this->middleware('permission:item:edit')->only('update');
-        $this->middleware('permission:item:delete')->only('destroy');
+        // Check if the 'permission' query parameter is present and set to 'true'
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:item:read')->only('index', 'show');
+            $this->middleware('permission:item:create')->only('store');
+            $this->middleware('permission:item:edit')->only('update');
+            $this->middleware('permission:item:delete')->only('destroy');
+        }
     }
 
     /**

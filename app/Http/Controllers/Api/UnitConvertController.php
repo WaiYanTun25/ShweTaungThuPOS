@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use App\Http\Resources\UnitConvertResource;
 use App\Http\Resources\UnitConvertDetailResource;
 use App\Http\Resources\UnitConvertDetailCollection;
+use Exception;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class UnitConvertController extends ApiBaseController
@@ -67,7 +68,7 @@ class UnitConvertController extends ApiBaseController
                 ->where('item_id', $request->validated()['item_id'])
                 ->where('unit_id', $request->validated()['convert_details']['to_unit_id'])
                 ->first();
-            info($request->validated()['convert_details']['from_qty']);
+
             // Decrement the inventory for the from_unit_id
             if ($inventory) {
                 $inventory->decrement('quantity', $request->validated()['convert_details']['from_qty']);
@@ -87,7 +88,8 @@ class UnitConvertController extends ApiBaseController
             }
 
             DB::commit();
-            return $this->sendSuccessResponse('success', Response::HTTP_CREATED);
+            $message = "UnitConvert (" . $unitConvert->item->name . ") is created successfully";
+            return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
         } catch (\Exception $e) {
             DB::rollBack();
             info($e->getMessage());
@@ -110,8 +112,78 @@ class UnitConvertController extends ApiBaseController
      * Update the specified resource in storage.
      */
     public function update(UnitConvertRequest $request, string $id)
-    {
-        //
+    {   
+        $unitConvert = UnitConvert::findOrFail($id);
+        $validatedData = $request->validated();
+        try{
+            DB::beginTransaction();
+
+            
+            /** Add previous item id's unit id inventory **/
+            $addQtyToInventory = Inventory::where('item_id', $unitConvert->item_id)
+            ->where('unit_id', $unitConvert->convertDetail->from_unit_id)
+            ->where('branch_id', Auth::user()->branch_id)
+            ->first();
+            $addQtyToInventory->increment('quantity', $unitConvert->convertDetail->from_qty);
+
+            /** Deduct previous item id's unit id inventory **/
+            $deductFromInventory = Inventory::where('item_id', $unitConvert->item_id)
+            ->where('unit_id', $unitConvert->convertDetail->to_unit_id)
+            ->where('branch_id', Auth::user()->branch_id)
+            ->first();
+            $deductFromInventory->decrement('quantity', $unitConvert->convertDetail->to_qty);
+
+            /** Update Unit Convert **/
+            $unitConvert->update([
+                'branch_id' => Auth::user()->branch_id,
+                'item_id' => $validatedData['item_id'],
+            ]);
+
+            /** Update Unit Convert Detail **/
+            $unitConvertDetail = UnitConvertDetail::where('unit_convert_id', $unitConvert->id)->first();
+            $unitConvertDetail->update([
+                'from_unit_id' => $validatedData['convert_details']['from_unit_id'],
+                'from_qty' => $validatedData['convert_details']['from_qty'],
+                'to_unit_id' => $validatedData['convert_details']['to_unit_id'],
+                'to_qty' => $validatedData['convert_details']['to_qty'],
+            ]);
+
+            /** Get the inventory for the from_unit_id **/
+            $fromInventory = Inventory::where('branch_id', Auth::user()->branch_id)
+                ->where('item_id', $validatedData['item_id'])
+                ->where('unit_id', $validatedData['convert_details']['from_unit_id'])
+                ->first();
+
+            $toInventory = Inventory::where('branch_id', Auth::user()->branch_id)
+                ->where('item_id', $request->validated()['item_id'])
+                ->where('unit_id', $request->validated()['convert_details']['to_unit_id'])
+                ->first();
+            
+            // Decrement the inventory for the from_unit_id
+            if ($fromInventory) {
+                $fromInventory->decrement('quantity', $request->validated()['convert_details']['from_qty']);
+            }
+
+            // Increment the inventory for the to_unit_id
+            if ($toInventory) {
+                $toInventory->increment('quantity', $request->validated()['convert_details']['to_qty']);
+            } else {
+                // Create a new Inventory instance for the to_unit_id
+                $addInventory = new Inventory();
+                $addInventory->branch_id = Auth::user()->branch_id;
+                $addInventory->item_id = $validatedData['item_id'];
+                $addInventory->unit_id = $validatedData['convert_details']['to_unit_id'];
+                $addInventory->quantity = $validatedData['convert_details']['to_qty'];
+                $addInventory->save();
+            }
+
+            DB::commit();
+            $message = "UnitConvert (" . $unitConvert->item->name . ") is updated successfully";
+            return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
+        }catch(Exception $e){
+            DB::rollBack();
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**

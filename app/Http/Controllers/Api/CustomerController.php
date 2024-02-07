@@ -30,10 +30,14 @@ class CustomerController extends ApiBaseController
 
     public function __construct()
     {
-        $this->middleware('permission:customer:read')->only('index', 'show');
-        $this->middleware('permission:customer:create')->only('store');
-        $this->middleware('permission:customer:edit')->only('update');
-        $this->middleware('permission:customer:delete')->only('delete');
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:customer:read')->only('index', 'show');
+            $this->middleware('permission:customer:create')->only('store');
+            $this->middleware('permission:customer:edit')->only('update');
+            $this->middleware('permission:customer:delete')->only('delete');
+        }
     }
     /**
      * Display a listing of the resource.

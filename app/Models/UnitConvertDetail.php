@@ -9,6 +9,7 @@ class UnitConvertDetail extends Model
 {
     use HasFactory;
     public $timestamps = false;
+    protected $fillable = ['unit_convert_id', 'from_unit_id', 'from_qty', 'to_unit_id', 'to_qty'];
 
     public function fromUnit()
     {

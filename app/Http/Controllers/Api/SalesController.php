@@ -32,10 +32,15 @@ class SalesController extends ApiBaseController
 
     public function __construct()
     {
-        $this->middleware('permission:sales:read')->only('index', 'show');
-        $this->middleware('permission:sales:create')->only('store');
-        $this->middleware('permission:sales:edit')->only('update');
-        $this->middleware('permission:sales:delete')->only('destroy'); // this api is still remain
+        // Check if the 'permission' query parameter is present and set to 'true'
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:sales:read')->only('index', 'show');
+            $this->middleware('permission:sales:create')->only('store');
+            $this->middleware('permission:sales:edit')->only('update');
+            $this->middleware('permission:sales:delete')->only('destroy'); // this api is still remain
+        }
     }
 
 

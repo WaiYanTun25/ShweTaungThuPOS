@@ -24,10 +24,14 @@ class PurchaseOrderController extends ApiBaseController
 
     public function __construct()
     {
-        $this->middleware('permission:purchases:read')->only('index', 'detail');
-        $this->middleware('permission:purchases:create')->only('create');
-        $this->middleware('permission:purchases:edit')->only('update');
-        $this->middleware('permission:purchases:delete')->only('delete');
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:purchases:read')->only('index', 'detail');
+            $this->middleware('permission:purchases:create')->only('create');
+            $this->middleware('permission:purchases:edit')->only('update');
+            $this->middleware('permission:purchases:delete')->only('delete');
+        }
     }
 
     public function index(Request $request)

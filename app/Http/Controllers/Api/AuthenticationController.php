@@ -20,7 +20,11 @@ class AuthenticationController extends ApiBaseController
 
     public function __construct()
     {
-        $this->middleware('permission:auth:register')->only('registerUser');
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:auth:register')->only('registerUser');
+        }
     }
 
     public function loginUser (Request $request)

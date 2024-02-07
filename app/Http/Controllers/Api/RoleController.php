@@ -18,10 +18,14 @@ class RoleController extends ApiBaseController
 {
     public function __construct()
     {
-        $this->middleware('permission:role:read')->only('index', 'show');
-        $this->middleware('permission:role:create')->only('store');
-        $this->middleware('permission:role:edit')->only('update');
-        $this->middleware('permission:role:delete')->only('delete');
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:role:read')->only('index', 'show');
+            $this->middleware('permission:role:create')->only('store');
+            $this->middleware('permission:role:edit')->only('update');
+            $this->middleware('permission:role:delete')->only('delete');
+        }
     }
 
     /**

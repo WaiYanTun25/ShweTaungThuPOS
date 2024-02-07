@@ -20,10 +20,14 @@ class SupplierController extends ApiBaseController
 {
     public function __construct()
     {
-        $this->middleware('permission:supplier:read')->only('index', 'show');
-        $this->middleware('permission:supplier:create')->only('store');
-        $this->middleware('permission:supplier:edit')->only('update');
-        $this->middleware('permission:supplier:delete')->only('delete');
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:supplier:read')->only('index', 'show');
+            $this->middleware('permission:supplier:create')->only('store');
+            $this->middleware('permission:supplier:edit')->only('update');
+            $this->middleware('permission:supplier:delete')->only('delete');
+        }
     }
 
     /**

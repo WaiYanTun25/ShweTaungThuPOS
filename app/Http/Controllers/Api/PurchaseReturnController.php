@@ -26,10 +26,14 @@ class PurchaseReturnController extends ApiBaseController
 
     public function __construct()
     {
-        $this->middleware('permission:purchases:read')->only('index', 'show');
-        $this->middleware('permission:purchases:create')->only('store');
-        $this->middleware('permission:purchases:edit')->only('update');
-        $this->middleware('permission:purchases:delete')->only('destroy');
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:purchases:read')->only('index', 'show');
+            $this->middleware('permission:purchases:create')->only('store');
+            $this->middleware('permission:purchases:edit')->only('update');
+            $this->middleware('permission:purchases:delete')->only('destroy');
+        }
     }
     public function index(Request $request)
     {

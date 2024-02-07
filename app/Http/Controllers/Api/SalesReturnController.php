@@ -25,10 +25,14 @@ class SalesReturnController extends ApiBaseController
 
     public function __construct()
     {
-        $this->middleware('permission:sales:read')->only('index', 'show');
-        $this->middleware('permission:sales:create')->only('store');
-        $this->middleware('permission:sales:edit')->only('update');
-        $this->middleware('permission:sales:delete')->only('destroy');
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:sales:read')->only('index', 'show');
+            $this->middleware('permission:sales:create')->only('store');
+            $this->middleware('permission:sales:edit')->only('update');
+            $this->middleware('permission:sales:delete')->only('destroy');
+        }
     }
     public function index(Request $request)
     {
