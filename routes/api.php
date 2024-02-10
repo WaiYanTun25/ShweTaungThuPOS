@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\{
     IssueController,
     ItemController,
     LocationController,
+    MainDashboard,
     PaymentMethodController,
     PermissionControler,
     PermissionController,
@@ -241,6 +242,12 @@ Route::post('/central_links', function () {
 Route::get('/testing', [TestController::class, 'testing']);
 
 Route::group(["middleware" => ['auth:sanctum']], function () {
+
+    Route::prefix('main_dashboard')->group(function () {
+        Route::get('today_sales_record', [MainDashboard::class, 'todaySalesRate']);
+        Route::get('stock_summary', [MainDashboard::class, 'stockSummary']);
+        Route::get('sales_rate', [MainDashboard::class, 'salesRate']);
+    });
 
     Route::post('/register', [AuthenticationController::class, 'registerUser']);
     Route::get('/get-current-user', [AuthenticationController::class, 'getCurrentUserRoleAndPermission']);

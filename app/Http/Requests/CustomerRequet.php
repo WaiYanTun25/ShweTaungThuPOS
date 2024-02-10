@@ -34,7 +34,7 @@ class CustomerRequet extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'name' => 'required | unique:customers',
+            'name' => 'required',
             'address' => 'required',
             'phone_number' => 'required',
             'township' => 'required',
