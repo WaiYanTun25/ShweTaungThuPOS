@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\TopPerformingResource;
 use App\Models\Customer;
 use App\Models\Inventory;
 use App\Models\ItemUnitDetail;
+use App\Models\Purchase;
 use App\Models\Sale;
+use App\Models\SaleDetail;
 use App\Models\SalesOrder;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -221,4 +225,80 @@ class MainDashboard extends ApiBaseController
 
         return $this->sendSuccessResponse('success', Response::HTTP_OK, ["duration_by_year" => $thisYearSales]);
     }
+
+    /********* start top performing **********/
+    public function topPerforming(Request $request)
+    {
+        $type = $request->query('type');
+        $month = $request->query('month');
+        $year = $request->query('year');
+
+        try {
+            $result = "";
+            if ( $type == "customer" ) {
+                $result = $this->getTopCustomer($month, $year);
+            } else {
+                $result = $this->getTopProduct($month, $year);
+            };
+            
+            $resource = new TopPerformingResource($result, $type);
+            return $this->sendSuccessResponse('success', Response::HTTP_OK, $resource);
+        } catch (Exception $e) {
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    private function getTopCustomer($month, $year)
+    {
+        $results = Sale::with('customer')->selectRaw('customer_id, sum(total_amount) as total_amount')
+                    ->whereYear('sales_date', '=', $year)
+                    ->whereMonth('sales_date', '=', $month)
+                    ->groupBy('customer_id')
+                    ->orderByDesc('total_amount')
+                    ->take(5)
+                    ->get();
+        return $results;
+    }
+
+    private function getTopProduct($month, $year)
+    {
+        $results = SaleDetail::with('item')->selectRaw('item_id, sum(quantity) as total_amount')
+            ->join('sales', 'sales.id', '=', 'sale_details.sale_id')
+            ->whereYear('sales.sales_date', '=', $year)
+            ->whereMonth('sales.sales_date', '=', $month)
+            ->groupBy('item_id')
+            ->orderByDesc('total_amount')
+            ->take(5)
+            ->get();
+
+            return $results;
+    }
+    /******** end top performing ********/
+
+    /******** start purchase analysis **********/
+    public function purchaseAnalysis()
+    {
+        // Get the first and last day of the current year
+        $firstDayOfYear = Carbon::now()->startOfYear();
+        $lastDayOfYear = Carbon::now()->endOfYear();
+
+        // Generate an array of all months of the year (as numbers)
+        $allMonthsOfYear = range(1, 12);
+
+        // Query sales data and left join with the collection of all months
+        $thisYearSales = collect($allMonthsOfYear)->map(function ($month) use ($firstDayOfYear) {
+            $currentDate = $firstDayOfYear->copy()->month($month);
+
+            $result = Purchase::select(DB::raw("MONTH(purchase_date) as month_number, COALESCE(SUM(total_amount), 0) as total_amount"))
+                ->whereYear('purchase_date', $currentDate->year)
+                ->whereMonth('purchase_date', $currentDate->month)
+                ->groupBy('month_number')
+                ->first();
+
+            return $result ?: (object)['month_number' => $month, 'total_amount' => '0'];
+        });
+
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, ["purchase_analysis" => $thisYearSales]);
+    }
+    /******** end purchase analysis ********/
 }

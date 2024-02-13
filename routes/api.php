@@ -247,6 +247,9 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::get('today_sales_record', [MainDashboard::class, 'todaySalesRate']);
         Route::get('stock_summary', [MainDashboard::class, 'stockSummary']);
         Route::get('sales_rate', [MainDashboard::class, 'salesRate']);
+        Route::get('top-performing', [MainDashboard::class, 'topPerforming']);
+        
+        Route::get('purchase_analysis', [MainDashboard::class, 'purchaseAnalysis']);
     });
 
     Route::post('/register', [AuthenticationController::class, 'registerUser']);
