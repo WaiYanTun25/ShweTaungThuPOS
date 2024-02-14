@@ -31,7 +31,8 @@ class PurchasesListResource extends JsonResource
 
         $response += [
             'total_purchases_list' => $this->data->map(function ($purchase) {
-                return [
+
+                $result = [
                     'id' => $purchase->id,
                     'voucher_no' => $purchase->voucher_no,
                     'supplier_name' => $purchase->supplier->name,
@@ -39,11 +40,23 @@ class PurchasesListResource extends JsonResource
                     'branch_name' => $purchase->branch->name,
                     'total_quantity' => $purchase->total_quantity,
                     'total_amount' => $purchase->total_amount,
-                    'pay_amount' => $purchase->pay_amount,
-                    'remain_amount' => $purchase->remain_amount,
                     'causer_name' => $purchase->createActivity->causer->name ?? "",
-                    'payment_status' => $purchase->payment_status
+                    'payment_status' => $purchase->payment_status,
                 ];
+
+                if ($this->purchase_history)
+                {
+                    $result += [
+                        'purchase_date' => formatToCustomDate($purchase->purchase_date),
+                        'product_count' => $this->getItemCount($purchase->purchase_details),
+                    ] ;
+                } else {
+                    $result += [
+                        'remain_amount' => $purchase->remain_amount,
+                        'pay_amount' => $purchase->pay_amount,
+                    ];
+                }
+                return $result;
             }),
         ];
 
@@ -79,5 +92,13 @@ class PurchasesListResource extends JsonResource
             $itemsName[] = $detail->item->item_name;
         }
         return implode(', ', $itemsName);
+    }
+
+    private function getItemCount($details)
+    {
+        $uniqueItemIds = collect($details)->pluck('item_id')->unique()->values()->count();
+        // $uniqueItemIdsArray = $uniqueItemIds->toArray();
+
+        return $uniqueItemIds;
     }
 }

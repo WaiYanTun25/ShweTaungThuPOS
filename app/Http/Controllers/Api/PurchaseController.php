@@ -11,6 +11,7 @@ use App\Models\Purchase;
 use App\Models\PurchaseDetail;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseReturn;
+use App\Models\Supplier;
 use Exception;
 use Illuminate\Http\{
     Request,
@@ -55,9 +56,10 @@ class PurchaseController extends ApiBaseController
             $getTotalPurchases = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('total_amount');
             $getTotalPurchasesCount = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->count();
 
-            // sales financial report
-            $getTotalPurchasesPay = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('pay_amount');
-            $getTotalPurchasesDebt = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('remain_amount');
+            // // sales financial report
+            // $getTotalPurchasesPay = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('pay_amount');
+            // $getTotalPurchasesDebt = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('remain_amount');
+            $getSupplierCount = Supplier::whereMonth('join_date', $currentMonth)->whereYear('join_date', $currentYear)->count();
 
             // sales order report
             $getTotalOrderCount = PurchaseOrder::whereMonth('order_date', $currentMonth)->whereYear('order_date', $currentYear)->count();
@@ -80,10 +82,7 @@ class PurchaseController extends ApiBaseController
                 'total_purchase_count' => $getTotalPurchasesCount,
             ];
 
-            $result->financial_report = [
-                'total_pay_amount' => $getTotalPurchasesPay,
-                'total_remain_amount' => $getTotalPurchasesDebt
-            ];
+            $result->total_supplier = $getSupplierCount;
 
             $result->order = [
                 'total_order_count' => $getTotalOrderCount,
@@ -151,7 +150,7 @@ class PurchaseController extends ApiBaseController
                 $result->data = $getPurchases->orderBy($column, $order)->get();
                 // this true is always true cause
                 // i use this resource function in two place 
-                // this controller funciton is always true
+                // this controller function is always true
                 $resourceCollection = new PurchasesListResource($result, true, true);
                 return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
             }else{
