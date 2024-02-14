@@ -51,6 +51,13 @@ Route::post('/login', [AuthenticationController::class, 'loginUser']);
 
 Route::post('/central_links', function () {
     return [
+        "Main DashBoard" => [
+            "today_sales_record" => config('app.url') . "/api/main_dashboard/today_sales_record",
+            "stock_summary" => config('app.url') . "/api/main_dashboard/stock_summary",
+            "sales_rate" => config('app.url') . "/api/main_dashboard/sales_rate?durationBy=week",
+            "top performing" => config('app.url') . "/api/main_dashboard/top-performing?type={customer/product}&month={month_by_number}&year={year_like_2024}",
+            "purchase analysis" => config('app.url') . "/api/main_dashboard/purchase_analysis",
+        ],
         "INVENTORY_MODULE" => [
             "inventory" => [
                 "အလုံးစုံစာရင်း" => config('app.url') . "/api/inventories/summary",
@@ -115,19 +122,22 @@ Route::post('/central_links', function () {
                 ],
                 "purchase detail" => config('app.url') . "/api/purchases/{id}",
                 "create purchase" => config('app.url') . "/api/purchases",
+                "invoice preview" => config('app.url') . "/api/purchases/{id}",
                 "total purchase List" => config('app.url') . "/api/purchases/total_purchase_list?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=2024-01-01 00:00:00&endDate=2024-01-09 23:59:59&supplierId=1",
                 "total order List" => config('app.url') . "/api/purchase_orders",
                 "create_purchase_orders (POST)" => config('app.url') . "/api/purchase_orders",
                 "update_purchase_orders (PUT)" => config('app.url') . "/api/purchase_orders/{id}",
                 "delete_purchase_orders (DELETE)" => config('app.url') . "/api/purchase_orders/{id}",
-                "purchase return list" => config('app.url') . "/api/purchase_returns?searchBy=&order=desc&column=pay_amount&startDate&endDate&supplier_id&report=",
+                "purchase return list" => [
+                    "Purchase Return List" => config('app.url') . "/api/purchase_returns?searchBy=&order=desc&column=pay_amount&startDate&endDate&supplier_id&report=",
+                    "update purchase return (PUT)" => config('app.url') . "/api/purchase_returns/{id}",
+                    "delete purchase return (DELETE)" => config('app.url') . "/api/purchase_returns/{id}",
+                ],
                 "purchase return detail" => config('app.url') . "/api/purchase_returns/{id}",
                 "create purchase return" => [
                     "pre_form (GET)" => config('app.url') . "/api/purchases/{id}/pre_return_form_data",
                     "Create form (POST)" => config('app.url') . '/api/purchase_returns',
                 ],
-                "update purchase return (PUT)" => config('app.url') . "/api/purchase_returns/{id}",
-                "delete purchase return (DELETE)" => config('app.url') . "/api/purchase_returns/{id}",
             ]
         ],
         // "product_detail (GET)" => config('app.url') . "/api/items",
