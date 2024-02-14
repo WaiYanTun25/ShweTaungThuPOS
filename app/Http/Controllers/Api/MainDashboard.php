@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\NewSalesTargetRequest;
+use App\Http\Resources\SalesTargetResource;
 use App\Http\Resources\TopPerformingResource;
 use App\Models\Customer;
 use App\Models\Inventory;
@@ -11,6 +13,7 @@ use App\Models\Purchase;
 use App\Models\Sale;
 use App\Models\SaleDetail;
 use App\Models\SalesOrder;
+use App\Models\SalesTarget;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
@@ -18,10 +21,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Traits\SalesTargetTrait;
 use stdClass;
 
 class MainDashboard extends ApiBaseController
 {
+    use SalesTargetTrait;
     private function getSignOfPercentageChange($percentageChange)
     {
         return ($percentageChange > 0) ? '+' . $percentageChange . "%" : $percentageChange . "%";
@@ -300,5 +305,60 @@ class MainDashboard extends ApiBaseController
 
         return $this->sendSuccessResponse('success', Response::HTTP_OK, ["purchase_analysis" => $thisYearSales]);
     }
-    /******** end purchase analysis ********/
+    /******** End purchase analysis ********/
+
+    /******* Get Sales Target Data *******/
+    public function getSalesTargetData()
+    {
+        $getSalesTarget = SalesTarget::first();
+        $result = "";
+        if( $getSalesTarget ){
+            if($getSalesTarget->target_type == 1) {
+                $result = $this->getSalesTargetByProduct($getSalesTarget->target_period , $getSalesTarget->amount);
+            }else{
+                $result = $this->getSalesTargetBySalesAmount($getSalesTarget->target_period, $getSalesTarget->amount);
+            }
+        }else{
+            return $this->sendErrorResponse('No data', Response::HTTP_BAD_REQUEST);
+        }
+
+        $resource = new SalesTargetResource($result);
+
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $resource);
+    }
+    /******* End get Sales Target Data *******/
+
+    /******* Create New Sales Target *******/
+    public function createNewSalesTarget(NewSalesTargetRequest $request)
+    {   
+        try {
+            DB::beginTransaction();
+            $checkSalesTarget = SalesTarget::first();
+            $validatedData = $request->validated();
+
+            if($checkSalesTarget)
+            {
+                $checkSalesTarget->update([
+                    "target_type" => $validatedData['target_type'],
+                    "amount" => $validatedData['amount'],
+                    "target_period" => $validatedData['target_period'],
+                ]);
+                $message = "Sales target is updated successfully.";
+            }else{
+                SalesTarget::create([
+                    "target_type" => $validatedData['target_type'],
+                    "amount" => $validatedData['amount'],
+                    "target_period" => $validatedData['target_period'],
+                ]);
+                $message = "Sales target is created successfully.";
+            }
+            DB::commit();
+            return $this->sendSuccessResponse($message, Response::HTTP_OK);
+        } catch(Exception $e) {
+            DB::rollBack();
+            return $this->sendErrorResponse('Something Went Wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /******* End New Sales Target *******/
 }

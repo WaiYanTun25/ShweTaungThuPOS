@@ -30,9 +30,7 @@ class Purchase extends Model
                 return "{$userName} {$eventName} the Purchase (Voucher_no {$this->voucher_no})";
             });
 
-
         $logOptions->logName = 'PURCHASE';
-
         return $logOptions;
     }
 

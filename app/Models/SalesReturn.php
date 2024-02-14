@@ -22,7 +22,8 @@ class SalesReturn extends Model
         $logOptions = LogOptions::defaults()
             ->logOnly(static::getFillable())
             ->setDescriptionForEvent(function (string $eventName) {
-                $userName = Auth::user()->name ?? 'Unknown User';
+                // $userName = Auth::user()->name ?? 'Unknown User';
+                $userName = "{userName}";
                 return "{$userName} {$eventName} the Sales Return (Voucher_no {$this->voucher_no})";
             });
             

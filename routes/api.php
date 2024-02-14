@@ -52,11 +52,15 @@ Route::post('/login', [AuthenticationController::class, 'loginUser']);
 Route::post('/central_links', function () {
     return [
         "Main DashBoard" => [
-            "today_sales_record" => config('app.url') . "/api/main_dashboard/today_sales_record",
-            "stock_summary" => config('app.url') . "/api/main_dashboard/stock_summary",
-            "sales_rate" => config('app.url') . "/api/main_dashboard/sales_rate?durationBy=week",
-            "top performing" => config('app.url') . "/api/main_dashboard/top-performing?type={customer/product}&month={month_by_number}&year={year_like_2024}",
-            "purchase analysis" => config('app.url') . "/api/main_dashboard/purchase_analysis",
+            "Dashboard" => [
+                "today_sales_record" => config('app.url') . "/api/main_dashboard/today_sales_record",
+                "stock_summary" => config('app.url') . "/api/main_dashboard/stock_summary",
+                "sales_rate" => config('app.url') . "/api/main_dashboard/sales_rate?durationBy=week",
+                "top performing" => config('app.url') . "/api/main_dashboard/top-performing?type={customer/product}&month={month_by_number}&year={year_like_2024}",
+                "get sales target data" => config('app.url'). "/api/main_dashboard/get_sales_target_data",
+                "purchase analysis" => config('app.url') . "/api/main_dashboard/purchase_analysis",
+            ],
+            "create/Update Sales Target" => config('app.url') . "/api/main_dashboard/create_new_sales_target"
         ],
         "INVENTORY_MODULE" => [
             "inventory" => [
@@ -258,8 +262,10 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::get('stock_summary', [MainDashboard::class, 'stockSummary']);
         Route::get('sales_rate', [MainDashboard::class, 'salesRate']);
         Route::get('top-performing', [MainDashboard::class, 'topPerforming']);
-        
+        Route::get('get_sales_target_data', [MainDashboard::class, 'getSalesTargetData']);
         Route::get('purchase_analysis', [MainDashboard::class, 'purchaseAnalysis']);
+
+        Route::post('create_new_sales_target', [MainDashboard::class, 'createNewSalesTarget']);
     });
 
     Route::post('/register', [AuthenticationController::class, 'registerUser']);
