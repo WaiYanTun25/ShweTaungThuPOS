@@ -168,7 +168,7 @@ class SalesReturnController extends ApiBaseController
             $deleteSalesReturn->delete();
 
             DB::commit();
-            $message = $deleteSalesReturn->voucher_no . ' is deleted successfully';
+            $message = 'Purchase Return' . $deleteSalesReturn->voucher_no . ' is deleted successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_OK);
         } catch (Exception $e) {
             DB::rollBack();

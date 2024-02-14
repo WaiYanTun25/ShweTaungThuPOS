@@ -20,7 +20,13 @@ class PurchaseReturnListResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $purchase_return_list = $this->data->map(function ($purchase_return) {
+        $uniqueItemIds = [];
+        $purchase_return_list = $this->data->map(function ($purchase_return)  use (&$uniqueItemIds) {
+
+            foreach ($purchase_return['purchase_return_details'] as $detail) {
+                $uniqueItemIds[] = $detail['item_id'];
+            }
+
             return [
                 'id' => $purchase_return->id,
                 'voucher_no' => $purchase_return->voucher_no,
@@ -28,15 +34,19 @@ class PurchaseReturnListResource extends JsonResource
                 'item_name' => $this->getItemsName($purchase_return->purchase_return_details),
                 'branch_name' => $purchase_return->branch->name,
                 'total_quantity' => $purchase_return->total_quantity,
-                'total_amount' => $purchase_return->total_amount,
+                // 'total_amount' => $purchase_return->total_amount,
                 'pay_amount' => $purchase_return->pay_amount,
                 'causer_name' => $purchase_return->createActivity->causer->name ?? "",
                 'purchase_return_date' => formatToCustomDate($purchase_return->purchase_return_date)
             ];
         });
-        $total_return_count = $this->data->sum(function ($purchase_return) {
-            return count($purchase_return->purchase_return_details);
-        });
+
+        // previous comment
+        // $total_return_count = $this->data->sum(function ($purchase_return) {
+        //     return count($purchase_return->purchase_return_details);
+        // });
+
+        $total_return_count = count(array_unique($uniqueItemIds));
         $total_return_amount = $this->data->sum(function ($purchase_return) {
             return $purchase_return->pay_amount;
         });
@@ -82,4 +92,13 @@ class PurchaseReturnListResource extends JsonResource
         }
         return implode(', ', $itemsName);
     }
+
+    // private function getItemCount($details)
+    // {
+    //     info($details);
+    //     $uniqueItemIds = collect($details)->pluck('item_id')->unique()->values()->count();
+    //     // $uniqueItemIdsArray = $uniqueItemIds->toArray();
+
+    //     return $uniqueItemIds;
+    // }
 }

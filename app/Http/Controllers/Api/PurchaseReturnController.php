@@ -85,6 +85,7 @@ class PurchaseReturnController extends ApiBaseController
                 $resourceCollection = new PurchaseReturnListResource($result, true);
                 return $this->sendSuccessResponse('Success', Response::HTTP_OK, $resourceCollection);
             }else{
+                // return $getPurchaseReturn->orderBy($column, $order)->get();
                 $result->data = $getPurchaseReturn->orderBy($column, $order)->paginate($perPage);
             }
 
@@ -137,16 +138,53 @@ class PurchaseReturnController extends ApiBaseController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    /** need to fix */
+    public function update(PurchaseReturnRequest $request, string $id)
     {
-        //
+        $validatedData = $request->validated();
+        DB::beginTransaction();
+        try{
+            /** handle prev data **/
+            // find sale returns by id
+            $purchaseReturn = PurchaseReturn::findOrFail($id);
+            // update the purchase return
+            $updatedPurchaseReturn = $this->createOrUpdatePurchaseReturn($validatedData, Auth::user()->branch_id, true, $purchaseReturn);
+            // deduct item from branch
+            $this->addItemtoBranch($purchaseReturn->purchase_return_details);
+            // delete prev sales return details
+            $purchaseReturn->purchase_return_details()->delete(); 
+
+            $updatedPurchaseReturn->purchase_return_details()->createMany($validatedData['purchase_return_details']);
+            $this->deductItemFromBranch($validatedData['purchase_return_details'], Auth::user()->branch_id);
+            DB::commit();
+
+            $message = 'Purchase Return (' . $updatedPurchaseReturn->voucher_no . ') is updated successfully';
+            return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
+         }catch(Exception $e){
+            DB::rollBack();
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
+    /** need to fix */
     public function destroy(string $id)
     {
-        //
+        $deleteSalesReturn = PurchaseReturn::findOrFail($id);
+        DB::beginTransaction();
+        try {
+            $this->addItemtoBranch($deleteSalesReturn->purchase_return_details);
+            $deleteSalesReturn->purchase_return_details()->delete();
+            $deleteSalesReturn->delete();
+
+            DB::commit();
+            $message = 'Purchase return' . $deleteSalesReturn->voucher_no . ' is deleted successfully';
+            return $this->sendSuccessResponse($message, Response::HTTP_OK);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
     }
 }

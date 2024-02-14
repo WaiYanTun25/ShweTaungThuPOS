@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Models\Inventory;
+use App\Models\PurchaseReturn;
+use App\Models\PurchaseReturnDetail;
 use Illuminate\Foundation\Http\FormRequest;
 
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -47,8 +49,8 @@ class PurchaseReturnRequest extends FormRequest
             'remark' => 'required | max:100',
             'pay_amount' => 'required | min:1',
             'payment_method' => 'required | exists:payment_methods,id',
-            'purchase_return_details.*.item_id' => 'required|integer | exists:items,item_id',
-            'purchase_return_details.*.unit_id' => 'required|integer | exists:units,unit_id',
+            'purchase_return_details.*.item_id' => 'required|integer | exists:items,id',
+            'purchase_return_details.*.unit_id' => 'required|integer | exists:units,id',
             'purchase_return_details.*.item_price' => 'required|integer|min:1',
             'purchase_return_details.*.quantity' => 'required|integer|min:1',
             'purchase_return_details.*.discount_amount' => 'required |integer',
@@ -58,6 +60,11 @@ class PurchaseReturnRequest extends FormRequest
                 'array',
                 function ($attribute, $value, $fail) {
 
+                    if ($this->isMethod('put') || $this->isMethod('patch')) {
+                        $requestId = $this->route('id');
+                        $purchaseReturnData = PurchaseReturn::find($requestId);
+                    }
+                    
                     foreach ($value as $index => $item)
                     {
                         // Check if 'quantity' key is present in the item array
@@ -69,32 +76,32 @@ class PurchaseReturnRequest extends FormRequest
                                 continue; // Skip further checks for this item
                             }
                             // check item and unit exists or not
-                            // if($this->isMethod('put') || $this->isMethod('patch'))
-                            // {
-                            //     $checkPurchase = Purchase::findOrFail($requestId);
+                            if($this->isMethod('put') || $this->isMethod('patch'))
+                            {
+                                // $checkPurchaseReturn = PurchaseReturn::findOrFail($requestId);
 
-                            //     $detail = PurchaseDetail::where('item_id', $item['item_id'])->where('unit_id', $item['unit_id'])->where('purchase_id', $checkPurchase->id)->first();
-                            //     if($detail){
-                            //         $totalQuantity =  $quantity - $detail->quantity;
-                            //         $itemExists = Inventory::where('item_id', $item['item_id'])
-                            //         ->where('unit_id', $item['unit_id'])
-                            //         ->where('branch_id', $checkPurchase->branch_id)
-                            //         ->where('quantity', '>=', $totalQuantity)
-                            //         ->exists();
-                            //     }else{
-                            //         $itemExists = true;
-                            //     }
-                            // }
+                                // $detail = PurchaseReturnDetail::where('item_id', $item['item_id'])->where('unit_id', $item['unit_id'])->where('purchase_id', $checkPurchaseReturn->id)->first();
+                                // if($detail){
+                                //     $totalQuantity =  $quantity - $detail->quantity;
+                                //     $itemExists = Inventory::where('item_id', $item['item_id'])
+                                //     ->where('unit_id', $item['unit_id'])
+                                //     ->where('branch_id', $checkPurchaseReturn->branch_id)
+                                //     ->where('quantity', '>=', $totalQuantity)
+                                //     ->exists();
+                                // }else{
+                                //     $itemExists = true;
+                                // }
+                            }else{
+                                $itemExists = Inventory::where('item_id', $item['item_id'])
+                                ->where('unit_id', $item['unit_id'])
+                                ->where('branch_id', Auth::user()->branch_id)
+                                ->where('quantity', '>=', $quantity)
+                                ->exists();
 
-                            $itemExists = Inventory::where('item_id', $item['item_id'])
-                            ->where('unit_id', $item['unit_id'])
-                            ->where('branch_id', Auth::user()->branch_id)
-                            ->where('quantity', '>=', $quantity)
-                            ->exists();
-
-                            if (!$itemExists) {
-                                $fail("Invalid for {$attribute}.{$index}.item_id: {$item['item_id']}, unit_id: {$item['unit_id']}");
-                            }
+                                if (!$itemExists) {
+                                    $fail("Invalid for {$attribute}.{$index}.item_id: {$item['item_id']}, unit_id: {$item['unit_id']}");
+                                }
+                           }
                         }
                     }
 
