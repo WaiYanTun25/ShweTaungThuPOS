@@ -359,6 +359,5 @@ class MainDashboard extends ApiBaseController
             return $this->sendErrorResponse('Something Went Wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
-
     /******* End New Sales Target *******/
 }

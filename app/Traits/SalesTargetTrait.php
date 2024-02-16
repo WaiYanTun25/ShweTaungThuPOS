@@ -63,7 +63,7 @@ trait SalesTargetTrait
         $results = new stdClass;
         $results->total_amount = $getThisPeriodSalesData;
         $results->percentage = $percentageThenPerv;
-        $results->target_percentage = $productPercentageChangeTarget . "%";
+        $results->target_percentage = $productPercentageChangeTarget > 100 ? 100 . "%" : $productPercentageChangeTarget . "%";
 
         return $results;
     }
@@ -95,28 +95,20 @@ trait SalesTargetTrait
             $prevEndDate = Carbon::now()->endOfYear()->subYear(); // End of the previous year
         }
         
-        // Retrieve sales data for the current and previous period
+        /****** Retrieve sales data for the current and previous period *****/
         $getThisPeriodSalesData = Sale::whereBetween('sales_date', [$startDate, $endDate])->sum('total_amount');
         $getPrevPeriodSalesData = Sale::whereBetween('sales_date', [$prevStartDate, $prevEndDate])->sum('total_amount');
-        
-        // Calculate the percentage change
-        $salePercentageChange = $this->calculatePercentageChange($getThisPeriodSalesData, $getPrevPeriodSalesData);
-        $percentage = $this->getSignOfPercentageChange($salePercentageChange);
-        
-        // Retrieve sales data for the current and previous period
-        $getThisPeriodSalesData = Sale::whereBetween('sales_date', [$startDate, $endDate])->sum('total_quantity');
-        $getPrevPeriodSalesData = Sale::whereBetween('sales_date', [$prevStartDate, $prevEndDate])->sum('total_quantity');
-        // Calculate the percentage change
+        /****** Calculate the percentage change ******/
         $productPercentageChange = $this->calculatePercentageChange($getThisPeriodSalesData, $getPrevPeriodSalesData);
         $percentageThenPerv = $this->getSignOfPercentageChange($productPercentageChange);
-
-        // Calculate the percentage change for target
-        $productPercentageChangeTarget = ($getThisPeriodSalesData / $amount) * 100 ;
+        /****** Calculate the percentage change for target ******/
+        $productPercentageChangeTarget = ( $getThisPeriodSalesData / $amount ) * 100 ;
         
         $results = new stdClass;
         $results->total_amount = $getThisPeriodSalesData;
         $results->percentage = $percentageThenPerv;
-        $results->target_percentage = $productPercentageChangeTarget . "%";
+        // $results->target_percentage = $productPercentageChangeTarget . "%";
+        $results->target_percentage = $productPercentageChangeTarget > 100 ? 100 . "%" : $productPercentageChangeTarget . "%";
 
         return $results;
     }
