@@ -26,6 +26,9 @@ class ItemResource extends JsonResource
                     'unit_id' => $itemUnitDetail->unit_id,
                     'unit_name' => $itemUnitDetail->unit->name, 
                     'rate' => $itemUnitDetail->rate,
+                    'retail_price' => $itemUnitDetail->retail_price,
+                    'wholesale_price' => $itemUnitDetail->wholesale_price,
+                    'vip_price' => $itemUnitDetail->vip_price
                     // Add other fields you want to include
                 ];
             }),

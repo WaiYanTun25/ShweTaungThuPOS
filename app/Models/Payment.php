@@ -79,7 +79,8 @@ class Payment extends Model
 
     public function createActivity()
     {
-        return $this->hasOne(Activity::class, 'subject_id', 'id');
+        // return $this->hasOne(Activity::class, 'subject_id', 'id');
+        return $this->hasOne(Activity::class, 'subject_id', 'id')->where('subject_type', get_class($this));
     }
 
     

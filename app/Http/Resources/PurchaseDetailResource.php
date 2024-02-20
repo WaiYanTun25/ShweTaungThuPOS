@@ -14,6 +14,7 @@ class PurchaseDetailResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        info($this->createActivity);
         return [
             'id' => $this->id,
             'voucher_no' => $this->voucher_no,
@@ -25,7 +26,7 @@ class PurchaseDetailResource extends JsonResource
             'branch_name' => $this->branch->name,
             'branch_address' => $this->branch->address,
             'branch_phone_no' => $this->branch->phone_number,
-            'payment_method_name' => $this->paymentMethod->name ?? null,
+            'payment_method_name' => $this->paymentMethod?->name ?? null,
             'payment_method_id' => $this->payment_method_id ?? null,
             'purchase_date' => formatToCustomDate($this->purchase_date),
             'total_quantity' => $this->total_amount,
