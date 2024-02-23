@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\Purchase;
 
 class SupplierListResource extends JsonResource
 {
@@ -21,16 +22,18 @@ class SupplierListResource extends JsonResource
     public function toArray(Request $request): array
     {
         $supplier_list = $this->map(function ($supplier) {
+            $totalPurchaseCount = Purchase::where('supplier_id', $supplier->id)->count();
             return [
                 'id' => $supplier->id,
                 'supplier_code' => $supplier?->code ?? "-",
                 'prefix' => $supplier->prefix,
                 'name' => $supplier->name,
                 'phone_no' => $supplier->phone_number,
-                'township_id' => (int)$supplier->township,
-                'township_name' => $supplier->townshipData->name,
-                'city_id' =>  (int)$supplier->city,
-                'city_name' => $supplier->cityData->name,
+                'total_purchase_count' => $totalPurchaseCount,
+                // 'township_id' => (int)$supplier->township,
+                // 'township_name' => $supplier->townshipData->name,
+                // 'city_id' =>  (int)$supplier->city,
+                // 'city_name' => $supplier->cityData->name,
                 'join_date' => formatToCustomDate($supplier->join_date),
                 'total_purchase_amount' =>  (int)$supplier->total_purchase_amount,
                 'debt_amount' =>  (int)$supplier->debt_amount,

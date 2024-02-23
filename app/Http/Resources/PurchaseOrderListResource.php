@@ -28,7 +28,7 @@ class PurchaseOrderListResource extends JsonResource
                 'item_name' => $this->getItemsName($order->purchase_order_details),
                 'total_quantity' => $order->total_quantity,
                 'total_amount' => $order->total_amount,
-                'causer_name' => $order->createActivity->causer->name,
+                'causer_name' => $order->createActivity?->causer?->name,
             ];
         });
         

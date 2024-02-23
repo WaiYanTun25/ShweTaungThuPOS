@@ -12,23 +12,24 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class PurchaseOrder extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
     public $timestamps = false;
     protected $fillable = ['voucher_no', 'branch_id', 'supplier_id', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'remark', 'order_date'];
 
-    // public function getActivitylogOptions(): LogOptions
-    // {
-    //     $logOptions = LogOptions::defaults()
-    //         ->setDescriptionForEvent(function (string $eventName) {
-    //             $userName = Auth::user()->name ?? 'Unknown User';
-    //             return "{$userName} {$eventName} the Purchase Order (Voucher_no {$this->voucher_no})";
-    //         });
+    public function getActivitylogOptions(): LogOptions
+    {
+        $logOptions = LogOptions::defaults()
+            ->setDescriptionForEvent(function (string $eventName) {
+                // $userName = Auth::user()->name ?? 'Unknown User';
+                $userName = "{userName}";
+                return "{$userName} {$eventName} the Purchase Order (Voucher_no {$this->voucher_no})";
+            });
             
         
-    //     $logOptions->logName = 'PURCHASE_ORDER';
+        $logOptions->logName = 'PURCHASE_ORDER';
 
-    //     return $logOptions;
-    // }
+        return $logOptions;
+    }
 
      /**
      * The "booting" method of the model.
