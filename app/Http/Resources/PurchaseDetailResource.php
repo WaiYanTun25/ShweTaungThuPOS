@@ -14,7 +14,7 @@ class PurchaseDetailResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        info($this->createActivity);
+        // info($this->createActivity);
         return [
             'id' => $this->id,
             'voucher_no' => $this->voucher_no,
