@@ -7,6 +7,12 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class PurchaseDetailResource extends JsonResource
 {
+    private $isInvoice;
+    public function __construct($resource, $isInvoice = false)
+    {
+        parent::__construct($resource);
+        $this->isInvoice = $isInvoice;
+    }
     /**
      * Transform the resource into an array.
      *
@@ -14,8 +20,7 @@ class PurchaseDetailResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // info($this->createActivity);
-        return [
+        $data = [
             'id' => $this->id,
             'voucher_no' => $this->voucher_no,
             'payment_status' => $this->payment_status,
@@ -28,7 +33,7 @@ class PurchaseDetailResource extends JsonResource
             'branch_phone_no' => $this->branch->phone_number,
             'payment_method_name' => $this->paymentMethod?->name ?? null,
             'payment_method_id' => $this->payment_method_id ?? null,
-            'purchase_date' => formatToCustomDate($this->purchase_date),
+            'purchase_date' => formatToCustomMonth($this->purchase_date),
             'total_quantity' => $this->total_amount,
             'tax_percentage' => $this->tax_percentage,
             'tax_amount' => $this->tax_amount,
@@ -51,5 +56,14 @@ class PurchaseDetailResource extends JsonResource
                     ];
                 }),
         ];
+        if ($this->isInvoice) {
+            $branchInfo = $this->branch;
+            $result = $data;
+            $result['branch_info'] = $branchInfo;
+        } else {
+            $result = $data;
+        }
+
+        return $result;
     }
 }

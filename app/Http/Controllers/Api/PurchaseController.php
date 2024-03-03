@@ -211,10 +211,11 @@ class PurchaseController extends ApiBaseController
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request , string $id)
     {
+        $isInvoice = $request->query('invoice_preview');
         $getPurchase = Purchase::with('purchase_details')->findOrFail($id);
-        $result = new PurchaseDetailResource($getPurchase);
+        $result = $isInvoice == "True" ?  new PurchaseDetailResource($getPurchase, "True") : new PurchaseDetailResource($getPurchase);
 
         return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
     }

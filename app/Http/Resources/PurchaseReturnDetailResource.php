@@ -17,7 +17,7 @@ class PurchaseReturnDetailResource extends JsonResource
         return [
             'id' => $this->id,
             'vocuher_no' => $this->voucher_no,
-            'payment_status' => $this->payment_status,
+            // 'payment_status' => $this->payment_status,
             'supplier_id' => $this->supplier_id,
             'supplier_name' => $this->supplier->name,
             'supplier_address' => $this->supplier->address,

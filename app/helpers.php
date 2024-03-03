@@ -21,6 +21,14 @@ if (!function_exists('formatToCustomDate')) {
     }
 }
 
+if (!function_exists('formatToCustomMonth')) {
+    function formatToCustomMonth($inputDate)
+    {
+        $dateTime = new DateTime($inputDate);
+        return $dateTime->format('d M Y');
+    }
+}
+
 if (!function_exists('formatToCustomDate_FullYear')) {
     function formatToCustomDate_FullYear($inputDate)
     {

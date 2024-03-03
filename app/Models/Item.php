@@ -41,7 +41,7 @@ class Item extends Model
 
     public function itemUnitDetails()
     {
-        return $this->hasmany(ItemUnitDetail::class);
+        return $this->hasmany(ItemUnitDetail::class, 'item_id', 'id');
     }
 
     public function supplier()

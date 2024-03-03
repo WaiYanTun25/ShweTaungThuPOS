@@ -17,7 +17,7 @@ class PurchaseOrderDetailResource extends JsonResource
         return [
             'id' => $this->id,
             'voucher_no' => $this->voucher_no,
-            'payment_status' => $this->payment_status,
+            // 'payment_status' => $this->payment_status,
             'supplier_name' => $this->supplier->name,
             'supplier_address' => $this->supplier->address,
             'causer_name' => $this->createActivity->causer->name,
