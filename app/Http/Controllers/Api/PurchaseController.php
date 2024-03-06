@@ -51,6 +51,8 @@ class PurchaseController extends ApiBaseController
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
 
+        $today = now()->toDateString();
+
         try {
             // sales report
             $getTotalPurchases = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('total_amount');
@@ -60,20 +62,19 @@ class PurchaseController extends ApiBaseController
             // $getTotalPurchasesPay = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('pay_amount');
             // $getTotalPurchasesDebt = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('remain_amount');
             $getSupplierCount = Supplier::whereMonth('join_date', $currentMonth)->whereYear('join_date', $currentYear)->count();
+            $getTotalSupplierCount = Supplier::count();
 
             // sales order report
-            $getTotalOrderCount = PurchaseOrder::whereMonth('order_date', $currentMonth)->whereYear('order_date', $currentYear)->count();
+            $getTotalOrderCount = PurchaseOrder::whereDate('order_date', $today)->count();
 
             // sales return reports
             $getTotalPurchasesReturnProduct = PurchaseReturn::with('purchase_return_details')
-                ->whereMonth('purchase_return_date', $currentMonth)
-                ->whereYear('purchase_return_date', $currentYear)
+                ->whereDate('purchase_return_date', $today)
                 ->withSum('purchase_return_details', 'quantity')
                 ->get()
                 ->sum('purchase_return_details_sum_quantity');
             $getTotalPurchasesReturnAmount = PurchaseReturn::with('purchase_return_details')
-                ->whereMonth('purchase_return_date', $currentMonth)
-                ->whereYear('purchase_return_date', $currentYear)
+                ->whereDate('purchase_return_date', $today)
                 ->sum('pay_amount');
 
             $result = new stdClass;
@@ -82,7 +83,10 @@ class PurchaseController extends ApiBaseController
                 'total_purchase_count' => $getTotalPurchasesCount,
             ];
 
-            $result->total_supplier = $getSupplierCount;
+            $result->suppliers = [
+                "total_suppliers" => $getTotalSupplierCount,
+                "this_month_suppliers" => $getSupplierCount
+            ];
 
             $result->order = [
                 'total_order_count' => $getTotalOrderCount,
