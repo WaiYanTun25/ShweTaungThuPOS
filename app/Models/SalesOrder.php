@@ -5,14 +5,32 @@ namespace App\Models;
 use App\Models\Scopes\BranchScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class SalesOrder extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
     public $timestamps = false;
     protected $fillable = ['voucher_no', 'branch_id', 'customer_id', 'customer_name', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'remark', 'order_date'];
     
+    public function getActivitylogOptions(): LogOptions
+    {
+        $logOptions = LogOptions::defaults()
+            ->setDescriptionForEvent(function (string $eventName) {
+                // $userName = Auth::user()->name ?? 'Unknown User';
+                $userName = "{userName}";
+                return "{$userName} {$eventName} the Sale Order (Voucher_no {$this->voucher_no})";
+            });
+            
+        
+        $logOptions->logName = 'SALE_ORDER';
+
+        return $logOptions;
+    }
+
+
     protected static function boot()
     {
         parent::boot();

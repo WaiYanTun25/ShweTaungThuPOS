@@ -28,7 +28,7 @@ class SalesOrderListResource extends JsonResource
                 'item_name' => $this->getItemsName($order->sales_order_details),
                 'total_quantity' => $order->total_quantity,
                 'total_amount' => $order->total_amount,
-                'causer_name' => $order->createActivity->causer->name,
+                'causer_name' => $order->createActivity?->causer?->name,
             ];
         });
         
@@ -40,7 +40,7 @@ class SalesOrderListResource extends JsonResource
         }else{
             return [
                 'total_order_list' => $this->total(),
-                'purchase_order_list' => $sales_order_list,
+                'sales_order_list' => $sales_order_list,
                 'links' => [
                     'first' => $this->url(1),
                     'last' => $this->url($this->lastPage()),
