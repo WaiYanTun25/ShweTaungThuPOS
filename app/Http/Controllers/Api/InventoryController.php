@@ -296,7 +296,8 @@ class InventoryController extends ApiBaseController
                     ->when(Auth::user()->branch_id !== 0, function ($query) {
                         $query->where('inventories.branch_id', Auth::user()->branch_id);
                     })
-                    ->where('inventories.quantity', '<', DB::raw('item_unit_details.reorder_level'));
+                    ->where('inventories.quantity', '<', DB::raw('item_unit_details.reorder_level'))
+                    ->where('inventories.quantity', '>', 0);
             })->count();
 
         $countOutOfStock = Inventory::when(Auth::user()->branch_id !== 0, function ($query) {
