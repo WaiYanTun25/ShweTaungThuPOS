@@ -46,58 +46,127 @@ class SalesController extends ApiBaseController
 
     public function getSalesSummary(Request $request)
     {
+
         $currentMonth = Carbon::now()->month;
-        $currentYear = Carbon::now()->year;
+    $currentYear = Carbon::now()->year;
+    $today = now()->toDateString();
+    $durationType = $request->duration_type;
 
-        try {
-            // sales report
-            $getTotalSales = Sale::whereMonth('sales_date', $currentMonth)->whereYear('sales_date', $currentYear)->sum('total_amount');
-            $getTotalSalesCount = Sale::whereMonth('sales_date', $currentMonth)->whereYear('sales_date', $currentYear)->count();
+    try {
+        $salesQuery = Sale::query();
+        $getReturnQuery = SalesReturn::with('sales_return_details');
 
-            // sales financial report
-            $getTotalSalesPay = Sale::whereMonth('sales_date', $currentMonth)->whereYear('sales_date', $currentYear)->sum('pay_amount');
-            $getTotalSalesDebt = Sale::whereMonth('sales_date', $currentMonth)->whereYear('sales_date', $currentYear)->sum('remain_amount');
-
-            // sales order report
-            $getTotalOrderCount = SalesOrder::whereMonth('order_date', $currentMonth)->whereYear('order_date', $currentYear)->count();
-
-            // sales return reports
-            $getTotalSalesReturnProduct = SalesReturn::with('sales_return_details')
-                ->whereMonth('sales_return_date', $currentMonth)
-                ->whereYear('sales_return_date', $currentYear)
-                ->withSum('sales_return_details', 'quantity')
-                ->get()
-                ->sum('sales_return_details_sum_quantity');
-
-            $getTotalSalesReturnAmount = SalesReturn::with('sales_return_details')
-                ->whereMonth('sales_return_date', $currentMonth)
-                ->whereYear('sales_return_date', $currentYear)
-                ->sum('pay_amount');
-
-            $result = new stdClass;
-            $result->total_sales = [
-                'total_sales_amount' => $getTotalSales,
-                'total_sales_count' => $getTotalSalesCount,
-            ];
-
-            $result->financial_report = [
-                'total_pay_amount' => $getTotalSalesPay,
-                'total_remain_amount' => $getTotalSalesDebt
-            ];
-
-            $result->order = [
-                'total_order_count' => $getTotalOrderCount,
-            ];
-
-            $result->sales_return = [
-                'total_return_product' => $getTotalSalesReturnProduct,
-                'total_return_amount' => $getTotalSalesReturnAmount
-            ];
-
-            return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
-        } catch (Exception $e) {
-            return $this->sendErrorResponse('Something Went Wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+        // Apply duration type conditions
+        if ($durationType == 1) {
+            $salesQuery->whereDate('sales_date', $today);
+            $orderQuery = SalesOrder::whereDate('order_date', $today);
+            $getReturnQuery->whereDate('sales_return_date', $today);
+        } elseif ($durationType == 2) {
+            $salesQuery->whereMonth('sales_date', $currentMonth)->whereYear('sales_date', $currentYear);
+            $orderQuery = SalesOrder::whereMonth('order_date', $currentMonth)->whereYear('order_date', $currentYear);
+            $getReturnQuery->whereMonth('sales_return_date', $currentMonth)->whereYear('sales_return_date', $currentYear);
+        } elseif ($durationType == 3) {
+            $salesQuery->whereYear('sales_date', $currentYear);
+            $orderQuery = SalesOrder::whereYear('order_date', $currentYear);
+            $getReturnQuery->whereYear('sales_return_date', $currentYear);
         }
+
+        // sales report
+        $getTotalSales = $salesQuery->sum('total_amount');
+        $getTotalSalesCount = $salesQuery->count();
+
+        // sales financial report
+        $getTotalSalesPay = $salesQuery->sum('pay_amount');
+        $getTotalSalesDebt = $salesQuery->sum('remain_amount');
+
+        // sales order report
+        $getTotalOrderCount = $orderQuery->count();
+
+        // sales return reports
+        $getTotalSalesReturnProduct = $getReturnQuery->get()->sum(function ($return) {
+            return $return->sales_return_details->sum('quantity');
+        });
+        
+        $getTotalSalesReturnAmount = $getReturnQuery->sum('pay_amount');
+
+        $result = new stdClass;
+        $result->total_sales = [
+            'total_sales_amount' => $getTotalSales,
+            'total_sales_count' => $getTotalSalesCount,
+        ];
+
+        $result->financial_report = [
+            'total_pay_amount' => $getTotalSalesPay,
+            'total_remain_amount' => $getTotalSalesDebt
+        ];
+
+        $result->order = [
+            'total_order_count' => $getTotalOrderCount,
+        ];
+
+        $result->sales_return = [
+            'total_return_product' => $getTotalSalesReturnProduct,
+            'total_return_amount' => $getTotalSalesReturnAmount
+        ];
+
+        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
+    } catch (Exception $e) {
+        return $this->sendErrorResponse('Something Went Wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+        // $currentMonth = Carbon::now()->month;
+        // $currentYear = Carbon::now()->year;
+        // $today = now()->toDateString();
+        // $durationType = $request->duration_type;
+
+        // try {
+        //     // sales report
+        //     $getTotalSales = Sale::whereMonth('sales_date', $currentMonth)->whereYear('sales_date', $currentYear)->sum('total_amount');
+        //     $getTotalSalesCount = Sale::whereMonth('sales_date', $currentMonth)->whereYear('sales_date', $currentYear)->count();
+
+        //     // sales financial report
+        //     $getTotalSalesPay = Sale::whereMonth('sales_date', $currentMonth)->whereYear('sales_date', $currentYear)->sum('pay_amount');
+        //     $getTotalSalesDebt = Sale::whereMonth('sales_date', $currentMonth)->whereYear('sales_date', $currentYear)->sum('remain_amount');
+
+        //     // sales order report
+        //     $getTotalOrderCount = SalesOrder::whereMonth('order_date', $currentMonth)->whereYear('order_date', $currentYear)->count();
+
+        //     // sales return reports
+        //     $getTotalSalesReturnProduct = SalesReturn::with('sales_return_details')
+        //         ->whereMonth('sales_return_date', $currentMonth)
+        //         ->whereYear('sales_return_date', $currentYear)
+        //         ->withSum('sales_return_details', 'quantity')
+        //         ->get()
+        //         ->sum('sales_return_details_sum_quantity');
+
+        //     $getTotalSalesReturnAmount = SalesReturn::with('sales_return_details')
+        //         ->whereMonth('sales_return_date', $currentMonth)
+        //         ->whereYear('sales_return_date', $currentYear)
+        //         ->sum('pay_amount');
+
+        //     $result = new stdClass;
+        //     $result->total_sales = [
+        //         'total_sales_amount' => $getTotalSales,
+        //         'total_sales_count' => $getTotalSalesCount,
+        //     ];
+
+        //     $result->financial_report = [
+        //         'total_pay_amount' => $getTotalSalesPay,
+        //         'total_remain_amount' => $getTotalSalesDebt
+        //     ];
+
+        //     $result->order = [
+        //         'total_order_count' => $getTotalOrderCount,
+        //     ];
+
+        //     $result->sales_return = [
+        //         'total_return_product' => $getTotalSalesReturnProduct,
+        //         'total_return_amount' => $getTotalSalesReturnAmount
+        //     ];
+
+        //     return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
+        // } catch (Exception $e) {
+        //     return $this->sendErrorResponse('Something Went Wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+        // }
     }
 
     public function index(Request $request)

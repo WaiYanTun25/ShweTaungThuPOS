@@ -50,57 +50,121 @@ class PurchaseController extends ApiBaseController
     {
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
-
         $today = now()->toDateString();
+        $durationType = $request->duration_type;
 
-        try {
-            // sales report
-            $getTotalPurchases = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('total_amount');
-            $getTotalPurchasesCount = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->count();
+    try {
+        $purchaseQuery = Purchase::query();
+        $getReturnQuery = PurchaseReturn::with('purchase_return_details');
 
-            // // sales financial report
-            // $getTotalPurchasesPay = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('pay_amount');
-            // $getTotalPurchasesDebt = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('remain_amount');
-            $getSupplierCount = Supplier::whereMonth('join_date', $currentMonth)->whereYear('join_date', $currentYear)->count();
-            $getTotalSupplierCount = Supplier::count();
-
-            // sales order report
-            $getTotalOrderCount = PurchaseOrder::whereDate('order_date', $today)->count();
-
-            // sales return reports
-            $getTotalPurchasesReturnProduct = PurchaseReturn::with('purchase_return_details')
-                ->whereDate('purchase_return_date', $today)
-                ->withSum('purchase_return_details', 'quantity')
-                ->get()
-                ->sum('purchase_return_details_sum_quantity');
-            $getTotalPurchasesReturnAmount = PurchaseReturn::with('purchase_return_details')
-                ->whereDate('purchase_return_date', $today)
-                ->sum('pay_amount');
-
-            $result = new stdClass;
-            $result->total_sales = [
-                'total_purchase_amount' => $getTotalPurchases,
-                'total_purchase_count' => $getTotalPurchasesCount,
-            ];
-
-            $result->suppliers = [
-                "total_suppliers" => $getTotalSupplierCount,
-                "this_month_suppliers" => $getSupplierCount
-            ];
-
-            $result->order = [
-                'total_order_count' => $getTotalOrderCount,
-            ];
-
-            $result->sales_return = [
-                'total_return_product' => $getTotalPurchasesReturnProduct,
-                'total_return_amount' => $getTotalPurchasesReturnAmount
-            ];
-
-            return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
-        } catch (Exception $e) {
-            return $this->sendErrorResponse('Something Went Wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+        // Apply duration type conditions
+        if ($durationType == 1) {
+            $purchaseQuery->whereDate('purchase_date', $today);
+            $supplierQuery = Supplier::whereDate('join_date', $today);
+            $orderQuery = PurchaseOrder::whereDate('order_date', $today);
+            $getReturnQuery->whereDate('purchase_return_date', $today);
+        } elseif ($durationType == 2) {
+            $purchaseQuery->whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear);
+            $supplierQuery = Supplier::whereMonth('join_date', $currentMonth)->whereYear('join_date', $currentYear);
+            $orderQuery = PurchaseOrder::whereMonth('order_date', $currentMonth)->whereYear('order_date', $currentYear);
+            $getReturnQuery->whereMonth('purchase_return_date', $currentMonth)->whereYear('purchase_return_date', $currentYear);
+        } elseif ($durationType == 3) {
+            $purchaseQuery->whereYear('purchase_date', $currentYear);
+            $supplierQuery = Supplier::whereYear('join_date', $currentYear);
+            $orderQuery = PurchaseOrder::whereYear('order_date', $currentYear);
+            $getReturnQuery->whereYear('purchase_return_date', $currentYear);
         }
+
+        // sales report
+        $getTotalPurchases = $purchaseQuery->sum('total_amount');
+        $getTotalPurchasesCount = $purchaseQuery->count();
+
+        // sales financial report
+        $getSupplierCount = $supplierQuery->count();
+        $getTotalSupplierCount = Supplier::count();
+
+        // sales order report
+        $getTotalOrderCount = $orderQuery->count();
+
+        // sales return reports
+        $getTotalPurchasesReturnProduct = $getReturnQuery->get()->sum(function ($return) {
+            return $return->purchase_return_details->sum('quantity');
+        });
+        
+        $getTotalPurchasesReturnAmount = $getReturnQuery->sum('pay_amount');
+
+        $result = new stdClass;
+        $result->total_sales = [
+            'total_purchase_amount' => $getTotalPurchases,
+            'total_purchase_count' => $getTotalPurchasesCount,
+        ];
+
+        $result->suppliers = [
+            "total_suppliers" => $getTotalSupplierCount,
+            "this_month_suppliers" => $getSupplierCount
+        ];
+
+        $result->order = [
+            'total_order_count' => $getTotalOrderCount,
+        ];
+
+        $result->sales_return = [
+            'total_return_product' => $getTotalPurchasesReturnProduct,
+            'total_return_amount' => $getTotalPurchasesReturnAmount
+        ];
+
+        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
+    } catch (Exception $e) {
+        return $this->sendErrorResponse('Something Went Wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+        // try {
+        //     // sales report
+        //     $getTotalPurchases = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('total_amount');
+        //     $getTotalPurchasesCount = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->count();
+
+        //     // // sales financial report
+        //     // $getTotalPurchasesPay = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('pay_amount');
+        //     // $getTotalPurchasesDebt = Purchase::whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear)->sum('remain_amount');
+        //     $getSupplierCount = Supplier::whereMonth('join_date', $currentMonth)->whereYear('join_date', $currentYear)->count();
+        //     $getTotalSupplierCount = Supplier::count();
+
+        //     // sales order report
+        //     $getTotalOrderCount = PurchaseOrder::whereDate('order_date', $today)->count();
+
+        //     // sales return reports
+        //     $getTotalPurchasesReturnProduct = PurchaseReturn::with('purchase_return_details')
+        //         ->whereDate('purchase_return_date', $today)
+        //         ->withSum('purchase_return_details', 'quantity')
+        //         ->get()
+        //         ->sum('purchase_return_details_sum_quantity');
+        //     $getTotalPurchasesReturnAmount = PurchaseReturn::with('purchase_return_details')
+        //         ->whereDate('purchase_return_date', $today)
+        //         ->sum('pay_amount');
+
+        //     $result = new stdClass;
+        //     $result->total_sales = [
+        //         'total_purchase_amount' => $getTotalPurchases,
+        //         'total_purchase_count' => $getTotalPurchasesCount,
+        //     ];
+
+        //     $result->suppliers = [
+        //         "total_suppliers" => $getTotalSupplierCount,
+        //         "this_month_suppliers" => $getSupplierCount
+        //     ];
+
+        //     $result->order = [
+        //         'total_order_count' => $getTotalOrderCount,
+        //     ];
+
+        //     $result->sales_return = [
+        //         'total_return_product' => $getTotalPurchasesReturnProduct,
+        //         'total_return_amount' => $getTotalPurchasesReturnAmount
+        //     ];
+
+        //     return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
+        // } catch (Exception $e) {
+        //     return $this->sendErrorResponse('Something Went Wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+        // }
     }
     
     public function index(Request $request)
