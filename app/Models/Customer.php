@@ -14,7 +14,7 @@ class Customer extends Model
     use HasFactory, LogsActivity;
     public $timestamps = false;
 
-    protected $fillable = ['name', 'phone_number', 'address', 'township', 'city', 'customer_type'];
+    protected $fillable = ['code', 'name', 'phone_number', 'address', 'township', 'city', 'customer_type'];
 
     public const SPECIFIC = "Specific";
     public const GENERAL = "General";
@@ -40,7 +40,24 @@ class Customer extends Model
         static::creating(function ($supplier) {
             // Set the join_date attribute to the current date if it's not provided
             $supplier->join_date = $supplier->join_date ?? now();
+            $supplier->code = static::generateCustomerCode();
         });
+    }
+
+    protected static function generateCustomerCode()
+    {
+        // Get the last item for the given supplier from the database
+        $lastUser = static::latest('code')->first();
+        $userPrefix = 'CUS'; 
+        if (!$lastUser) {
+            return $userPrefix . '-000001';
+        }
+    
+        // Extract the numeric part of the existing item code and increment it
+        $numericPart = (int)substr($lastUser->code, -6);
+        $newNumericPart = str_pad($numericPart + 1, 6, '0', STR_PAD_LEFT);
+    
+        return $userPrefix . '-' . $newNumericPart;
     }
 
     // customer debt

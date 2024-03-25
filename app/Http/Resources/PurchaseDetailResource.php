@@ -4,9 +4,11 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Traits\ItemTrait;
 
 class PurchaseDetailResource extends JsonResource
 {
+    use ItemTrait;
     private $isInvoice;
     public function __construct($resource, $isInvoice = false)
     {
@@ -53,6 +55,7 @@ class PurchaseDetailResource extends JsonResource
                         'quantity' => $detail->quantity,
                         'discount_amount' => $detail->discount_amount,
                         'amount' => $detail->amount,
+                        'related_units' => $this->getItemRelatedData($detail->item_id)
                     ];
                 }),
         ];
