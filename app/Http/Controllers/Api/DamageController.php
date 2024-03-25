@@ -124,7 +124,7 @@ class DamageController extends ApiBaseController
             ->event('created')
             ->performedOn($createdDamage)
             // ->withProperties(['Reveieve' => $createdDamage , 'ReceiveDetail' => $createdTransactionDetail])
-            ->log('{userName} created the Receive (Voucher_no)'.$createdDamage->voucher_no.')');
+            ->log('{userName} created the Damage (Voucher_no)'.$createdDamage->voucher_no.')');
 
 
             DB::commit();

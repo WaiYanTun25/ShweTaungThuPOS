@@ -101,6 +101,14 @@ class PurchaseOrderController extends ApiBaseController
             DB::commit();
             // LogBatch::endBatch();
 
+            activity()
+            ->useLog('PURCHASE_ORDER')
+            ->causedBy(Auth::user())
+            ->event('created')
+            ->performedOn($createdPurchaseOrder)
+            // ->withProperties(['Reveieve' => $createdDamage , 'ReceiveDetail' => $createdTransactionDetail])
+            ->log('{userName} created the Purchase Order (Voucher_no)'.$createdPurchaseOrder->voucher_no.')');
+
             $message = 'Purchase Order (' . $createdPurchaseOrder->voucher_no . ') is created successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
         } catch (Exception $e) {
@@ -125,12 +133,22 @@ class PurchaseOrderController extends ApiBaseController
             // LogBatch::startBatch();
             $validatedData = $request->validated();
             // update the purchase
-            $this->createOrUpdatePurchaseOrder($validatedData, Auth::user()->branch_id, true, $updatePurchaseOrder);
+            // $this->createOrUpdatePurchaseOrder($validatedData, Auth::user()->branch_id, true, $updatePurchaseOrder);
+            $updatedPurchaseOrder = $this->createOrUpdatePurchaseOrder($validatedData, Auth::user()->branch_id, true, $updatePurchaseOrder);
             // delete prev purchase order details
             $updatePurchaseOrder->purchase_order_details()->delete();
             // create new purchase order details
             $updatePurchaseOrder->purchase_order_details()->createMany($validatedData['purchase_order_details']);
             DB::commit();
+
+            activity()
+            ->useLog('PURCHASE_ORDER')
+            ->causedBy(Auth::user())
+            ->event('updated')
+            ->performedOn($updatedPurchaseOrder)
+            // ->withProperties(['Reveieve' => $createdDamage , 'ReceiveDetail' => $createdTransactionDetail])
+            ->log('{userName} updated the Purchase Order (Voucher_no)'.$updatedPurchaseOrder->voucher_no.')');
+
             // LogBatch::endBatch();
             $message = 'Purchase Order (' . $updatePurchaseOrder->voucher_no . ') is updated successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
@@ -160,9 +178,14 @@ class PurchaseOrderController extends ApiBaseController
             // Delete the purchase order details
             $deletePurchaseOrder->purchase_order_details()->delete();
 
-            // foreach ($deletePurchaseOrder->purchase_order_details as $detail) {
-            //     $detail->delete();
-            // }
+            activity()
+            ->useLog('PURCHASE_ORDER')
+            ->causedBy(Auth::user())
+            ->event('deleted')
+            ->performedOn($deletePurchaseOrder)
+            // ->withProperties(['Reveieve' => $createdDamage , 'ReceiveDetail' => $createdTransactionDetail])
+            ->log('{userName} deleted the Purchase Order (Voucher_no)'.$deletePurchaseOrder->voucher_no.')');
+
             // Delete the purchase order
             $deletePurchaseOrder->delete();
 
