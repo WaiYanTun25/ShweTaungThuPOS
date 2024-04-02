@@ -4,11 +4,14 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Traits\ItemTrait;
+use App\Traits\{
+    ItemTrait,
+    SupplierTrait
+};
 
 class SalesDetailResource extends JsonResource
 {
-    use ItemTrait;
+    use ItemTrait, SupplierTrait;
     /**
      * Transform the resource into an array.
      *
@@ -50,6 +53,8 @@ class SalesDetailResource extends JsonResource
                         'quantity' => $detail->quantity,
                         'discount_amount' => $detail->discount_amount,
                         'amount' => $detail->amount,
+                        'company_name' => $this->getSupplierName(explode("-", $detail->item->item_code)[0]),
+                        'category_name' => $this->getCategoryName($detail->item_id),
                         'related_units' => $this->getItemRelatedData($detail->item_id)
                     ];
                 }),

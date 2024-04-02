@@ -4,7 +4,11 @@ namespace App\Traits;
 
 use App\Models\Branch;
 use stdClass;
-use App\Models\ItemUnitDetail;
+use App\Models\{
+   ItemUnitDetail,
+   Category,
+   Item
+};
 
 trait ItemTrait
 {
@@ -24,5 +28,11 @@ trait ItemTrait
       });
 
       return $result;
+   }
+
+   public function getCategoryName($itemId)
+   {
+      $getItem = Item::find($itemId);
+      return $getItem->category->name;
    }
 }
