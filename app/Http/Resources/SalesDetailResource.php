@@ -38,6 +38,7 @@ class SalesDetailResource extends JsonResource
             // 'total_payment_amount' => $this->payment->pay_amount,
             'pay_amount' => $this->pay_amount ?? 0,
             'remain_amount' => $this->remain_amount,
+            'remark' => $this->remark,
             'sales_details' =>$this->sales_details->map(function ($detail) {
                     return [
                         'item_id' => $detail->item_id,
