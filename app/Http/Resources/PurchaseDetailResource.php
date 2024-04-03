@@ -4,11 +4,14 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Traits\ItemTrait;
+use App\Traits\{
+    ItemTrait,
+    SupplierTrait
+};
 
 class PurchaseDetailResource extends JsonResource
 {
-    use ItemTrait;
+    use ItemTrait, SupplierTrait;
     private $isInvoice;
     public function __construct($resource, $isInvoice = false)
     {

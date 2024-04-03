@@ -4,11 +4,14 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Traits\ItemTrait;
+use App\Traits\{
+    ItemTrait,
+    SupplierTrait
+};
 
 class PurchaseOrderDetailResource extends JsonResource
 {
-    use ItemTrait;
+    use ItemTrait, SupplierTrait;
     /**
      * Transform the resource into an array.
      *
@@ -33,6 +36,7 @@ class PurchaseOrderDetailResource extends JsonResource
             'tax_amount' => $this->tax_amount,
             'discount_percentage' => $this->discount_percentage,
             'discount_amount' => $this->discount_amount,
+            'remark' => $this->remark,
             'purchase_order_details' =>$this->purchase_order_details->map(function ($detail) {
                     return [
                         'item_id' => $detail->item_id,
@@ -44,6 +48,8 @@ class PurchaseOrderDetailResource extends JsonResource
                         'quantity' => $detail->quantity,
                         'discount_amount' => $detail->discount_amount,
                         'amount' => $detail->amount,
+                        'company_name' => $this->getSupplierName(explode("-", $detail->item->item_code)[0]),
+                        'category_name' => $this->getCategoryName($detail->item_id),
                         'related_units' => $this->getItemRelatedData($detail->item_id)
                     ];
                 }),
