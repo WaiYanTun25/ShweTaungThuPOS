@@ -244,6 +244,7 @@ class PurchaseController extends ApiBaseController
      */
     public function store(PurchaseRequest $request)
     {
+        // return $request->amount_type;
         // Validate the purchase request data
         $validatedData = $request->validated();
         // Begin a database transaction
