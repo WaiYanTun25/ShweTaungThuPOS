@@ -41,6 +41,7 @@ class SalesOrderRequest extends FormRequest
             'tax_amount' => 'required | integer',
             'discount_percentage' => 'required | integer',
             'discount_amount' => 'required | integer',
+            'amount_type' => 'required | in:wholesale_price,vip_price,retail_price',
             'remark' => 'required | max:100',
             'sales_order_details.*.item_id' => 'required|integer | exists:items,id',
             'sales_order_details.*.unit_id' => 'required|integer | exists:units,id',

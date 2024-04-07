@@ -36,6 +36,7 @@ class SalesOrderDetailResource extends JsonResource
             'tax_amount' => $this->tax_amount,
             'discount_percentage' => $this->discount_percentage,
             'discount_amount' => $this->discount_amount,
+            'amount_type' => $this->amount_type ?? null,
             'remark' => $this->remark,
             'sales_order_details' =>$this->sales_order_details->map(function ($detail) {
                     return [
