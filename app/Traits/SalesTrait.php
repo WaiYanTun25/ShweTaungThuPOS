@@ -37,6 +37,7 @@ trait SalesTrait
         $createSale->total_quantity = collect($data['sales_details'])->sum('quantity');
         $createSale->remain_amount = $data['total_amount'] - $pay_amount;
         $createSale->payment_status = $data['payment_status'];
+        $createSale->amount_type = $data['amount_type'];
         $createSale->remark = $data['remark'];
         $createSale->save();
 

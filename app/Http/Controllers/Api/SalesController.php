@@ -293,7 +293,7 @@ class SalesController extends ApiBaseController
             $this->deductItemFromBranch($updatedSales->sales_details, Auth::user()->branch_id, true);
 
             DB::commit();
-            $message = 'Puchases (' . $updatedSales->voucher_no . ') is updated successfully';
+            $message = 'Sales (' . $updatedSales->voucher_no . ') is updated successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
         } catch (Exception $e) {
             DB::rollBack();

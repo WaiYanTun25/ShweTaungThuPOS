@@ -35,6 +35,7 @@ class SalesRequest extends FormRequest
             'discount_percentage' => 'required | integer',
             'discount_amount' => 'required | integer',
             'payment_status' => 'required | in:PARTIALLY_PAID,FULLY_PAID,UN_PAID',
+            'amount_type' => 'required | in:wholesale_price,vip_price,retail_price',
             'remark' => 'required | max:100',
             'sales_details.*.item_id' => 'required | integer | exists:items,id',
             'sales_details.*.unit_id' => 'required | integer | exists:units,id',

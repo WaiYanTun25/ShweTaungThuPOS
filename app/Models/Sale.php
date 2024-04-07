@@ -31,6 +31,7 @@ class Sale extends Model
         'payment_method_id',
         'pay_amount',
         'remain_amount',
+        'amount_type',
         'payment_status',
         'remark',
         'sales_date'
