@@ -48,6 +48,7 @@ class SalesReturnRequest extends FormRequest
             'discount_percentage' => 'required | integer',
             'discount_amount' => 'required | integer',
             'remark' => 'required | max:100',
+            'amount_type' => 'required | in:wholesale_price,vip_price,retail_price',
             'pay_amount' => 'required | min:1',
             'payment_method' => 'required | exists:payment_methods,id',
             'sales_return_details.*.item_id' => 'required|integer | exists:items,id',

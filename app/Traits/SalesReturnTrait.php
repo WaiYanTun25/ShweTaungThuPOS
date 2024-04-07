@@ -33,6 +33,7 @@ trait SalesReturnTrait
         $createPurchase->total_quantity = collect($data['sales_return_details'])->sum('quantity');
         $createPurchase->payment_method_id = $data['payment_method'];
         $createPurchase->pay_amount = $data['pay_amount'];
+        $createPurchase->amount_type = $data['amount_type'];
         $createPurchase->remark = $data['remark'];
         $createPurchase->save();
 

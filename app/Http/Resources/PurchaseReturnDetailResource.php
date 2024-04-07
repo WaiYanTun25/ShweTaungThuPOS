@@ -36,6 +36,7 @@ class PurchaseReturnDetailResource extends JsonResource
             'discount_percentage' => $this->discount_percentage,
             'discount_amount' => $this->discount_amount,
             'pay_amount' => $this->pay_amount ?? 0, 
+            'amount_type' => $this->amount_type ?? null,
             'remark' => $this->remark,
             'purchase_return_details' =>$this->purchase_return_details->map(function ($detail) {
                 return [

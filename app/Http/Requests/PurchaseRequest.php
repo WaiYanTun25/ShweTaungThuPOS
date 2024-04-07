@@ -48,6 +48,7 @@ class PurchaseRequest extends FormRequest
             'payment_status' => 'required | in:PARTIALLY_PAID,FULLY_PAID,UN_PAID',
             'remark' => 'required | max:100',
             'amount_type' => 'required | in:wholesale_price,vip_price,retail_price',
+            'amount_type' => 'required | in:wholesale_price,vip_price,retail_price',
             // 'pay_amount' => 'required | integer',
             // 'payment_method' => 'required',
             'purchase_details.*.item_id' => 'required|integer | exists:items,id',
