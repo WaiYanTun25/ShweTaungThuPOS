@@ -37,6 +37,7 @@ trait PurchaseTrait
         $createPurchase->total_quantity = collect($data['purchase_details'])->sum('quantity');
         $createPurchase->remain_amount = $data['total_amount'] - $pay_amount;
         $createPurchase->payment_status = $data['payment_status'];
+        $createPurchase->amount_type = $data['amount_type'];
         $createPurchase->remark = $data['remark'];
         $createPurchase->save();
 

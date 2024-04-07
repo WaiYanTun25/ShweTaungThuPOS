@@ -47,6 +47,7 @@ class PurchaseDetailResource extends JsonResource
             // 'total_payment_amount' => $this->payment->pay_amount,
             'pay_amount' => $this->pay_amount ?? 0,
             'remain_amount' => $this->remain_amount,
+            'amount_type' => $this->amount_type ?? null,
             'remark' => $this->remark,
             'purchase_details' =>$this->purchase_details->map(function ($detail) {
                     return [
