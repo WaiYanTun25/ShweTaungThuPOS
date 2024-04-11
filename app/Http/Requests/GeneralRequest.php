@@ -40,31 +40,14 @@ class GeneralRequest extends FormRequest
                 'required' ,
                 function ($attribute, $value, $fail)  {
                     $general = General::first();
-                    // If there are no rows, validation passes
-                    if ($general) {
-                         $fail("There is already a password and another one cannot be created !!");
+                    if ($this->isMethod('post') && $general ) {
+                        if ($general) {
+                            $fail("There is already a password and another one cannot be created !!");
+                        }
                     }
+                    
                 }
             ],
         ];
     }
-
-    // protected function dynamicMessage(): string
-    // {
-    //     $general = General::first();
-    //     return [
-    //         'password' => 'required',
-    //         function ($attribute, $value, $fail) use ($rowsCount) {
-    //             // If there are no rows, validation passes
-    //             if ($rowsCount == 0) {
-    //                 return;
-    //             }
-
-    //             // If there is already a row and password is set, fail validation
-    //             if (!is_null($general->password)) {
-    //                 $fail('There is already a password and another one cannot be created.');
-    //             }
-    //         },
-    //     ];
-    // }
 }
