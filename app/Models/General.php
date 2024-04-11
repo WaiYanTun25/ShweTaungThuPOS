@@ -9,4 +9,5 @@ class General extends Model
 {
     use HasFactory;
     protected $fillable = ['password'];
+    public $timestamps = false;
 }

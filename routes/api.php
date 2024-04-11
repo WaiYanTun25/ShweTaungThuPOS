@@ -24,7 +24,8 @@ use App\Http\Controllers\Api\{
     SupplierController,
     UnitController,
     UnitConvertController,
-    UserController
+    UserController,
+    GeneralController
 };
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\RoleController;
@@ -402,4 +403,6 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::delete('{id}', [UserController::class, 'destroy']);
         Route::get('{id}/activity_history' , [UserController::class, 'getUserActivityByUserId']);
     });
+
+    Route::resource('generals', GeneralController::class);
 });
