@@ -27,6 +27,7 @@ class CustomerListResource extends JsonResource
                 'customer_code' => $customer?->code ?? "-",
                 'name' => $customer->name,
                 'phone_no' => $customer->phone_number,
+                'address' => $customer->address,
                 'township_id' => $customer->township,
                 'township_name' => $customer->townshipData->name,
                 'city_id' => $customer->city,

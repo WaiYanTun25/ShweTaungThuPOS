@@ -36,7 +36,7 @@ class Handler extends ExceptionHandler
             if ($request->is('api/*')) {
                 return response()->json([
                     'result' => 0,
-                    'message' => 'You do not have the required authorization.',
+                    'message' => 'သင့်ကို ယခုလုပ်ဆောင်ချက်အတွက် ခွင့်ပြုထားခြင်းမရှိပါ။.',
                     'data' => new stdClass
                 ], 403);
             }

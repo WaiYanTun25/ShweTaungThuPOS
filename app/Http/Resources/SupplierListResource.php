@@ -29,7 +29,14 @@ class SupplierListResource extends JsonResource
                 'prefix' => $supplier->prefix,
                 'name' => $supplier->name,
                 'phone_no' => $supplier->phone_number,
+                'address' => $supplier->address,
                 'total_purchase_count' => $totalPurchaseCount,
+
+                'township_id' => $supplier->township,
+                'township_name' => $supplier->townshipData->name,
+                'city_id' => $supplier->city,
+                'city_name' => $supplier->cityData->name,
+
                 // 'township_id' => (int)$supplier->township,
                 // 'township_name' => $supplier->townshipData->name,
                 // 'city_id' =>  (int)$supplier->city,
