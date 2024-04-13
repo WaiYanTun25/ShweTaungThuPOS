@@ -43,7 +43,6 @@ class RoleSeeder extends Seeder
             $createRole = Role::create(['name' => $role]);
             
             $createRole->syncPermissions($permissionList->$role);
-            
         }
     }
 }

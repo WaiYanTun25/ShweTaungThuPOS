@@ -13,7 +13,6 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        // $branchPermissionList = ['branch:get', 'branch:create', 'branch:edit','branch:detail','branch:delete'];
         $branchPermissionList = ['branch:read', 'branch:create', 'branch:edit','branch:delete'];
         // $categoryPermissionList = ['category:read', 'category:create', 'category:edit','category:delete'];
         $supplierPermissionList = ['supplier:read', 'supplier:create', 'supplier:edit','supplier:delete'];
@@ -23,6 +22,7 @@ class PermissionSeeder extends Seeder
         $salesPermissionList = ['sales:read', 'sales:create', 'sales:edit','sales:delete'];
         $purchasesPermissionList = ['purchases:read', 'purchases:create', 'purchases:edit','purchases:delete'];
         $registerPermissions = ['auth:register'];
+
         $allPermissions = array_merge(
             $supplierPermissionList,
             $customerPermissionList, 

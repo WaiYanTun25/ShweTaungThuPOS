@@ -404,5 +404,11 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::get('{id}/activity_history' , [UserController::class, 'getUserActivityByUserId']);
     });
 
-    Route::resource('generals', GeneralController::class);
+    Route::prefix('generals')->group(function() {
+        Route::get('', [GeneralController::class, 'index']);
+        Route::post('', [GeneralController::class, 'store']);
+        Route::get('detail', [GeneralController::class, 'show']);
+        Route::put('update', [GeneralController::class, 'update']);
+        Route::delete('delete', [GeneralController::class, 'destroy']);
+    });
 });

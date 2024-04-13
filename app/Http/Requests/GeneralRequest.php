@@ -41,11 +41,8 @@ class GeneralRequest extends FormRequest
                 function ($attribute, $value, $fail)  {
                     $general = General::first();
                     if ($this->isMethod('post') && $general ) {
-                        if ($general) {
                             $fail("There is already a password and another one cannot be created !!");
-                        }
                     }
-                    
                 }
             ],
         ];

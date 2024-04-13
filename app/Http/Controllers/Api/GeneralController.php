@@ -11,14 +11,14 @@ use App\Models\General;
 
 class GeneralController extends ApiBaseController
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('permission:password:read')->only('index', 'detail');
-    //     $this->middleware('permission:password:create')->only('store');
-    //     $this->middleware('permission:password:detail')->only('show');
-    //     $this->middleware('permission:password:edit')->only('update');
-    //     $this->middleware('permission:password:delete')->only('delete');
-    // }
+    public function __construct()
+    {
+        $this->middleware('permission:password:read')->only('index', 'detail');
+        $this->middleware('permission:password:create')->only('store');
+        $this->middleware('permission:password:detail')->only('show');
+        $this->middleware('permission:password:edit')->only('update');
+        $this->middleware('permission:password:delete')->only('delete');
+    }
 
     /**
      * Display a listing of the resource.
@@ -26,7 +26,7 @@ class GeneralController extends ApiBaseController
      */
     public function index()
     {
-        $general = General::first();
+        $general = General::first('password');
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $general);
     }
 
@@ -49,32 +49,55 @@ class GeneralController extends ApiBaseController
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show()
     {
-        //
-    }
+        $getGeneral = General::first('password');
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $getGeneral);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(GeneralRequest $request)
     {
-        //
+        $validatedData = $request->validated();
+        $general = General::first();
+
+        if ($general) {
+            // Update the record
+            $general->update([
+                'password' => $validatedData['password']
+            ]);
+    
+            // Return success response
+            return $this->sendSuccessResponse('Password updated successfully', Response::HTTP_OK);
+        } else {
+            // Return error response if the record doesn't exist
+            return $this->sendErrorResponse('Record not found', Response::HTTP_NOT_FOUND);
+        }
+
+        // return $this->sendSuccessResponse('Success', Response::HTTP_CREATED);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy()
     {
-        //
+         // Find the record with ID 1
+        $general = General::first();
+
+        // Check if the record exists
+        if ($general) {
+            // Delete the record
+            $general->delete();
+
+            // Return success response
+            return $this->sendSuccessResponse('Record deleted successfully', Response::HTTP_OK);
+        } else {
+            // Return error response if the record doesn't exist
+            return $this->sendErrorResponse('Record not found', Response::HTTP_NOT_FOUND);
+        }
     }
 }
