@@ -43,6 +43,7 @@ class PurchaseOrderRequest extends FormRequest
             'discount_percentage' => 'required | integer',
             'discount_amount' => 'required | integer',
             'amount_type' => 'required | in:RETAIL,WHOLESALE,VIP',
+            'is_lock' => 'nullable',
             'remark' => 'required | max:100',
             'purchase_order_details.*.item_id' => 'required|integer | exists:items,id',
             'purchase_order_details.*.unit_id' => 'required|integer | exists:units,id',
