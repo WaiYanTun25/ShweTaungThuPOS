@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use App\Http\Requests\PaymentMethodRequest;
+use Exception;
 
 class PaymentMethodController extends ApiBaseController
 {
@@ -21,9 +23,20 @@ class PaymentMethodController extends ApiBaseController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(PaymentMethodRequest $request)
     {
-        //
+       try{
+        $data = $request->validated();
+
+        $createdPayment = PaymentMethod::create([
+            'name' => $data['name']
+        ]);
+
+        $message = 'Payment Method (' . $createdPayment->name . ') is created successfully';
+        return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
+       }catch(Exception $e){
+        return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+       }
     }
 
     /**
@@ -37,9 +50,25 @@ class PaymentMethodController extends ApiBaseController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(PaymentMethodRequest $request, string $id)
     {
-        //
+        try {
+            $data = $request->validated();
+            
+            // Find the payment method by ID
+            $paymentMethod = PaymentMethod::findOrFail($id);
+            
+            // Update the payment method with the validated data
+            $paymentMethod->update([
+                'name' => $data['name'],
+            ]);
+
+            $message = 'Payment Method (' . $paymentMethod->name . ') is updated';
+            
+            return $this->sendSuccessResponse($message, Response::HTTP_OK);
+        } catch (Exception $e) {
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -47,6 +76,14 @@ class PaymentMethodController extends ApiBaseController
      */
     public function destroy(string $id)
     {
-        //
+        $check = PaymentMethod::findOrFail($id);
+
+        if($check) {
+            $check->is_active = 0;
+            $check->save();
+
+            $message = 'Payment Method (' . $check->name . ') is deleted';
+            return $this->sendSuccessResponse($message, Response::HTTP_OK);
+        }
     }
 }
