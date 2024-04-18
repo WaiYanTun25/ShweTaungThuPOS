@@ -13,7 +13,7 @@ class Supplier extends Model
 {
     use HasFactory, LogsActivity;
     public $timestamps = false;
-    protected $fillable = ['name', 'prefix', 'phone_number', 'address', 'township', 'city', 'join_date'];
+    protected $fillable = ['code', 'name', 'prefix', 'phone_number', 'address', 'township', 'city', 'join_date'];
 
 
     public function getActivitylogOptions(): LogOptions
@@ -36,7 +36,24 @@ class Supplier extends Model
         static::creating(function ($supplier) {
             // Set the join_date attribute to the current date if it's not provided
             $supplier->join_date = $supplier->join_date ?? now();
+            $supplier->code = static::generateCustomerCode();
         });
+    }
+
+    protected static function generateCustomerCode()
+    {
+        // Get the last item for the given supplier from the database
+        $lastUser = static::latest('code')->first();
+        $userPrefix = 'SUP'; 
+        if (!$lastUser) {
+            return $userPrefix . '-000001';
+        }
+    
+        // Extract the numeric part of the existing item code and increment it
+        $numericPart = (int)substr($lastUser->code, -6);
+        $newNumericPart = str_pad($numericPart + 1, 6, '0', STR_PAD_LEFT);
+    
+        return $userPrefix . '-' . $newNumericPart;
     }
 
     public function townshipData()

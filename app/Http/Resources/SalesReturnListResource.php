@@ -23,6 +23,7 @@ class SalesReturnListResource extends JsonResource
         $sales_return_list = $this->data->map(function ($sales_return) {
             return [
                 'id' => $sales_return->id,
+                'is_lock' => $sales_return->is_lock,
                 'voucher_no' => $sales_return->voucher_no,
                 'customer_name' => $sales_return->customer->name,
                 'item_name' => $this->getItemsName($sales_return->sales_return_details),

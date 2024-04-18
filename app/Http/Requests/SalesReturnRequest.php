@@ -50,7 +50,7 @@ class SalesReturnRequest extends FormRequest
             'remark' => 'required | max:100',
             // 'amount_type' => 'required | in:wholesale_price,vip_price,retail_price',
             'amount_type' => 'required | in:RETAIL,WHOLESALE,VIP',
-            'is_lock' => 'nullable',
+            'is_lock' => 'nullable | in:1,0',
             'pay_amount' => 'required | min:1',
             'payment_method' => 'required | exists:payment_methods,id',
             'sales_return_details.*.item_id' => 'required|integer | exists:items,id',

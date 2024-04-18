@@ -23,6 +23,7 @@ class SalesOrderListResource extends JsonResource
         $sales_order_list = $this->map(function ($order) {
             return [
                 'id' => $order->id,
+                'is_lock' => $order->is_lock,
                 'voucher_no' => $order->voucher_no,
                 'customer_name' => $order->customer->name,
                 'item_name' => $this->getItemsName($order->sales_order_details),

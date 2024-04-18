@@ -38,6 +38,9 @@ trait SalesTrait
         $createSale->remain_amount = $data['total_amount'] - $pay_amount;
         $createSale->payment_status = $data['payment_status'];
         $createSale->amount_type = $data['amount_type'];
+        if (isset($data['is_lock'])) {
+            $createSale->is_lock = $data['is_lock'] ? 1 : 0;
+        }
         $createSale->remark = $data['remark'];
         $createSale->save();
 

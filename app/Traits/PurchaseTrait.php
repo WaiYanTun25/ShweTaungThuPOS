@@ -38,6 +38,9 @@ trait PurchaseTrait
         $createPurchase->remain_amount = $data['total_amount'] - $pay_amount;
         $createPurchase->payment_status = $data['payment_status'];
         $createPurchase->amount_type = $data['amount_type'];
+        if (isset($data['is_lock'])) {
+            $createSale->is_lock = $data['is_lock'] ? 1 : 0;
+        }
         $createPurchase->remark = $data['remark'];
         $createPurchase->save();
 

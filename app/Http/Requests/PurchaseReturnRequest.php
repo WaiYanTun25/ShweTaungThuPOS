@@ -50,7 +50,7 @@ class PurchaseReturnRequest extends FormRequest
             'pay_amount' => 'required | min:1',
             'payment_method' => 'required | exists:payment_methods,id',
             'amount_type' => 'required | in:RETAIL,WHOLESALE,VIP',
-            'is_lock' => 'nullable',
+            'is_lock' => 'nullable | in:1,0',
             'purchase_return_details.*.item_id' => 'required|integer | exists:items,id',
             'purchase_return_details.*.unit_id' => 'required|integer | exists:units,id',
             'purchase_return_details.*.item_price' => 'required|integer|min:1',

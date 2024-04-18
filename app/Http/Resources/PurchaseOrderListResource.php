@@ -23,6 +23,7 @@ class PurchaseOrderListResource extends JsonResource
         $purchase_order_list = $this->map(function ($order) {
             return [
                 'id' => $order->id,
+                'is_lock' => $order->is_lock,
                 'voucher_no' => $order->voucher_no,
                 'supplier_name' => $order->supplier->name,
                 'item_name' => $this->getItemsName($order->purchase_order_details),

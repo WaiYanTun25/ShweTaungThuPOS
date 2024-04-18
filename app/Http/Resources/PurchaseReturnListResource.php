@@ -29,6 +29,7 @@ class PurchaseReturnListResource extends JsonResource
 
             return [
                 'id' => $purchase_return->id,
+                'is_lock' => $purchase_return->is_lock,
                 'voucher_no' => $purchase_return->voucher_no,
                 'supplier_name' => $purchase_return->supplier->name,
                 'item_name' => $this->getItemsName($purchase_return->purchase_return_details),

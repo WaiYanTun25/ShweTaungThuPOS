@@ -34,6 +34,7 @@ class PurchasesListResource extends JsonResource
 
                 $result = [
                     'id' => $purchase->id,
+                    'is_lock' => $purchase->is_lock,
                     'voucher_no' => $purchase->voucher_no,
                     'supplier_name' => $purchase->supplier->name,
                     'item_name' => $this->getItemsName($purchase->purchase_details),

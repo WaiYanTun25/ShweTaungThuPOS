@@ -43,7 +43,7 @@ class SalesOrderRequest extends FormRequest
             'discount_amount' => 'required | integer',
             // 'amount_type' => 'required | in:wholesale_price,vip_price,retail_price',
             'amount_type' => 'required | in:RETAIL,WHOLESALE,VIP',
-            'is_lock' => 'nullable',
+            'is_lock' => 'nullable | in:1,0',
             'remark' => 'required | max:100',
             'sales_order_details.*.item_id' => 'required|integer | exists:items,id',
             'sales_order_details.*.unit_id' => 'required|integer | exists:units,id',

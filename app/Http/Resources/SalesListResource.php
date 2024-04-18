@@ -34,6 +34,7 @@ class SalesListResource extends JsonResource
             'total_sales_list' => $this->data->map(function ($sales) {
                 return [
                     'id' => $sales->id,
+                    'is_lock' => $sales->is_lock,
                     'voucher_no' => $sales->voucher_no,
                     'customer_name' => $sales->customer->name,
                     'item_name' => $this->getItemsName($sales->sales_details),
