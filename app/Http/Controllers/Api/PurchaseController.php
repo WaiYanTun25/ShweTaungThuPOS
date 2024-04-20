@@ -56,22 +56,24 @@ class PurchaseController extends ApiBaseController
     try {
         $purchaseQuery = Purchase::query();
         $getReturnQuery = PurchaseReturn::with('purchase_return_details');
+        $supplierQuery = Supplier::query();
+        $orderQuery = PurchaseOrder::query();
 
         // Apply duration type conditions
         if ($durationType == 1) {
             $purchaseQuery->whereDate('purchase_date', $today);
-            $supplierQuery = Supplier::whereDate('join_date', $today);
-            $orderQuery = PurchaseOrder::whereDate('order_date', $today);
+            $supplierQuery->whereDate('join_date', $today);
+            $orderQuery->whereDate('order_date', $today);
             $getReturnQuery->whereDate('purchase_return_date', $today);
         } elseif ($durationType == 2) {
             $purchaseQuery->whereMonth('purchase_date', $currentMonth)->whereYear('purchase_date', $currentYear);
-            $supplierQuery = Supplier::whereMonth('join_date', $currentMonth)->whereYear('join_date', $currentYear);
-            $orderQuery = PurchaseOrder::whereMonth('order_date', $currentMonth)->whereYear('order_date', $currentYear);
+            $supplierQuery->whereMonth('join_date', $currentMonth)->whereYear('join_date', $currentYear);
+            $orderQuery->whereMonth('order_date', $currentMonth)->whereYear('order_date', $currentYear);
             $getReturnQuery->whereMonth('purchase_return_date', $currentMonth)->whereYear('purchase_return_date', $currentYear);
         } elseif ($durationType == 3) {
             $purchaseQuery->whereYear('purchase_date', $currentYear);
-            $supplierQuery = Supplier::whereYear('join_date', $currentYear);
-            $orderQuery = PurchaseOrder::whereYear('order_date', $currentYear);
+            $supplierQuery->whereYear('join_date', $currentYear);
+            $orderQuery->whereYear('order_date', $currentYear);
             $getReturnQuery->whereYear('purchase_return_date', $currentYear);
         }
 
@@ -80,8 +82,10 @@ class PurchaseController extends ApiBaseController
         $getTotalPurchasesCount = $purchaseQuery->count();
 
         // sales financial report
-        $getSupplierCount = $supplierQuery->count();
-        $getTotalSupplierCount = Supplier::count();
+        // $getSupplierCount = $supplierQuery->count();
+        // $getTotalSupplierCount = Supplier::count();
+        $getTotalPurchasePay = $purchaseQuery->sum('pay_amount');
+        $getTotalPurchaseDebt = $purchaseQuery->sum('remain_amount');
 
         // sales order report
         $getTotalOrderCount = $orderQuery->count();
@@ -99,9 +103,14 @@ class PurchaseController extends ApiBaseController
             'total_purchase_count' => $getTotalPurchasesCount,
         ];
 
-        $result->suppliers = [
-            "total_suppliers" => $getTotalSupplierCount,
-            "this_month_suppliers" => $getSupplierCount
+        // $result->suppliers = [
+        //     "total_suppliers" => $getTotalSupplierCount,
+        //     "this_month_suppliers" => $getSupplierCount
+        // ];
+
+        $result->financial_report = [
+            'total_pay_amount' => $getTotalPurchasePay,
+            'total_remain_amount' => $getTotalPurchaseDebt
         ];
 
         $result->order = [
@@ -115,7 +124,7 @@ class PurchaseController extends ApiBaseController
 
         return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
     } catch (Exception $e) {
-        return $this->sendErrorResponse('Something Went Wrong', Response::HTTP_INTERNAL_SERVER_ERROR);
+        return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
     }
         // try {
         //     // sales report

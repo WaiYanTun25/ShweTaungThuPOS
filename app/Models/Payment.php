@@ -83,5 +83,8 @@ class Payment extends Model
         return $this->hasOne(Activity::class, 'subject_id', 'id')->where('subject_type', get_class($this));
     }
 
-    
+    public function customer()
+    {
+        return $this->hasOne(Customer::class, 'id', 'subject_id');
+    }
 }

@@ -25,7 +25,8 @@ use App\Http\Controllers\Api\{
     UnitController,
     UnitConvertController,
     UserController,
-    GeneralController
+    GeneralController,
+    TotalPaymentController
 };
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\RoleController;
@@ -354,6 +355,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::get('summary', [SalesController::class , 'getSalesSummary']);
         Route::get('total_sales_list', [SalesController::class, 'getTotalSalesList']);
         Route::get('{id}/pre_return_form_data', [PurchaseController::class, 'getPreReturnFormData']);
+        Route::get('sale_payment_list', [TotalPaymentController::class, 'salesPaymentList']);
     });
     Route::apiResource('sales', SalesController::class);
     // sales order
