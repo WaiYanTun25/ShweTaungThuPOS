@@ -24,6 +24,19 @@ use stdClass;
 class IssueController extends ApiBaseController
 {
     use TransactionTrait;
+
+    public function __construct()
+    {
+        // Check if the 'permission' query parameter is present and set to 'true'
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:issue:read')->only('index', 'show');
+            $this->middleware('permission:issue:create')->only('store');
+            $this->middleware('permission:issue:edit')->only('update');
+            $this->middleware('permission:issue:delete')->only('destroy'); // this api is still remain
+        }
+    }
     /**
      * Display a listing of the resource.
      */

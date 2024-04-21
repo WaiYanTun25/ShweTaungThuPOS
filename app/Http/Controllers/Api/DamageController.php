@@ -18,6 +18,20 @@ use Illuminate\Support\Facades\Auth;
 class DamageController extends ApiBaseController
 {
     use TransactionTrait;
+
+    public function __construct()
+    {
+        // Check if the 'permission' query parameter is present and set to 'true'
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:damage:read')->only('index', 'show');
+            $this->middleware('permission:damage:create')->only('store');
+            $this->middleware('permission:damage:edit')->only('update');
+            $this->middleware('permission:damage:delete')->only('destroy'); // this api is still remain
+        }
+    }
+
     /**
      * Display a listing of the resource.
      */
