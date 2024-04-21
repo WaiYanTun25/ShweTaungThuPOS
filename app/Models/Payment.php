@@ -87,4 +87,9 @@ class Payment extends Model
     {
         return $this->hasOne(Customer::class, 'id', 'subject_id');
     }
+
+    public function supplier()
+    {
+        return $this->hasOne(Supplier::class, 'id', 'subject_id');
+    }
 }

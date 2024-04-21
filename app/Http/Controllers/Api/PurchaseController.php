@@ -51,7 +51,7 @@ class PurchaseController extends ApiBaseController
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
         $today = now()->toDateString();
-        $durationType = $request->duration_type;
+        $durationType = $durationType = $request->duration_type ? $request->duration_type : 1;
 
     try {
         $purchaseQuery = Purchase::query();

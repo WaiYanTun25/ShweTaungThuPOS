@@ -271,7 +271,7 @@ class CustomerController extends ApiBaseController
         try{
             $createPayment = new Payment();
             $createPayment->type = $type == "customers" ? Payment::Customer : Payment::Supplier;
-            $createPayment->subject_id = $validatedData['customer_id'] ? $validatedData['customer_id'] : $validatedData['supplier_id'];
+            $createPayment->subject_id = isset($validatedData['customer_id']) ? $validatedData['customer_id'] : $validatedData['supplier_id'];
             $createPayment->payment_method_id = $validatedData['payment_method_id'];
 
             $timestamp = DateTime::createFromFormat('j/n/y', $validatedData['payment_date']);

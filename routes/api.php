@@ -126,6 +126,9 @@ Route::post('/central_links', function () {
                     "အလုံးစုံစာရင်း" => config('app.url') . "/api/purchases/summary",
                     "ဝယ်ယူမှုမှတ်တမ်း" => config('app.url') . "/api/purchases?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=&endDate=&supplier_id=&payment=",
                 ],
+                "ငွေစာရင်း" => [
+                    "purchases payment list" => config('app.url') . "/purchases/purchase_payment_list?payment_method_id=1&startDate=2024-04-15&endDate=2024-04-20"
+                ],
                 "purchase detail" => config('app.url') . "/api/purchases/{id}",
                 "create purchase" => config('app.url') . "/api/purchases",
                 "update Purchase (PUT)" => config('app.url') . "/api/purchases/{id}",
@@ -161,6 +164,9 @@ Route::post('/central_links', function () {
                 "sales" => [
                     "အလုံးစုံစာရင်း" => config('app.url') . "/api/sales/summary",
                     "အရောင်းမှတ်တမ်း" => config('app.url') . "/api/sales?order=desc&column=remain_amount&searchBy=&page=1&perPage=10&startDate=&endDate=&supplier_id=&payment=",
+                ],
+                "ငွေစာရင်း" => [
+                    "sale payment list" => config('app.url') . "api/sales/sale_payment_list?startDate=2024-04-15&endDate=2024-04-20&payment_method_id=1"
                 ],
                 "sale_detail" => config('app.url') . "/api/sales/{id}",
                 "create sales (POST)" => config('app.url') . "/api/sales",
@@ -211,6 +217,9 @@ Route::post('/central_links', function () {
                 "Supplier Detail" => config('app.url') . "/api/suppliers/{supplier_id}",
                 "Supplier Create (POST)" => config('app.url') . "/api/suppliers",
                 "Supplier Delete (DELETE)" => config('app.url') . "/api/suppliers"
+            ],
+            "pay debt" => [
+                'create_payment' => config('app.url') . "/api/suppliers/payment",
             ],
         ],
         "User Profile and Settings" => [
@@ -302,6 +311,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
     });
     Route::apiResource('customers', CustomerController::class);
 
+    // this route can use debt payment for both supplier and customer
     Route::post('{type}/payment', [CustomerController::class, 'createCustomerPayment']);
 
     // item, unit
@@ -337,6 +347,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
         Route::get('summary', [PurchaseController::class , 'getPurchaseSummary']);
         Route::get('total_purchase_list', [PurchaseController::class, 'getTotalPurchaseList']);
         Route::get('{id}/pre_return_form_data', [PurchaseController::class, 'getPreReturnFormData']);
+        Route::get('purchase_payment_list', [TotalPaymentController::class, 'purchasePaymentList']);
     });
     Route::apiResource('purchases', PurchaseController::class);
 
