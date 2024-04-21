@@ -18,6 +18,19 @@ use stdClass;
 
 class UserController extends ApiBaseController
 {
+
+    public function __construct()
+    {
+        // Check if the 'permission' query parameter is present and set to 'true'
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:user:read')->only('index', 'show');
+            $this->middleware('permission:user:create')->only('store');
+            $this->middleware('permission:user:edit')->only('update');
+            $this->middleware('permission:user:delete')->only('destroy'); // this api is still remain
+        }
+    }
     /**
      * Display a listing of the resource.
      */

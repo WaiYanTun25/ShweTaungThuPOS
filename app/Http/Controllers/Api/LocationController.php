@@ -14,6 +14,25 @@ use Illuminate\Http\Response;
 class LocationController extends ApiBaseController
 {
 
+    public function __construct()
+    {
+        // Check if the 'permission' query parameter is present and set to 'true'
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:city:read')->only('getCities', 'getCityById');
+            $this->middleware('permission:city:create')->only('createCities');
+            $this->middleware('permission:city:edit')->only('updateCities');
+            $this->middleware('permission:city:delete')->only('deleteCity'); // this api is still remain
+        }
+
+        if ($checkPermission) {
+            $this->middleware('permission:township:read')->only('getTownships', 'getTownshipById');
+            $this->middleware('permission:township:create')->only('createTownships');
+            $this->middleware('permission:township:edit')->only('updateTownships');
+            $this->middleware('permission:township:delete')->only('deleteTownships'); // this api is still remain
+        }
+    }
     // cities functions
     public function getCities(Request $request)
     {

@@ -12,14 +12,18 @@ use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends ApiBaseController
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('permission:category:read')->only('index', 'detail');
-    //     $this->middleware('permission:category:create')->only('store');
-    //     // $this->middleware('permission:category:detail')->only('show');
-    //     $this->middleware('permission:category:edit')->only('update');
-    //     $this->middleware('permission:category:delete')->only('delete');
-    // }
+    public function __construct()
+    {
+        // Check if the 'permission' query parameter is present and set to 'true'
+        $checkPermission = request()->query('permission') === 'True';
+        // Conditionally apply permission middleware
+        if ($checkPermission) {
+            $this->middleware('permission:category:read')->only('index', 'show');
+            $this->middleware('permission:category:create')->only('store');
+            $this->middleware('permission:category:edit')->only('update');
+            $this->middleware('permission:category:delete')->only('destroy'); // this api is still remain
+        }
+    }
 
     /**
      * Display a listing of the resource.
