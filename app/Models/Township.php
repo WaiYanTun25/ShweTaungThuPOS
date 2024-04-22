@@ -25,6 +25,11 @@ class Township extends Model
 
     public function customers()
     {
-        return $this->hasMany(Customer::class, 'city', 'id');
+        return $this->hasMany(Customer::class, 'township', 'id');
+    }
+
+    public function suppliers()
+    {
+        return $this->hasMany(Supplier::class, 'township', 'id');
     }
 }

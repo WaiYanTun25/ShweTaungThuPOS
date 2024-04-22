@@ -72,17 +72,21 @@ class LocationController extends ApiBaseController
 
     public function deleteCity($id)
     {
-        $getCity = City::findOrfail($id);
+        $getCity = City::findOrFail($id);
 
-        // Check if there are related records in the customer or township table
-        $hasRelatedRecords = $getCity->customers()->exists() || $getCity->townships()->exists();
+        // Check if there are related records in customer, township, or supplier tables
+        $hasRelatedRecords = $getCity->customers()->exists() ||
+                            $getCity->townships()->exists() ||
+                            $getCity->suppliers()->exists();
 
         // If there are related records, do not delete the city
         if ($hasRelatedRecords) {
-            return $this->sendErrorResponse('City has related records in customer or township table. Cannot delete.', Response::HTTP_CONFLICT);
+            return $this->sendErrorResponse(
+                'City has related records in customer, township, or supplier tables. Cannot delete.',
+                Response::HTTP_CONFLICT
+            );
         }
         $getCity->delete();
-        $getCity->townships()->delete();
         $message = 'City (' . $getCity->name . ') is Deleted successfully';
         return $this->sendSuccessResponse($message, Response::HTTP_OK);
     }
@@ -129,12 +133,16 @@ class LocationController extends ApiBaseController
     {
         $getTownship = Township::findOrFail($id);
 
-        // Check if there are related records in the customer or township table
-        $hasRelatedRecords = $getTownship->customers()->exists();
-
-        // If there are related records, do not delete the city
-        if ($hasRelatedRecords) {
-            return $this->sendErrorResponse('Townships has related records in customer. Cannot delete.', Response::HTTP_CONFLICT);
+        // Check if there are related records in the customer or supplier tables
+        $hasRelatedCustomerRecords = $getTownship->customers()->exists();
+        $hasRelatedSupplierRecords = $getTownship->suppliers()->exists();
+        
+        // If there are related records in either table, do not delete the township
+        if ($hasRelatedCustomerRecords || $hasRelatedSupplierRecords) {
+            return $this->sendErrorResponse(
+                'Township has related records in customer or supplier. Cannot delete.',
+                Response::HTTP_CONFLICT
+            );
         }
         $getTownship->delete();
         $message = 'Township (' . $getTownship->name . ') is Deleted successfully';

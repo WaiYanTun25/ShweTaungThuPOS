@@ -99,13 +99,13 @@ class UnitController extends ApiBaseController
      */
     public function destroy(string $id)
     {
-        $unit = Unit::findOrFail($id);
+        $unit = Unit::with('unitDetails')->findOrFail($id);
         try{
             DB::beginTransaction();
-            if(true) {
-                return $this->sendErrorResponse('There are related data with '.$unit->name, Response::HTTP_CONFLICT);
+            if ($unit->unitDetails->isNotEmpty()) {
+                return $this->sendErrorResponse('There are related data with ' . $unit->name, Response::HTTP_CONFLICT);
             }
-            $unit->unitUnitDetails()->delete();
+            $unit->unitDetails()->delete();
             $unit->delete();
             DB::commit();
 

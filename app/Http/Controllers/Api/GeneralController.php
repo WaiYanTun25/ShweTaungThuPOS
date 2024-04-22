@@ -13,11 +13,15 @@ class GeneralController extends ApiBaseController
 {
     public function __construct()
     {
-        $this->middleware('permission:password:read')->only('index', 'detail');
-        $this->middleware('permission:password:create')->only('store');
-        $this->middleware('permission:password:detail')->only('show');
-        $this->middleware('permission:password:edit')->only('update');
-        $this->middleware('permission:password:delete')->only('delete');
+        $checkPermission = request()->query('permission') === 'True';
+
+        if ($checkPermission) {
+            $this->middleware('permission:password:read')->only('index', 'detail');
+            $this->middleware('permission:password:create')->only('store');
+            $this->middleware('permission:password:detail')->only('show');
+            $this->middleware('permission:password:edit')->only('update');
+            $this->middleware('permission:password:delete')->only('delete');
+        }
     }
 
     /**

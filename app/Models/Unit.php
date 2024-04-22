@@ -9,4 +9,9 @@ class Unit extends Model
 {
     use HasFactory;
     public $timestamps = false;
+
+    public function unitDetails()
+    {
+        return $this->hasMany(ItemUnitDetail::class, 'unit_id');
+    }
 }
