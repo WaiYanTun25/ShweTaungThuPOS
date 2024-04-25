@@ -27,7 +27,7 @@ trait SalesOrderTrait
         $createPurchase->discount_amount = $data['discount_amount'];
         $createPurchase->amount_type = $data['amount_type'];
         if (isset($data['is_lock'])) {
-            $createSale->is_lock = $data['is_lock'] ? 1 : 0;
+            $createPurchase->is_lock = $data['is_lock'] ? 1 : 0;
         }
         $createPurchase->total_quantity = collect($data['sales_order_details'])->sum('quantity');
         $createPurchase->remark = $data['remark'];

@@ -13,7 +13,7 @@ class SalesOrder extends Model
 {
     use HasFactory, LogsActivity;
     public $timestamps = false;
-    protected $fillable = ['voucher_no', 'branch_id', 'customer_id', 'customer_name', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'amount_type', 'remark', 'order_date'];
+    protected $fillable = ['voucher_no', 'branch_id', 'customer_id', 'customer_name', 'total_quantity', 'amount', 'total_amount', 'tax_percentage', 'tax_amount', 'discount_percentage', 'discount_amount', 'amount_type', 'remark', 'order_date', 'is_lock'];
     
     public function getActivitylogOptions(): LogOptions
     {

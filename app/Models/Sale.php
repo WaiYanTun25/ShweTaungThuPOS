@@ -34,7 +34,8 @@ class Sale extends Model
         'amount_type',
         'payment_status',
         'remark',
-        'sales_date'
+        'sales_date',
+        'is_lock'
     ];
 
     public function getActivitylogOptions(): LogOptions
