@@ -35,7 +35,7 @@ trait SalesReturnTrait
         $createPurchase->pay_amount = $data['pay_amount'];
         $createPurchase->amount_type = $data['amount_type'];
         if (isset($data['is_lock'])) {
-            $createPurchase->is_lock = $data['is_lock'] ? 1 : 0;
+            $createPurchase->is_lock = $data['is_lock'] == 1 ? 1 : 0;
         }
         $createPurchase->remark = $data['remark'];
         $createPurchase->save();

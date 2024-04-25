@@ -39,7 +39,7 @@ trait SalesTrait
         $createSale->payment_status = $data['payment_status'];
         $createSale->amount_type = $data['amount_type'];
         if (isset($data['is_lock'])) {
-            $createSale->is_lock = $data['is_lock'] ? 1 : 0;
+            $createSale->is_lock = $data['is_lock'] == 1 ? 1 : 0;
         }
         $createSale->remark = $data['remark'];
         $createSale->save();
