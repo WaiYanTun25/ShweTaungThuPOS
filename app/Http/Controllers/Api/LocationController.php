@@ -95,9 +95,19 @@ class LocationController extends ApiBaseController
 
     public function getTownships(Request $request)
     {
-        $getTownships = Township::get();
+        $getTownships = Township::with('city')->get();
 
-        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $getTownships);
+        $result = $getTownships->map(function($township) {
+            return [
+                'id' => $township->id,
+                'city_id' => $township->city_id,
+                'city_name' => $township->city->name, 
+                'name' => $township->name,
+                'created_date' => $township->created_date,
+            ];
+        });
+
+        return $this->sendSuccessResponse('Success', Response::HTTP_OK, $result);
     }
 
     public function createTownships(TownshipRequest $request)

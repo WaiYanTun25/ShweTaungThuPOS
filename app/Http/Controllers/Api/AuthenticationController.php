@@ -100,6 +100,7 @@ class AuthenticationController extends ApiBaseController
 
     public function getCurrentUserRoleAndPermission()
     {
+        info('here');
         $userId = Auth::user()->id;
         
         return $this->getUserRoleAndPermission($userId);

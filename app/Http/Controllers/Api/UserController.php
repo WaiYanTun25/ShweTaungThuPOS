@@ -174,6 +174,7 @@ class UserController extends ApiBaseController
      */
     public function destroy(string $id)
     {
+        info('here', id);
         $deleteUser = User::findOrFail($id);
 
         try {
