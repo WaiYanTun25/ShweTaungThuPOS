@@ -166,7 +166,8 @@ class InventoryController extends ApiBaseController
 
                 return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
             }
-            $itemDetails->paginate($perPage);
+            $itemDetails = $itemDetails->paginate($perPage); 
+            
             // return $itemDetails;
             $result = new LowStockResource($itemDetails);
         }
