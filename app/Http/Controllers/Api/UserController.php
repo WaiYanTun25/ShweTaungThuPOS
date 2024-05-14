@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Requests\UserRequest;
+use App\Http\Requests\{
+    UserRequest,
+    UpdateProfileRequest
+};
 use App\Http\Resources\UserActivityHistoryResource;
 use App\Http\Resources\UserListResource;
 use App\Models\Branch;
@@ -249,6 +252,42 @@ class UserController extends ApiBaseController
             $resourceCollection = new UserActivityHistoryResource($userActivities);
 
             return $this->sendSuccessResponse("Success", Response::HTTP_OK, $resourceCollection);
+        } catch (Exception $e) {
+            return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function updateProfile(UpdateProfileRequest $request)
+    {
+        $currentUser = Auth()->user();
+        $updateUser = User::findOrFail($currentUser->id);
+
+        $validatedData = $request->validated();
+        try {
+            DB::beginTransaction();
+            $previousBranchId = $updateUser->branch_id;
+            $newBranchId = $validatedData['branch_id'];
+
+            $updateUser->update([
+                'name' => $validatedData['name'],
+                'phone_number' => $validatedData['phone_number'],
+                // 'address' => $validatedData['address'],
+                'branch_id' => $validatedData['branch_id'],
+                // 'role_id' => $validatedData['role_id'],
+            ]);
+
+            if ($previousBranchId != $newBranchId) {
+                $previousBranch = Branch::findOrFail($previousBranchId);
+                $previousBranch->decrement('total_employee');
+
+                // Increase total_employee count of the new branch
+                $newBranch = Branch::findOrFail($newBranchId);
+                $newBranch->increment('total_employee');
+            }
+
+            DB::commit();
+            $message = 'User (' . $updateUser->name . ') is updated successfully';
+            return $this->sendSuccessResponse($message, Response::HTTP_CREATED);
         } catch (Exception $e) {
             return $this->sendErrorResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }

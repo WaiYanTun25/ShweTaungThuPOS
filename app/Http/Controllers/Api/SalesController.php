@@ -248,6 +248,7 @@ class SalesController extends ApiBaseController
         try {
             $createdSales = $this->createOrUpdateSales($validatedData, $branch_id);
 
+            info($validatedData['sales_details']);
             $createdSales->sales_details()->createMany($validatedData['sales_details']);
 
             // Add the items to the branch
@@ -280,17 +281,23 @@ class SalesController extends ApiBaseController
      */
     public function update(SalesRequest $request, string $id)
     {
-        $updatedSales = Sale::findOrFail($id);
+        $updatedSales = Sale::with('sales_details')->findOrFail($id);
         DB::beginTransaction();
 
         try {
             $validatedData = $request->validated();
             $this->createOrUpdateSales($validatedData, Auth::user()->branch_id, true, $updatedSales);
 
-            $this->addItemToBranch($validatedData['sales_details']);
+            $this->addItemToBranch($updatedSales->sales_details);
+
+            foreach ($updatedSales->sales_details as $salesDetail) {
+                $salesDetail->delete();
+            }
+            // add new sale detail to sale detail table
+            $updatedSales->sales_details()->createMany($validatedData['sales_details']);
 
             // deduct prev quantity from branch
-            $this->deductItemFromBranch($updatedSales->sales_details, Auth::user()->branch_id, true);
+            $this->deductItemFromBranch($validatedData['sales_details'], Auth::user()->branch_id, true);
 
             DB::commit();
             $message = 'Sales (' . $updatedSales->voucher_no . ') is updated successfully';

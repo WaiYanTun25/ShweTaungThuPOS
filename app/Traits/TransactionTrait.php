@@ -104,11 +104,12 @@ trait TransactionTrait
    {
       try{
          foreach ($requestDetails as $detail) {
+            
             $addQtyToInventory = Inventory::where('item_id', $detail['item_id'])
                 ->where('unit_id', $detail['unit_id'])
                 ->where('branch_id', Auth::user()->branch_id)
                 ->first();
-
+                
             if ($addQtyToInventory) {
                 $addQtyToInventory->increment('quantity', $detail['quantity']);
             } else {

@@ -47,6 +47,10 @@ class RoleController extends ApiBaseController
         $getRoles = $getRoles->get()->map(function ($role) {
             $userCount = User::role($role->name)->count();
             $role->user_count = $userCount;
+
+            // Retrieve role's permission IDs as an array
+            $permissionIds = $role->permissions()->pluck('id')->toArray();
+            $role->permission_ids = $permissionIds;
             return $role;
         });
         

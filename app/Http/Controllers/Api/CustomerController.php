@@ -36,8 +36,8 @@ class CustomerController extends ApiBaseController
             $this->middleware('permission:customer:read')->only('index', 'show');
             $this->middleware('permission:customer:create')->only('store');
             $this->middleware('permission:customer:edit')->only('update');
-            $this->middleware('permission:customer:delete')->only('delete');
-        }
+            $this->middleware('permission:customer:delete')->only('destroy');
+        }   
     }
     /**
      * Display a listing of the resource.
