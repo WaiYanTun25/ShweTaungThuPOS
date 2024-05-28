@@ -109,7 +109,7 @@ class UnitController extends ApiBaseController
             $unit->delete();
             DB::commit();
 
-            $message = 'Unit (' . $unit->item_name .') is deleted successfully';
+            $message = 'Unit (' . $unit->name .') is deleted successfully';
             return $this->sendSuccessResponse($message, Response::HTTP_OK);
         }catch(Exception $e){
             DB::rollBack();

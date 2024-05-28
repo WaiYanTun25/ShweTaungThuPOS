@@ -406,7 +406,7 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
 
     Route::prefix('users')->group(function() {
         Route::get('account_setting', [UserController::class, 'getAccountSetting']);
-        Route::get('update_profile', [UserController::class, 'updateProfile']);
+        Route::put('update_profile', [UserController::class, 'updateProfile']);
         Route::get('activity_history', [UserController::class, 'getActivityHistory']);
         
         // user management
