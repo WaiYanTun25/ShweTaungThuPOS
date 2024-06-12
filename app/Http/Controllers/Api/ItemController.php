@@ -152,6 +152,62 @@ class ItemController extends ApiBaseController
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
     }
 
+    public function productListForOffline(Request $request)
+    {
+        // Filter
+        $supplier_id = $request->query('supplier_id');
+        $category_id = $request->query('category_id');
+        
+        $perPage = $request->query('perPage', 10);
+        $search = $request->query('searchBy');
+        $order = $request->query('order', 'asc');
+        $column = $request->query('column', 'id');
+
+        $branchId = Auth::user()->branch_id;
+        // $getItems = Inventory::with('item');
+        $getItems = Item::with(['itemUnitDetails', 'supplier', 'category','inventories' => function ($query) use ($branchId) {
+            if ($branchId != 0) {
+                $query->where('branch_id', $branchId);
+            }
+        }])->withSum('inventories', 'quantity');
+
+        if($supplier_id){
+            $getItems->where('supplier_id', $supplier_id);
+        }
+
+        if($category_id){
+            $getItems->where('category_id', $category_id);
+        }
+
+        if ($search) {
+            $getItems->where('item_name', 'like', "%$search%")
+                    ->orWhere('item_code', 'like', "%$search%");
+        }
+
+        if ($column == 'quantity') {
+            // Order by total quantity for each item
+            // $getItems->withCount(['inventories as total_quantity' => function ($query) use ($branchId) {
+            //     if ($branchId != 0) {
+            //         $query->where('branch_id', $branchId);
+            //     }
+            // }])
+            // ->orderBy('total_quantity', $order);
+            $getItems->orderBy('inventories_sum_quantity', $order);
+        }
+
+        if($request->query('report') == "True")
+        {
+            $results = $getItems->get();
+            $resourceCollection = new ItemListResource($results, true);
+
+            return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+        }
+        $items = $getItems->paginate($perPage);
+        $resourceCollection = new ItemListResource($items);
+
+        return $this->sendSuccessResponse('success', Response::HTTP_OK, $resourceCollection);
+    }
+
     /**
      * Store a newly created resource in storage.
      */

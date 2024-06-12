@@ -95,6 +95,17 @@ class ItemListResource extends ResourceCollection
                 'quantity' => $item->inventories->sum('quantity'),
                 // 'last_refill_date' => $item->inventories[0]?->last_refill_date ? formatToCustomDate($item->last_refill_date) : null,
                 'last_refill_date' => count($item->inventories) > 0 ? formatToCustomDate($item->inventories[0]->last_refill_date) : null,
+                'item_unit_details' => $item->itemUnitDetails->map(function ($itemUnitDetail) {
+                    return [
+                        'id' => $itemUnitDetail->id,
+                        'unit_id' => $itemUnitDetail->unit_id,
+                        'unit_name' => $itemUnitDetail->unit->name, 
+                        'rate' => $itemUnitDetail->rate,
+                        'retail_price' => $itemUnitDetail->retail_price,
+                        'wholesale_price' => $itemUnitDetail->wholesale_price,
+                        'vip_price' => $itemUnitDetail->vip_price
+                    ];
+                })->toArray(),
             ];
         });
         

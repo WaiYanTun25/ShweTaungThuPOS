@@ -316,9 +316,11 @@ Route::group(["middleware" => ['auth:sanctum']], function () {
 
     // item, unit
     Route::apiResource('units', UnitController::class);
+    Route::get('items/offline_product_list', [ItemController::class, 'productListForOffline']);
     Route::apiResource('items', ItemController::class);
     Route::prefix('items')->group(function () {
         Route::get('code/{item_code}', [ItemController::class, 'showByCode']);
+       
     });
 
     // issue , receive, damage, inventory
