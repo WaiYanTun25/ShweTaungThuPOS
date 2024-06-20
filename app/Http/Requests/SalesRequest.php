@@ -29,6 +29,15 @@ class SalesRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        // if (Auth::user()->branch_id == 0) {
+        //     $message = "Admin User is not allowed to create Sales.";
+        //     throw new HttpResponseException(
+        //         response()->json([
+        //             'message' => $message,
+        //             'errors' => new stdClass(),
+        //         ], 403)
+        //     );
+        // }
         return true;
     }
 

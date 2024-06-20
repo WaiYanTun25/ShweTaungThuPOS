@@ -22,6 +22,7 @@ class SalesOrderController extends ApiBaseController
     public function __construct()
     {
         $checkPermission = request()->query('permission') === 'True';
+        $this->middleware('check.branch')->only('create', 'update');
         // Conditionally apply permission middleware
         if ($checkPermission) {
             $this->middleware('permission:sales:read')->only('index', 'detail');

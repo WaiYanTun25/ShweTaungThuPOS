@@ -37,6 +37,7 @@ class PurchaseController extends ApiBaseController
     public function __construct()
     {
         $checkPermission = request()->query('permission') === 'True';
+        $this->middleware('check.branch')->only('store', 'update');
         // Conditionally apply permission middleware
         if ($checkPermission) {
             $this->middleware('permission:purchases:read')->only('index', 'show');

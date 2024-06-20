@@ -54,7 +54,7 @@ class SalesDetailResource extends JsonResource
                         'quantity' => $detail->quantity,
                         'discount_amount' => $detail->discount_amount,
                         'amount' => $detail->amount,
-                        'company_name' => $this->getSupplierName(explode("-", $detail->item->item_code)[0]),
+                        'company_name' => $this->getSupplierName($detail->item->supplier_id),
                         'category_name' => $this->getCategoryName($detail->item_id),
                         'related_units' => $this->getItemRelatedData($detail->item_id)
                     ];

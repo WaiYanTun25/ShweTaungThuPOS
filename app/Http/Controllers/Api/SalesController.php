@@ -34,6 +34,7 @@ class SalesController extends ApiBaseController
     {
         // Check if the 'permission' query parameter is present and set to 'true'
         $checkPermission = request()->query('permission') === 'True';
+        $this->middleware('check.branch')->only('store', 'update');
         // Conditionally apply permission middleware
         if ($checkPermission) {
             $this->middleware('permission:sales:read')->only('index', 'show');

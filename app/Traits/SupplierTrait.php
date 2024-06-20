@@ -11,9 +11,10 @@ use App\Models\{
 
 trait SupplierTrait
 {
-    public function getSupplierName($prefix)
+    public function getSupplierName($supplierId)
     {
-        $getSupplier = Supplier::where('prefix', $prefix)->first();
+        $getSupplier = Supplier::find($supplierId);
+        
         return $getSupplier->name;
     }
 }
