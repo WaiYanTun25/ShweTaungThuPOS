@@ -15,6 +15,6 @@ trait SupplierTrait
     {
         $getSupplier = Supplier::find($supplierId);
         
-        return $getSupplier->name;
+        return $getSupplier?->name ?? "";
     }
 }
