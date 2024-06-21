@@ -83,6 +83,15 @@ class Handler extends ExceptionHandler
             }
         });
 
+        $this->renderable(function (Throwable $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'result' => 0,
+                    'message' => 'Oops! Something went wrong on our end.',
+                    'data' => new stdClass
+                ], 500);
+            }
+        });
         
     }
 }
