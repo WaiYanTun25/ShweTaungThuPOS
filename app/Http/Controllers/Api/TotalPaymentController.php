@@ -37,18 +37,26 @@ class TotalPaymentController extends ApiBaseController
             $startDate = $request->query('startDate');
             $endDate = $request->query('endDate');
             $paymentMethodId = $request->query('payment_method_id');
+            $customerId = $request->query('customer_id');
         
             // Apply filters for sales data
             if ($startDate && $endDate) {
                 $sales->whereDate('sales_date', '>=', $startDate)
                     ->whereDate('sales_date', '<=', $endDate);
-            }
-        
-            // Apply filters for payments data
-            if ($startDate && $endDate) {
                 $payments->whereDate('payment_date', '>=', $startDate)
                     ->whereDate('payment_date', '<=', $endDate);
             }
+
+            if ($customerId) {
+                $sales->where('customer_id', $customerId);
+                $payments->where('subject_id', $customerId);
+            }
+        
+            // Apply filters for payments data
+            // if ($startDate && $endDate) {
+            //     $payments->whereDate('payment_date', '>=', $startDate)
+            //         ->whereDate('payment_date', '<=', $endDate);
+            // }
         
             if ($paymentMethodId) {
                 $sales->where('payment_method_id', $paymentMethodId);
@@ -148,11 +156,17 @@ class TotalPaymentController extends ApiBaseController
             $startDate = $request->query('startDate');
             $endDate = $request->query('endDate');
             $paymentMethodId = $request->query('payment_method_id');
+            $supplierId = $request->query('supplier_id');
         
             // Apply filters for sales data
             if ($startDate && $endDate) {
                 $purchases->whereDate('purchase_date', '>=', $startDate)
                     ->whereDate('purchase_date', '<=', $endDate);
+            }
+
+            if ($supplierId) {
+                $purchases->where('supplier_id', $supplierId);
+                $payments->where('subject_id', $supplierId);
             }
         
             // Apply filters for payments data

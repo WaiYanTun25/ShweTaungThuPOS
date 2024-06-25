@@ -41,6 +41,10 @@ trait SalesTrait
         if (isset($data['is_lock'])) {
             $createSale->is_lock = $data['is_lock'] == 1 ? 1 : 0;
         }
+        if (!array_key_exists('remark', $data)) {
+            $data['remark'] = "";
+        }
+
         $createSale->remark = $data['remark'];
         $createSale->save();
 

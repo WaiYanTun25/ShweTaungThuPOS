@@ -60,7 +60,7 @@ class SalesRequest extends FormRequest
             'payment_status' => 'required | in:PARTIALLY_PAID,FULLY_PAID,UN_PAID',
             'amount_type' => 'required | in:RETAIL,WHOLESALE,VIP',
             'is_lock' => 'nullable | in:1,0',
-            'remark' => 'required | max:100',
+            'remark' => 'nullable | max:100',
             'sales_details.*.item_id' => 'required | integer | exists:items,id',
             'sales_details.*.unit_id' => 'required | integer | exists:units,id',
             'sales_details.*.item_price' => 'required | integer| min:1',

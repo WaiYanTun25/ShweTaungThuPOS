@@ -249,7 +249,6 @@ class SalesController extends ApiBaseController
         try {
             $createdSales = $this->createOrUpdateSales($validatedData, $branch_id);
 
-            info($validatedData['sales_details']);
             $createdSales->sales_details()->createMany($validatedData['sales_details']);
 
             // Add the items to the branch
