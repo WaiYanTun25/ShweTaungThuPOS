@@ -322,7 +322,7 @@ class MainDashboard extends ApiBaseController
             return $this->sendErrorResponse('No data', Response::HTTP_BAD_REQUEST);
         }
 
-        $resource = new SalesTargetResource($result);
+        $resource = new SalesTargetResource($result, $getSalesTarget);
 
         return $this->sendSuccessResponse('success', Response::HTTP_OK, $resource);
     }
